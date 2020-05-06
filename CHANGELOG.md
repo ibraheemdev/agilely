@@ -1,5 +1,10 @@
 # CHANGELOG
 
+### react setup - May 6, 2020
+
+- created Procfile for use with foreman gem
+- created `react_component()` and `mount()` helpers
+
 ### initial setup - May 6, 2020
 
 - ran `rvm use 2.7.1`
