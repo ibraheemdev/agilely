@@ -1,0 +1,124 @@
+<%= render "layouts/header" %>
+
+<body class="antialiased bg-gray-100 font-tempbugfix">
+    <div class="relative bg-gray-100">
+        <main class="relative max-w-md mx-auto px-4 pt-6 lg:px-16 lg:pt-12 lg:max-w-5xl">
+            <h1 class="max-w-xs mx-auto text-3xl font-bold text-center leading-snug text-gray-900 lg:max-w-2xl lg:text-5xl">
+                <span class="inline-flex relative text-white">
+                    <span aria-hidden class="absolute inset-0 bg-indigo-600" style="transform: skewY(-.5deg) scaleX(1.05)"></span>
+                    <span class="relative">Free for personal use.</span>
+                </span>
+                <span class="ml-1">Flexible to meet your team's needs.</span>
+            </h1>
+            <p class="mt-4 text-gray-700 text-center lg:max-w-xl lg:mx-auto lg:text-xl">
+                Get the power, control, and customization you need to manage your team’s and organization’s projects.
+            </p>
+            <div class="mt-10 lg:mt-16 lg:max-w-4xl lg:mx-auto lg:px-8">
+                <div class="lg:-mx-4 lg:flex lg:items-start">
+                    <div class="lg:w-1/2 lg:px-4">
+                        <div class="relative z-10 p-4 bg-indigo-600 rounded-lg shadow-md lg:p-8">
+                            <div class="pt-2 pb-3 border-b border-indigo-500 lg:pb-8">
+                                <h2 class="text-lg text-white text-center">Personal</h2>
+                                <div class="mt-2 flex items-center justify-center lg:mt-6">
+                                    <div class="text-6xl font-bold text-white tracking-tighter">
+                                        Free
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <ul class="py-6 text-sm text-white font-medium lg:py-8">
+                                    <li class="flex items-center">
+                                        <svg aria-hidden class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                            <path class="text-white" fill="currentColor" d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12z" />
+                                            <path class="text-indigo-600" d="M8 13l3 3 5-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <span class="ml-3">Unlimited Personal Boards</span>
+                                    </li>
+                                    <li class="mt-3 flex items-center">
+                                        <svg aria-hidden class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                            <path class="text-white" fill="currentColor" d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12z" />
+                                            <path class="text-indigo-600" d="M8 13l3 3 5-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <span class="ml-3">10 Team Boards</span>
+                                    </li>
+                                </ul>
+                                <div>
+                                    <%= link_to new_user_registration_path do %>
+                                    <button class="block w-full py-3 text-center rounded bg-indigo-500 text-sm font-semibold text-white border-t border-indigo-400 shadow hover:bg-indigo-400 hover:border-indigo-300 focus:outline-none focus-visible:underline lg:text-base lg:leading-snug">
+                                        Create your free account
+                                    </button>
+                                    <% end %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 lg:mt-0 lg:w-1/2 lg:px-4">
+                        <div class="relative z-10 p-4 bg-white rounded-lg shadow-md lg:p-8">
+                            <div class="pt-2 pb-4 border-b lg:pb-4">
+                                <h2 class="mb-2 text-lg text-gray-800 text-center">Teams</h2>
+                                <div class="mt-2 flex items-center justify-center lg:mt-6">
+                                    <div class="text-6xl font-bold text-gray-700 tracking-tighter">
+                                        $7
+                                    </div>
+                                    <div class="ml-4 text-sm text-gray-700 font-medium">
+                                        <span class="block">per user</span>
+                                        <span class="block">per month</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <ul class="py-6 text-sm text-gray-800 font-medium lg:py-8">
+                                    <li class="flex items-center">
+                                        <svg aria-hidden class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                            <path class="text-gray-200" fill="currentColor" d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12z" />
+                                            <path class="text-gray-700" d="M8 13l3 3 5-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <span class="ml-3">Unlimited Personal Boards</span>
+                                    </li>
+                                    <li class="flex items-center mt-3">
+                                        <svg aria-hidden class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                            <path class="text-gray-200" fill="currentColor" d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12z" />
+                                            <path class="text-gray-700" d="M8 13l3 3 5-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <span class="ml-3">Unlimited Collaborative Team Boards</span>
+                                    </li>
+                                    <li class="mt-3 flex items-center">
+                                        <svg aria-hidden class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                            <path class="text-gray-200" fill="currentColor" d="M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12z" />
+                                            <path class="text-gray-700" d="M8 13l3 3 5-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <span class="ml-3">Something else</span>
+                                    </li>
+                                </ul>
+                                <div>
+                                    <%= link_to new_user_registration_path do %>
+                                    <button class="block w-full py-3 text-center rounded bg-gray-700 text-sm font-semibold text-white shadow hover:bg-gray-600 focus:outline-none focus-visible:underline lg:text-base lg:leading-snug">
+                                        Try for free!
+                                    </button>
+                                    <% end %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <section class="max-w-md mx-auto px-4 pt-8 pb-20 lg:max-w-3xl lg:pt-24 lg:pb-24">
+        <h2 class="text-2xl font-bold text-center leading-snug text-gray-900 lg:text-4xl lg:leading-tight">
+            Get Started Today!
+        </h2>
+        <p class="mt-4 text-center text-gray-700 lg:text-xl">
+            Get the power, control, and customization you need to manage your team’s and organization’s projects.
+        </p>
+        <div class="mt-6 flex lg:mt-8 lg:justify-center">
+            <a href="#" class="flex-grow px-4 py-3 text-sm font-semibold text-center bg-indigo-600 text-white rounded hover:bg-indigo-500 focus:outline-none focus-visible:underline lg:flex-grow-0 lg:text-base lg:px-6">
+                Start 14-day free trial
+            </a>
+            <a href="#" target="_blank" class="ml-4 flex-grow px-4 py-3 text-sm font-semibold text-center border border-gray-400 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus-visible:underline lg:flex-grow-0 lg:text-base lg:px-8">
+                See our refund policy
+            </a>
+        </div>
+    </section>
+</body>

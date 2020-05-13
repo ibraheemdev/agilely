@@ -5,8 +5,30 @@ module.exports = {
     "./app/webpack/**/*.jsx",
   ],
   theme: {
-    extend: {},
+    extend: {
+      spacing: {
+        "84": "21rem",
+      },
+      fontFamily: {
+        "tempbugfix": [
+          "Inter",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "Noto Sans",
+          "sans-serif",
+          "Apple Color Emoji",
+          "Segoe UI Emoji",
+          "Segoe UI Symbol",
+          "Noto Color Emoji",
+        ],
+      }
+    },
   },
-  variants: {},
+  variants: {borderColor: ['responsive', 'hover', 'focus', 'focus-within']},
   plugins: [],
 };

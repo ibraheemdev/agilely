@@ -1,5 +1,12 @@
 # CHANGELOG
 
+### devise setup - May 7, 2020
+
+- styled 'pages#home' and 'pages#pricing'
+- generated devise user and styled devise views
+- override `ActionView::Base.field_error_proc`
+- add `name` field to devise user model
+
 ### react setup - May 6, 2020
 
 - created Procfile for use with foreman gem
