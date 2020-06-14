@@ -1,0 +1,9 @@
+<%= javascript_pack_tag 'board' %>
+<%= react_component("board",
+  { board: @board.as_json(include: { 
+      lists: { 
+        include: { cards: {} } 
+      },
+      participations: {}
+    })
+  }) %>

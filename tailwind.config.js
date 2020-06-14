@@ -6,8 +6,23 @@ module.exports = {
   ],
   theme: {
     extend: {
+      padding: {
+        1.5: '0.375rem'
+      },
+      maxHeight: {
+        '0': '0'
+      },
+      minHeight: {
+        '16': '4rem',
+        '1': '1px'
+      },
       spacing: {
+        "68": "17rem",
+        "72": "18rem",
         "84": "21rem",
+      },
+      colors: {
+        lightgray: "#E6E7ED"
       },
       fontFamily: {
         "tempbugfix": [
@@ -29,6 +44,9 @@ module.exports = {
       }
     },
   },
-  variants: {borderColor: ['responsive', 'hover', 'focus', 'focus-within']},
+  variants: {
+    borderColor: ['responsive', 'first', 'hover', 'focus', 'focus-within'],
+    cursor: ['responsive', 'hover', 'focus'],
+  },
   plugins: [],
 };

@@ -1,64 +1,67 @@
 <div class="font-tempbugfix">
-  <header id="nav" class="relative flex items-center justify-between px-8 py-6 md:pb-8 max-w-screen-xl mx-auto">
-    <%= link_to("Agilely", root_path, class: "font-semibold text-2xl text-indigo-600 hover:text-indigo-500" )%>
-    <div class="md:hidden" onclick="toggleMenu(false)">
-      <button class="block rounded focus:outline-none focus-visible:shadow-outline">
-        <svg class="h-6 w-6 text-indigo-600 hover:text-indigo-500" viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M3 7.5a1 1 0 011-1h16a1 1 0 110 2H4a1 1 0 01-1-1zM3 15.5a1 1 0 011-1h16a1 1 0 110 2H4a1 1 0 01-1-1z" />
-        </svg>
-      </button>
-    </div>
-    <div id="menu" class="z-50 absolute inset-0 p-4 md:block md:static md:z-auto md:p-0 hidden">
-      <div class=" fixed inset-0 bg-gray-900 opacity-50 md:hidden"></div>
-      <nav
-        class="relative max-w-sm ml-auto px-6 pt-6 pb-8 bg-white rounded-lg md:max-w-full md:ml-0 md:p-0 md:bg-transparent">
-        <div class="flex items-center justify-between md:hidden">
-          <h3 class="text-sm text-gray-600 leading-none">Agilely</h3>
-          <button onclick="toggleMenu(true)"
-            class="text-gray-800 rounded focus:outline-none focus-visible:shadow-outline">
-            <svg class="h-6 w-6" viewBox="0 0 24 24">
-              <path
-                d="M10.586 12L7.05 8.464l-.077-.087A1 1 0 018.464 7.05L12 10.586l3.536-3.536a1 1 0 011.491 1.327l-.077.087L13.414 12l3.536 3.536.077.087a1 1 0 01-1.491 1.327L12 13.414 8.464 16.95a1 1 0 01-1.491-1.327l.077-.087L10.586 12z"
-                fill="currentColor" />
-            </svg>
-          </button>
+    <header id="nav" class="relative flex items-center justify-between px-8 py-6 md:pb-8 max-w-screen-xl mx-auto">
+        <%= link_to("Agilely", root_path, class: "font-semibold text-2xl text-indigo-600 hover:text-indigo-500" )%>
+        <div class="md:hidden" onclick="toggleMenu(false)">
+            <button class="block rounded focus:outline-none focus-visible:shadow-outline">
+                <svg class="h-6 w-6 text-indigo-600 hover:text-indigo-500" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 7.5a1 1 0 011-1h16a1 1 0 110 2H4a1 1 0 01-1-1zM3 15.5a1 1 0 011-1h16a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                </svg>
+            </button>
         </div>
-        <%= link_to("Pricing", "#", class: "mt-2 -mx-3 block px-3 py-2 text-lg text-gray-700 rounded hover:bg-gray-200 md:hover:text-indigo-600 font-medium focus:outline-none focus:underline md:inline md:mt-0 md:mx-0 md:ml-10 md:p-0 md:hover:bg-transparent" )%>
-        <%= link_to("Blog", "#", class: "mt-2 -mx-3 block px-3 py-2 text-lg text-gray-700 rounded hover:bg-gray-200 md:hover:text-indigo-600 font-medium focus:outline-none focus:underline md:inline md:mt-0 md:mx-0 md:ml-10 md:p-0 md:hover:bg-transparent" )%>
-        <% if user_signed_in? %>
-        <%= link_to "Profile", edit_user_registration_path, class: "mt-2 -mx-3 block px-3 py-2 text-lg text-gray-700 rounded hover:bg-gray-200 md:hover:text-indigo-600 font-medium focus:outline-none focus:underline md:inline md:mt-0 md:mx-0 md:ml-10 md:p-0 md:hover:bg-transparent"%>
-                <%= link_to destroy_user_session_path, method: :delete do %>
-        <button class="mt-2 block rounded-md shadow-md font-medium focus:outline-none focus:underline w-full md:inline md:mt-0 md:mx-0 md:ml-10 md:w-auto">
-          <div class="items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline">
-            Logout
-          </div> 
-        </button>
-        <% end %>
-        <% else %>
-        <%= link_to new_user_registration_path do %>
-        <button class="mt-2 block rounded-md shadow-md font-medium focus:outline-none focus:underline w-full md:inline md:mt-0 md:mx-0 md:ml-10 md:w-auto">
-          <div class="items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline">
-            Signup
-          </div> 
-        </button>
-        <% end %>
-        <%= link_to new_user_session_path do %>
-        <button class="mt-2 block rounded-md shadow-md font-medium focus:outline-none focus:underline w-full md:inline md:mt-0 md:mx-0 md:ml-4 md:w-auto">
-          <div class="items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-200 hover:text-indigo-500 focus:outline-none focus:shadow-outline">
-            Login
-          </div> 
-        </button>
-        <% end %>
-      <% end %>
-      </nav>
-    </div>
-  </header>
-  <script>
-    function toggleMenu(isOpen) {
-      var x = document.getElementById('menu')
-      isOpen && x.classList.add('hidden'); x.classList.remove('block')
-      !isOpen && x.classList.remove('hidden'); x.classList.add('block')
-    }
-  </script>
+        <div id="menu" class="z-50 absolute inset-0 p-4 md:block md:static md:z-auto md:p-0 hidden">
+            <div class=" fixed inset-0 bg-gray-900 opacity-50 md:hidden"></div>
+            <nav class="relative max-w-sm ml-auto px-6 pt-6 pb-8 bg-white rounded-lg md:max-w-full md:ml-0 md:p-0 md:bg-transparent">
+                <div class="flex items-center justify-between md:hidden">
+                    <h3 class="text-sm text-gray-600 leading-none">Agilely</h3>
+                    <button onclick="toggleMenu(true)" class="text-gray-800 rounded focus:outline-none focus-visible:shadow-outline">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24">
+                            <path d="M10.586 12L7.05 8.464l-.077-.087A1 1 0 018.464 7.05L12 10.586l3.536-3.536a1 1 0 011.491 1.327l-.077.087L13.414 12l3.536 3.536.077.087a1 1 0 01-1.491 1.327L12 13.414 8.464 16.95a1 1 0 01-1.491-1.327l.077-.087L10.586 12z" fill="currentColor" />
+                        </svg>
+                    </button>
+                </div>
+                <%= link_to("Pricing", "#", class: "mt-2 -mx-3 block px-3 py-2 text-lg text-gray-700 rounded hover:bg-gray-200 md:hover:text-indigo-600 font-medium focus:outline-none focus:underline md:inline md:mt-0 md:mx-0 md:ml-10 md:p-0 md:hover:bg-transparent" )%>
+                <%= link_to("Blog", "#", class: "mt-2 -mx-3 block px-3 py-2 text-lg text-gray-700 rounded hover:bg-gray-200 md:hover:text-indigo-600 font-medium focus:outline-none focus:underline md:inline md:mt-0 md:mx-0 md:ml-10 md:p-0 md:hover:bg-transparent" )%>
+                <% if user_signed_in? %>
+                <%= link_to "Profile", edit_user_registration_path, class: "mt-2 -mx-3 block px-3 py-2 text-lg text-gray-700 rounded hover:bg-gray-200 md:hover:text-indigo-600 font-medium focus:outline-none focus:underline md:inline md:mt-0 md:mx-0 md:ml-10 md:p-0 md:hover:bg-transparent"%>
+                <%= link_to dashboard_path do %>
+                <button class="mt-2 block rounded-md shadow-md font-medium focus:outline-none focus:underline w-full md:inline md:mt-0 md:mx-0 md:ml-10 md:w-auto">
+                    <div class="items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline">
+                        Go to boards
+                    </div>
+                </button>
+                <% end %>
+                <%= link_to(destroy_user_session_path, method: :delete) do %>
+                <button class="mt-2 block rounded-md shadow-md font-medium focus:outline-none focus:underline w-full md:inline md:mt-0 md:mx-0 md:ml-4 md:w-auto">
+                    <div class="items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-200 hover:text-indigo-500 focus:outline-none focus:shadow-outline">
+                        Logout
+                    </div>
+                </button>
+                <% end %>
+                <% else %>
+                <%= link_to new_user_registration_path do %>
+                <button class="mt-2 block rounded-md shadow-md font-medium focus:outline-none focus:underline w-full md:inline md:mt-0 md:mx-0 md:ml-10 md:w-auto">
+                    <div class="items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:shadow-outline">
+                        Signup
+                    </div>
+                </button>
+                <% end %>
+                <%= link_to new_user_session_path do %>
+                <button class="mt-2 block rounded-md shadow-md font-medium focus:outline-none focus:underline w-full md:inline md:mt-0 md:mx-0 md:ml-4 md:w-auto">
+                    <div class="items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-200 hover:text-indigo-500 focus:outline-none focus:shadow-outline">
+                        Login
+                    </div>
+                </button>
+                <% end %>
+                <% end %>
+            </nav>
+        </div>
+    </header>
+    <script>
+        function toggleMenu(isOpen) {
+            var x = document.getElementById('menu')
+            isOpen && x.classList.add('hidden');
+            x.classList.remove('block') !isOpen && x.classList.remove('hidden');
+            x.classList.add('block')
+        }
+    </script>
 </div>

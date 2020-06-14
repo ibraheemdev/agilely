@@ -1,0 +1,31 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+.list-scrollbar ::-webkit-scrollbar {
+  width: 14px;
+}
+
+.list-scrollbar ::-webkit-scrollbar-track {
+  background-color: rgb(211, 214, 221);
+  border-right: 6px #E6E7ED solid;
+  background-clip: padding-box;
+}
+
+.list-scrollbar ::-webkit-scrollbar-thumb {
+  background: rgb(185, 187, 198);
+  border-right: 6px #E6E7ED solid;
+  background-clip: padding-box;
+}
+
+.body-scrollbar ::-webkit-scrollbar {
+  width: 14px;
+}
+
+.body-scrollbar ::-webkit-scrollbar-track {
+  background-color: rgb(211, 214, 221);
+}
+
+.body-scrollbar ::-webkit-scrollbar-thumb {
+  background: rgb(185, 187, 198);
+}

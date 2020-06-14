@@ -1,5 +1,15 @@
 # CHANGELOG
 
+### boards, lists, cards - May 16, 2020
+
+- boards, lists, cards CRUD actions
+- card dnd
+- move images and css to `app/assets`
+- Next steps: 
+ - card detail popup
+ - pundit authorization
+ - user invites
+
 ### devise setup - May 7, 2020
 
 - styled 'pages#home' and 'pages#pricing'
