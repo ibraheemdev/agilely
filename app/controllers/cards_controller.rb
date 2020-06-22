@@ -2,7 +2,7 @@ class CardsController < ApplicationController
 
   def create
     card = List.find(params[:list_id]).cards.create(card_params)
-    render json: { card: card }.as_json
+    json_response({type: "card", resource: card})
   end
 
   def update

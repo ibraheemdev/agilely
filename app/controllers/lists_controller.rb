@@ -2,7 +2,7 @@ class ListsController < ApplicationController
 
   def create
     list = Board.find_by(slug: params[:board_slug]).lists.create(list_params)
-    render json: { list: list }.as_json
+    json_response({type: "list", resource: list})
   end
 
   def update

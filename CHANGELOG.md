@@ -1,5 +1,7 @@
 # CHANGELOG
 
+### json_response concern - Jun 22, 2020
+
 ### refactoring and model specs - Jun 22, 2020
 
 - update rails to avoid `ruby 2.7.1` warnings
