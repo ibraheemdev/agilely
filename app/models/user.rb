@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   has_many :participations
-  has_many :boards, through: :participations, source: :participant, source_type: "Board"
+  has_many :boards, through: :participations, source: :participant, source_type: "Board", dependent: :destroy
 
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,

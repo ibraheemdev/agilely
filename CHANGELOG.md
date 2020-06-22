@@ -1,6 +1,12 @@
 # CHANGELOG
 
-### boards, lists, cards - May 16, 2020
+### refactoring and model specs - Jun 22, 2020
+
+- update rails to avoid `ruby 2.7.1` warnings
+- model, midstring, and signup flow specs
+- refactor controllers (skinny)
+
+### boards, lists, cards - Jun 16, 2020
 
 - boards, lists, cards CRUD actions
 - card dnd

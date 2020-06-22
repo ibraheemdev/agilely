@@ -1,16 +1,12 @@
 class CardsController < ApplicationController
 
   def create
-    list_cards = List.find(params[:list_id]).cards
-    new_position = list_cards.count.zero? ? 'c' : midstring(list_cards.last.position, '') 
-    card = list_cards.create(card_params.merge(position: new_position))
+    card = List.find(params[:list_id]).cards.create(card_params)
     render json: { card: card }.as_json
   end
 
-  def reorder
-    new_position = { position: midstring(params[:above], params[:below]) }
-    new_position.merge!(list_id: params[:new_list]) if params[:new_list]
-    Card.find(params[:id]).update(new_position)
+  def update
+    Card.find(params[:id]).update(card_params)
     head :no_content
   end
 
@@ -22,6 +18,6 @@ class CardsController < ApplicationController
   private
 
   def card_params
-    params.require(:card).permit(:title)
+    params.require(:card).permit(:title, :position, :list_id)
   end
 end

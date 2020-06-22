@@ -1,8 +1,7 @@
 class BoardsController < ApplicationController
 
   def create
-    board = Board.create(board_params)
-    current_user.participations.create(participant: board)
+    board = Boards::CreateService.execute({ board_params: board_params, user: current_user })
     redirect_to show_board_path(slug: board.slug, data: { turbolinks: false })
   end
 
@@ -12,10 +11,12 @@ class BoardsController < ApplicationController
 
   def update
     Board.find_by(slug: params[:slug]).update(board_params)
+    head :no_content
   end
 
   def destroy
     Board.find_by(slug: params[:slug]).destroy
+    head :no_content
   end
 
   private

@@ -27,6 +27,7 @@ const Board = (props) => {
       })
       .then((res) => {
         let newBoard = { ...board };
+        res.data.list.cards = [];
         newBoard.lists.push(res.data.list);
         updateBoard(newBoard);
       })
@@ -71,7 +72,7 @@ const Board = (props) => {
       return;
     }
 
-    const getPositions = (cards, destination) => {
+    const getMidstring = (cards, destination) => {
       const above_card = cards[destination - 1];
       const below_card = cards[destination + 1];
       var below_position = Object.is(below_card, undefined)
@@ -80,11 +81,7 @@ const Board = (props) => {
       var above_position = Object.is(above_card, undefined)
         ? (above_position = "")
         : (above_position = above_card.position);
-      return {
-        above_position: above_position,
-        below_position: below_position,
-        midstring: midString(above_position, below_position),
-      };
+      return midString(above_position, below_position)
     };
 
     if (type === "list") {
@@ -95,7 +92,7 @@ const Board = (props) => {
       );
       newLists.splice(source.index, 1);
       newLists.splice(destination.index, 0, targetList);
-      const { above_position, below_position, midstring } = getPositions(
+      const midstring = getMidstring(
         newLists,
         destination.index
       );
@@ -107,10 +104,11 @@ const Board = (props) => {
         return newBoard;
       });
 
-      axios.patch(`${url}/lists/${targetList.id}/reorder`, {
+      axios.patch(`${url}/lists/${targetList.id}`, {
         authenticity_token: authenticityToken(),
-        above: above_position,
-        below: below_position,
+        list: {
+          position: midstring,
+        },
       });
     } else {
       const startList = board.lists.find(
@@ -127,7 +125,7 @@ const Board = (props) => {
         const newCards = Array.from(startList.cards);
         newCards.splice(source.index, 1);
         newCards.splice(destination.index, 0, targetCard);
-        const { above_position, below_position, midstring } = getPositions(
+        const midstring = getMidstring(
           newCards,
           destination.index
         );
@@ -139,17 +137,19 @@ const Board = (props) => {
         ].cards = newCards;
         updateBoard({ ...newBoard });
 
-        axios.patch(`${url}/cards/${targetCard.id}/reorder`, {
+        axios.patch(`${url}/cards/${targetCard.id}`, {
           authenticity_token: authenticityToken(),
-          above: above_position,
-          below: below_position,
+          card: {
+            position: midstring,
+          },
         });
+
       } else {
         const startCards = Array.from(startList.cards);
         startCards.splice(source.index, 1);
         const endCards = Array.from(endList.cards);
         endCards.splice(destination.index, 0, targetCard);
-        const { above_position, below_position, midstring } = getPositions(
+        const midstring = getMidstring(
           endCards,
           destination.index
         );
@@ -164,11 +164,12 @@ const Board = (props) => {
         ].cards = endCards;
         updateBoard({ ...newBoard });
 
-        axios.patch(`${url}/cards/${targetCard.id}/reorder`, {
+        axios.patch(`${url}/cards/${targetCard.id}`, {
           authenticity_token: authenticityToken(),
-          above: above_position,
-          below: below_position,
-          new_list: endList.id,
+          card: {
+            position: midstring,
+            list_id: endList.id
+          }
         });
       }
     }
@@ -281,7 +282,7 @@ const Board = (props) => {
             </main>
           </div>
         </div>
-      </div>  
+      </div>
     </div>
   );
 };
