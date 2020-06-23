@@ -15,8 +15,8 @@ const Card = (props) => {
             className="mt-2"
             onClick={() => openModal(true)}
           >
-            <div className="block py-2 px-3 bg-white rounded-md shadow flex justify-between items-baseline">
-              <span className="text-sm font-normal leading-snug text-gray-900">
+            <div className="block py-2 px-3 bg-white rounded-md shadow flex flex-wrap justify-between items-baseline">
+              <span className="text-sm font-normal leading-snug text-gray-900 break-all">
                 {props.card.title}
               </span>
               <span className="text-xs text-gray-600">
