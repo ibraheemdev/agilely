@@ -1,20 +1,22 @@
 # CHANGELOG
 
-### fix card text wrapping - Jun 23, 2020
+#### link to boards in sidebar - Jun 23, 2020
 
-### conditionally hide user inputs based on mock 'editor' prop - Jun 23, 2020
+#### fix card text wrapping - Jun 23, 2020
 
-### extract new list form to component - Jun 23, 2020
+#### conditionally hide user inputs based on mock 'editor' prop - Jun 23, 2020
 
-### json_response concern - Jun 22, 2020
+#### extract new list form to component - Jun 23, 2020
 
-### refactoring and model specs - Jun 22, 2020
+#### json_response concern - Jun 22, 2020
+
+#### refactoring and model specs - Jun 22, 2020
 
 - update rails to avoid `ruby 2.7.1` warnings
 - model, midstring, and signup flow specs
 - refactor controllers (skinny)
 
-### boards, lists, cards - Jun 16, 2020
+#### boards, lists, cards - Jun 16, 2020
 
 - boards, lists, cards CRUD actions
 - card dnd
@@ -24,19 +26,19 @@
  - pundit authorization
  - user invites
 
-### devise setup - May 7, 2020
+#### devise setup - May 7, 2020
 
 - styled 'pages#home' and 'pages#pricing'
 - generated devise user and styled devise views
 - override `ActionView::Base.field_error_proc`
 - add `name` field to devise user model
 
-### react setup - May 6, 2020
+#### react setup - May 6, 2020
 
 - created Procfile for use with foreman gem
 - created `react_component()` and `mount()` helpers
 
-### initial setup - May 6, 2020
+#### initial setup - May 6, 2020
 
 - ran `rvm use 2.7.1`
 - ran `rails new agilely --database=postgresql --webpack=react -T --skip-sprockets`

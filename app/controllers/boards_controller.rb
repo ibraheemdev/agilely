@@ -7,6 +7,7 @@ class BoardsController < ApplicationController
 
   def show
     @board = Board.includes(:participations, lists: [:cards]).find_by(slug: params[:slug])
+    @board_titles = current_user.boards.select(:title, :slug)
   end
 
   def update

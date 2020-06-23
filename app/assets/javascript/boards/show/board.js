@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Sidebar from "./sidebar";
+import Sidebar from "./sidebar/sidebar";
 import Header from "./header";
 import NewList from "./new_list";
 import List from "./list";
@@ -179,8 +179,8 @@ const Board = (props) => {
 
   return (
     <div>
+      <Sidebar toggleSidebar={toggleSidebar} isOpen={isOpen} boards={props.board_titles}/>
       <div className="h-screen flex body-scrollbar">
-        <Sidebar toggleSidebar={toggleSidebar} isOpen={isOpen} />
         <div className="flex-1 min-w-0 flex flex-col bg-white">
           <Header
             toggleSidebar={toggleSidebar}
