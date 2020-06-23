@@ -1,5 +1,7 @@
 # CHANGELOG
 
+### extract new list form to component - Jun 23, 2020
+
 ### json_response concern - Jun 22, 2020
 
 ### refactoring and model specs - Jun 22, 2020
