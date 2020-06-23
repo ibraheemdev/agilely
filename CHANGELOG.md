@@ -1,5 +1,7 @@
 # CHANGELOG
 
+### conditionally hide user inputs based on mock 'editor' prop - Jun 23, 2020
+
 ### extract new list form to component - Jun 23, 2020
 
 ### json_response concern - Jun 22, 2020

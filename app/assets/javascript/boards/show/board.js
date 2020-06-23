@@ -186,6 +186,7 @@ const Board = (props) => {
             toggleSidebar={toggleSidebar}
             title={board.title}
             handleUpdateTitle={handleUpdateTitle}
+            editor={props.editor}
           />
           <div className="flex-1 overflow-auto">
             <main className="p-3 h-full inline-flex">
@@ -209,6 +210,7 @@ const Board = (props) => {
                           key={list.id}
                           board_slug={board.slug}
                           handleNewCard={handleNewCard}
+                          editor={props.editor}
                         />
                       ))}
                       {provided.placeholder}
@@ -216,7 +218,7 @@ const Board = (props) => {
                   )}
                 </Droppable>
               </DragDropContext>
-              <NewList title={newListTitle} setTitle={setNewListTitle} handleSubmit={handleNewList} />
+              { props.editor && <NewList title={newListTitle} setTitle={setNewListTitle} handleSubmit={handleNewList} /> }
             </main>
           </div>
         </div>

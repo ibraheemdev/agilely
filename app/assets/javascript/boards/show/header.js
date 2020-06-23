@@ -66,7 +66,7 @@ const Header = (props) => {
             <div className="sm:flex sm:items-center -ml-3">
               <AutosizeInput
                 value={title}
-                inputClassName="box-content text-2xl font-semibold text-gray-900 leading-tight py-1 px-3 hover:bg-gray-500 hover:bg-opacity-25 focus:bg-white rounded-md hover:cursor-pointer focus:cursor-auto"
+                inputClassName={`box-content text-2xl font-semibold text-gray-900 leading-tight py-1 px-3 focus:bg-white rounded-md ${props.editor && "hover:cursor-pointer hover:bg-gray-500 hover:bg-opacity-25"} focus:cursor-auto`}
                 onChange={(event) => setTitle(event.target.value)}
                 onKeyPress={(e) => {
                   if (e && e.charCode == 13) {
@@ -74,6 +74,7 @@ const Header = (props) => {
                   }
                 }}
                 onBlur={() => props.handleUpdateTitle(title)}
+                disabled={!props.editor}
               />
               {/* <div className="mt-1 flex items-center sm:mt-0 sm:ml-6">
               <span className="rounded-full border-2 border-white">
