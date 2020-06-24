@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Card from "./card";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import TextareaAutosize from "react-textarea-autosize";
-import { authenticityToken, url } from "./lib";
+import { authenticityToken, url, useOutsideAlerter } from "./lib";
 import axios from "axios";
 
 const List = (props) => {
   const [newCardIsOpen, toggleNewCard] = useState(false);
   const [newCardTitle, updateNewCardTitle] = useState("");
   const [title, setTitle] = useState(props.list.title);
+
+  const newCardRef = useRef(null);
+  useOutsideAlerter(newCardRef, () => toggleNewCard(false));
 
   const handleUpdateTitle = () => {
     event.preventDefault();
@@ -52,7 +55,9 @@ const List = (props) => {
             <div className="flex items-center justify-between rounded-t-md bg-lightgray pt-3 pb-1">
               <input
                 value={title}
-                className={`w-full text-sm font-medium text-gray-700 bg-lightgray mx-3 py-1 px-1 focus:bg-white rounded-md focus:cursor-auto hover:cursor-pointer ${props.editor && "hover:bg-gray-500 hover:bg-opacity-25"}`}
+                className={`w-full text-sm font-medium text-gray-700 bg-lightgray mx-3 py-1 px-1 focus:bg-white rounded-md focus:cursor-auto hover:cursor-pointer ${
+                  props.editor && "hover:bg-gray-500 hover:bg-opacity-25"
+                }`}
                 onChange={(event) => setTitle(event.target.value)}
                 onKeyPress={(e) => {
                   if (e && e.charCode == 13) {
@@ -87,7 +92,7 @@ const List = (props) => {
           <div
             id={`list${props.list.id}top`}
             className={`min-h-0 overflow-y-auto bg-lightgray ${
-              !props.editor && "rounded-b-md pb-2"
+              !props.editor || (newCardIsOpen && "rounded-b-md pb-2")
             }`}
           >
             <div className="py-1 px-3">
@@ -112,6 +117,7 @@ const List = (props) => {
               </Droppable>
               {newCardIsOpen && (
                 <form
+                  ref={newCardRef}
                   onSubmit={() => handleNewCard(newCardTitle, props.list.id)}
                 >
                   <div className="mt-2">
@@ -121,7 +127,7 @@ const List = (props) => {
                     >
                       <div className="flex justify-between">
                         <TextareaAutosize
-                          id="newCardTitle"
+                          id={`new-card-title-${props.list.id}`}
                           maxRows={16}
                           onChange={(e) => updateNewCardTitle(e.target.value)}
                           value={newCardTitle}
@@ -165,7 +171,11 @@ const List = (props) => {
               <button
                 onClick={async () => {
                   await toggleNewCard(true);
-                  document.getElementById("newCardTitle").focus();
+                  let el = document.getElementById(
+                    `new-card-title-${props.list.id}`
+                  );
+                  await el.scrollIntoView({ behavior: "smooth" });
+                  await el.focus({ preventScroll: true });
                 }}
                 className="focus:outline-none hover:bg-gray-400 hover:bg-opacity-50 flex items-center w-full py-1 px-1 rounded-md"
               >

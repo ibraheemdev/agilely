@@ -1,5 +1,11 @@
 # CHANGELOG
 
+#### clean up board ui - Jun 24, 2020
+
+- close newlist dropdown on click outside
+- tweak scrolling mechanics
+- etc.
+
 #### `useOutsideAlerter` hook - Jun 24, 2020
 
 #### fuzzy searching cards - Jun 24, 2020

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Sidebar from "./sidebar/sidebar";
 import Header from "./header/header";
 import NewList from "./new_list";
@@ -31,8 +31,8 @@ const Board = (props) => {
         updateBoard(newBoard);
       })
       .catch((err) => console.log(err))
-      .then(() => { 
-        setNewListTitle("") 
+      .then(() => {
+        setNewListTitle("");
         document.getElementById("newListTitle").focus();
       });
   };
@@ -83,7 +83,7 @@ const Board = (props) => {
       var above_position = Object.is(above_card, undefined)
         ? (above_position = "")
         : (above_position = above_card.position);
-      return midString(above_position, below_position)
+      return midString(above_position, below_position);
     };
 
     if (type === "list") {
@@ -94,10 +94,7 @@ const Board = (props) => {
       );
       newLists.splice(source.index, 1);
       newLists.splice(destination.index, 0, targetList);
-      const midstring = getMidstring(
-        newLists,
-        destination.index
-      );
+      const midstring = getMidstring(newLists, destination.index);
       newLists[destination.index].position = midstring;
 
       updateBoard((oldBoard) => {
@@ -127,10 +124,7 @@ const Board = (props) => {
         const newCards = Array.from(startList.cards);
         newCards.splice(source.index, 1);
         newCards.splice(destination.index, 0, targetCard);
-        const midstring = getMidstring(
-          newCards,
-          destination.index
-        );
+        const midstring = getMidstring(newCards, destination.index);
         newCards[destination.index].position = midstring;
 
         const newBoard = { ...board };
@@ -145,16 +139,12 @@ const Board = (props) => {
             position: midstring,
           },
         });
-
       } else {
         const startCards = Array.from(startList.cards);
         startCards.splice(source.index, 1);
         const endCards = Array.from(endList.cards);
         endCards.splice(destination.index, 0, targetCard);
-        const midstring = getMidstring(
-          endCards,
-          destination.index
-        );
+        const midstring = getMidstring(endCards, destination.index);
         endCards[destination.index].position = midstring;
 
         const newBoard = { ...board };
@@ -170,8 +160,8 @@ const Board = (props) => {
           authenticity_token: authenticityToken(),
           card: {
             position: midstring,
-            list_id: endList.id
-          }
+            list_id: endList.id,
+          },
         });
       }
     }
@@ -179,7 +169,11 @@ const Board = (props) => {
 
   return (
     <div>
-      <Sidebar toggleSidebar={toggleSidebar} isOpen={isOpen} boards={props.board_titles}/>
+      <Sidebar
+        toggleSidebar={toggleSidebar}
+        isOpen={isOpen}
+        boards={props.board_titles}
+      />
       <div className="h-screen flex body-scrollbar">
         <div className="flex-1 min-w-0 flex flex-col bg-white">
           <Header
@@ -219,7 +213,13 @@ const Board = (props) => {
                   )}
                 </Droppable>
               </DragDropContext>
-              { props.editor && <NewList title={newListTitle} setTitle={setNewListTitle} handleSubmit={handleNewList} /> }
+              {props.editor && (
+                <NewList
+                  title={newListTitle}
+                  setTitle={setNewListTitle}
+                  handleSubmit={handleNewList}
+                />
+              )}
             </main>
           </div>
         </div>

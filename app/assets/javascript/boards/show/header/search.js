@@ -39,7 +39,7 @@ const Search = (props) => {
         onClick={() => toggleResults(true)}
       />
       {results.length > 0 && isOpen && (
-        <div className="absolute z-30 w-144 bg-lightgray rounded-md mt-2 flex flex-col pb-3 pl-4 shadow-md">
+        <div className="absolute z-30 w-144 bg-lightgray rounded-md mt-2 flex flex-col pb-3 pl-4 shadow-md max-h-2xl overflow-y-auto">
           <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide mt-3">
             Your Cards
           </h3>
