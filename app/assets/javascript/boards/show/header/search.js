@@ -1,5 +1,6 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import Fuse from "fuse.js";
+import { useOutsideAlerter } from "../lib" 
 
 const Search = (props) => {
   const [query, updateQuery] = useState("");
@@ -15,24 +16,8 @@ const Search = (props) => {
   const fuse = new Fuse(props.lists.map((x) => x.cards).flat(), fuseOptions);
   const results = fuse.search(query);
 
-  console.log(results && results.map((el) => el.item.title));
-
-  const useOutsideAlerter = (ref) => {
-    useEffect(() => {
-      function handleClickOutside(event) {
-        if (ref.current && !ref.current.contains(event.target)) {
-          toggleResults(false);
-          updateQuery("");
-        }
-      }
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }, [ref]);
-  };
   const wrapperRef = useRef(null);
-  useOutsideAlerter(wrapperRef);
+  useOutsideAlerter(wrapperRef, () => {toggleResults(false); updateQuery("");});
 
   return (
     <div className="flex-shrink-1 ml-3 relative w-64" ref={wrapperRef}>

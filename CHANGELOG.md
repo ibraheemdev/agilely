@@ -1,5 +1,7 @@
 # CHANGELOG
 
+#### `useOutsideAlerter` hook - Jun 24, 2020
+
 #### fuzzy searching cards - Jun 24, 2020
 
 - fuzzy search for cards on page 
