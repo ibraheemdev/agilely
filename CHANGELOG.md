@@ -1,5 +1,11 @@
 # CHANGELOG
 
+#### fuzzy searching cards - Jun 24, 2020
+
+- fuzzy search for cards on page 
+- quick implementation - highlight searched card onclick
+- Next steps: link to card detail pop - react router
+
 #### link to boards in sidebar - Jun 23, 2020
 
 #### fix card text wrapping - Jun 23, 2020

@@ -29,3 +29,16 @@
 .body-scrollbar ::-webkit-scrollbar-thumb {
   background: rgb(185, 187, 198);
 }
+
+@keyframes highlight {
+  0% {
+      background: #0066ff; 
+  }
+  100% {
+      background: none;
+  }
+}
+
+.highlight {
+  animation: highlight 4s;
+}

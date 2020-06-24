@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "./sidebar/sidebar";
-import Header from "./header";
+import Header from "./header/header";
 import NewList from "./new_list";
 import List from "./list";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
@@ -187,6 +187,7 @@ const Board = (props) => {
             title={board.title}
             handleUpdateTitle={handleUpdateTitle}
             editor={props.editor}
+            lists={board.lists}
           />
           <div className="flex-1 overflow-auto">
             <main className="p-3 h-full inline-flex">

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import AutosizeInput from "react-input-autosize";
+import Search from "./search";
 
 const Header = (props) => {
   const [title, setTitle] = useState(props.title);
+
   return (
     <div className="sm:border-b-2 sm:border-gray-200">
       <header>
@@ -22,26 +24,7 @@ const Header = (props) => {
                   />
                 </svg>
               </button>
-              <div className="flex-shrink-1 ml-3 relative w-64">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
-                  <svg
-                    className="h-6 w-6 text-gray-600"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </span>
-                <input
-                  className="block w-full rounded-md border border-gray-400 pl-10 pr-4 py-2 text-sm text-gray-900 placeholder-gray-600"
-                  placeholder="Search"
-                />
-              </div>
+              <Search lists={props.lists} />
             </div>
             <div className="ml-6 flex-shrink-0 flex items-center">
               {/* <button>
@@ -66,11 +49,14 @@ const Header = (props) => {
             <div className="sm:flex sm:items-center -ml-3">
               <AutosizeInput
                 value={title}
-                inputClassName={`box-content text-2xl font-semibold text-gray-900 leading-tight py-1 px-3 focus:bg-white rounded-md ${props.editor && "hover:cursor-pointer hover:bg-gray-500 hover:bg-opacity-25"} focus:cursor-auto`}
+                inputClassName={`box-content text-2xl font-semibold text-gray-900 leading-tight py-1 px-3 focus:bg-white rounded-md ${
+                  props.editor &&
+                  "hover:cursor-pointer hover:bg-gray-500 hover:bg-opacity-25"
+                } focus:cursor-auto`}
                 onChange={(event) => setTitle(event.target.value)}
                 onKeyPress={(e) => {
                   if (e && e.charCode == 13) {
-                    document.activeElement.blur()
+                    document.activeElement.blur();
                   }
                 }}
                 onBlur={() => props.handleUpdateTitle(title)}
