@@ -3,6 +3,6 @@ FactoryBot.define do
     name  { "John" }
     email { "test@test.com" }
     password { "password" }
-    password_confirmation { "password" }
+    confirmed_at { Time.now }
   end
 end

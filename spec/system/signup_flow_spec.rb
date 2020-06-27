@@ -4,7 +4,7 @@ include SignupHelper
 
 RSpec.describe "User signs up", type: :system do
   context 'with valid credentials' do
-    let(:credentials) { { email: 'valid@example.com', name: 'john', password: 'password', password_confirmation: 'password' } }
+    let(:credentials) { { email: 'valid@example.com', name: 'john', password: 'password' } }
     
     it "displays flash notice" do
       sign_up_with credentials
@@ -34,7 +34,7 @@ RSpec.describe "User signs up", type: :system do
   end
 
   context 'with invalid credentials' do
-    let(:credentials) { { email: 'invalid$email', name: 'john', password: 'ps', password_confirmation: 'p' } }
+    let(:credentials) { { email: 'invalid$email', name: 'john', password: 'ps' } }
     it "displays error message" do
       sign_up_with credentials
       expect(page).to have_content("We ran into a couple errors")

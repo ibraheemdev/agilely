@@ -23,15 +23,13 @@ RSpec.describe User, type: :model do
     it { expect(user).to validate_presence_of(:name) }
     it { expect(user).to validate_length_of(:name).is_at_most(50) }
     it { expect(user).to validate_presence_of(:email) }
-    it { expect(user).to validate_presence_of(:password) }
-    it { expect(user).to validate_presence_of(:password_confirmation).on(:create) }
+    it { expect(user).to validate_length_of(:password).is_at_least(6) }
     it { expect(user.admin).to be false }
 
-    it "is expected to validate that :password confirmation should match :password" do
-      user.password_confirmation = "notthepassword"
+    it "is expected to validate presence of password" do
+      user.password = ""
       expect(user.valid?).to be false
     end
-
     it "is expected to validate that :email is unique" do
       user_with_same_email = user.dup
       user_with_same_email.email = user.email.upcase

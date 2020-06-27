@@ -4,7 +4,6 @@ module SignupHelper
     fill_in 'Email', with: credentials[:email]
     fill_in 'Name', with: credentials[:name]
     fill_in 'Password', with: credentials[:password]
-    fill_in 'Password confirmation', with: credentials[:password_confirmation]
     click_button 'Sign up'
     @email = ActionMailer::Base.deliveries.last
   end
