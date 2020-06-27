@@ -1,29 +1,36 @@
 import React, { useState } from "react";
+import GuestAlert from "./guest_alert";
 import AutosizeInput from "react-input-autosize";
 import Search from "./search";
 
 const Header = (props) => {
   const [title, setTitle] = useState(props.title);
-
   return (
     <div className="sm:border-b-2 sm:border-gray-200">
+      {!props.current_user && (
+        <div className="border-b-2 border-gray-200">
+          <GuestAlert />
+        </div>
+      )}
       <header>
         <div className="px-6">
           <div className="flex justify-between items-center py-3 border-b border-gray-200">
             <div className="flex-1 min-w-0 flex">
-              <button
-                onClick={() => props.toggleSidebar(true)}
-                className="text-gray-600"
-              >
-                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M4 6h16M4 12h16M4 18h7"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
+              {props.current_user && (
+                <button
+                  onClick={() => props.toggleSidebar(true)}
+                  className="text-gray-600 mr-3"
+                >
+                  <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M4 6h16M4 12h16M4 18h7"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </button>
+              )}
               <Search lists={props.lists} />
             </div>
             <div className="ml-6 flex-shrink-0 flex items-center">
@@ -48,9 +55,10 @@ const Header = (props) => {
           <div className="flex items-center justify-between py-2">
             <div className="sm:flex sm:items-center -ml-3">
               <AutosizeInput
+                id="boardtitle"
                 value={title}
-                inputClassName={`box-content text-2xl font-semibold text-gray-900 leading-tight py-1 px-3 focus:bg-white rounded-md ${
-                  props.editor &&
+                inputClassName={`box-content text-2xl font-semibold text-gray-900 leading-tight py-1 px-3 bg-white focus:bg-white rounded-md ${
+                  props.can_edit &&
                   "hover:cursor-pointer hover:bg-gray-500 hover:bg-opacity-25"
                 } focus:cursor-auto`}
                 onChange={(event) => setTitle(event.target.value)}
@@ -60,7 +68,7 @@ const Header = (props) => {
                   }
                 }}
                 onBlur={() => props.handleUpdateTitle(title)}
-                disabled={!props.editor}
+                disabled={!props.can_edit}
               />
               {/* <div className="mt-1 flex items-center sm:mt-0 sm:ml-6">
               <span className="rounded-full border-2 border-white">

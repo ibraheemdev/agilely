@@ -20,7 +20,7 @@ const Search = (props) => {
   useOutsideAlerter(wrapperRef, () => {toggleResults(false); updateQuery("");});
 
   return (
-    <div className="flex-shrink-1 ml-3 relative w-64" ref={wrapperRef}>
+    <div className="flex-shrink-1 relative w-64" ref={wrapperRef}>
       <span className="absolute inset-y-0 left-0 pl-3 flex items-center">
         <svg className="h-6 w-6 text-gray-600" viewBox="0 0 24 24" fill="none">
           <path

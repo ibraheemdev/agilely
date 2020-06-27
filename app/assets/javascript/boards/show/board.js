@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import Sidebar from "./sidebar/sidebar";
 import Header from "./header/header";
 import NewList from "./new_list";
@@ -11,6 +11,8 @@ const Board = (props) => {
   const [isOpen, toggleSidebar] = useState(false);
   const [board, updateBoard] = useState(props.board);
   const [newListTitle, setNewListTitle] = useState("");
+
+  const can_edit = props.role === "admin" || props.role === "editor"
 
   const handleNewCard = (listId, card) => {
     const newBoard = { ...board };
@@ -167,21 +169,25 @@ const Board = (props) => {
     }
   };
 
+  console.log(props)
   return (
     <div>
-      <Sidebar
-        toggleSidebar={toggleSidebar}
-        isOpen={isOpen}
-        boards={props.board_titles}
-      />
+      {props.current_user && (
+        <Sidebar
+          toggleSidebar={toggleSidebar}
+          isOpen={isOpen}
+          boards={props.board_titles}
+        />
+      )}
       <div className="h-screen flex body-scrollbar">
         <div className="flex-1 min-w-0 flex flex-col bg-white">
           <Header
             toggleSidebar={toggleSidebar}
             title={board.title}
             handleUpdateTitle={handleUpdateTitle}
-            editor={props.editor}
+            can_edit={can_edit}
             lists={board.lists}
+            current_user={props.current_user}
           />
           <div className="flex-1 overflow-auto">
             <main className="p-3 h-full inline-flex">
@@ -205,7 +211,7 @@ const Board = (props) => {
                           key={list.id}
                           board_slug={board.slug}
                           handleNewCard={handleNewCard}
-                          editor={props.editor}
+                          can_edit={can_edit}
                         />
                       ))}
                       {provided.placeholder}
@@ -213,7 +219,7 @@ const Board = (props) => {
                   )}
                 </Droppable>
               </DragDropContext>
-              {props.editor && (
+              {props.current_user && (
                 <NewList
                   title={newListTitle}
                   setTitle={setNewListTitle}

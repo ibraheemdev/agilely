@@ -1,11 +1,7 @@
 <%= javascript_pack_tag 'board' %>
-<%= react_component("board",
-  { board: @board.as_json(include: { 
-      lists: { 
-        include: { cards: {} } 
-      },
-      participations: {}
-    }), 
-    editor: true,
-    board_titles: @board_titles.as_json
-  }) %>
+<%= react_component("board",{ 
+      board: @board.full_json, 
+      role: @role,
+      board_titles: @board_titles,
+      current_user: current_user
+}) %>

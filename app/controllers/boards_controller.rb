@@ -6,8 +6,9 @@ class BoardsController < ApplicationController
   end
 
   def show
-    @board = Board.includes(:participations, lists: [:cards]).find_by(slug: params[:slug])
-    @board_titles = current_user.boards.select(:title, :slug)
+    @board = authorize Board.full(params[:slug])
+    @board_titles = current_user&.board_titles
+    @role = @board.role_of current_user
   end
 
   def update
@@ -23,6 +24,6 @@ class BoardsController < ApplicationController
   private
 
   def board_params
-    params.require(:board).permit(:title)
+    params.require(:board).permit(:title, :public)
   end
 end

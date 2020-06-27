@@ -43,7 +43,7 @@ const List = (props) => {
     <Draggable
       draggableId={props.list.id.toString()}
       index={props.index}
-      isDragDisabled={!props.editor}
+      isDragDisabled={!props.can_edit}
     >
       {(provided) => (
         <div
@@ -54,9 +54,10 @@ const List = (props) => {
           <div className="relative -mb-2" {...provided.dragHandleProps}>
             <div className="flex items-center justify-between rounded-t-md bg-lightgray pt-3 pb-1">
               <input
+                id={`list-${props.list.id}-title`}
                 value={title}
                 className={`w-full text-sm font-medium text-gray-700 bg-lightgray mx-3 py-1 px-1 focus:bg-white rounded-md focus:cursor-auto hover:cursor-pointer ${
-                  props.editor && "hover:bg-gray-500 hover:bg-opacity-25"
+                  props.can_edit && "hover:bg-gray-500 hover:bg-opacity-25"
                 }`}
                 onChange={(event) => setTitle(event.target.value)}
                 onKeyPress={(e) => {
@@ -65,14 +66,14 @@ const List = (props) => {
                   }
                 }}
                 onBlur={() => handleUpdateTitle()}
-                disabled={!props.editor}
+                disabled={!props.can_edit}
               />
               <span className="mr-3">{props.list.position}</span>
-              {props.editor && (
+              {props.can_edit && (
                 <button
                   onClick={() => props.handleDeletion(props.list)}
                   className="text-gray-700 focus:outline-none hover:bg-gray-400 p-1 mr-2 rounded-md"
-                  disabled={!props.editor}
+                  disabled={!props.can_edit}
                 >
                   <svg
                     className="h-4 w-4 text-gray-700"
@@ -92,7 +93,7 @@ const List = (props) => {
           <div
             id={`list${props.list.id}top`}
             className={`min-h-0 overflow-y-auto bg-lightgray ${
-              !props.editor || (newCardIsOpen && "rounded-b-md pb-2")
+               ( !props.can_edit || newCardIsOpen ) && "rounded-b-md pb-2"
             }`}
           >
             <div className="py-1 px-3">
@@ -108,7 +109,7 @@ const List = (props) => {
                         key={card.id}
                         card={card}
                         index={index}
-                        editor={props.editor}
+                        can_edit={props.can_edit}
                       />
                     ))}
                     {provided.placeholder}
@@ -166,7 +167,7 @@ const List = (props) => {
               )}
             </div>
           </div>
-          {!newCardIsOpen && props.editor && (
+          {!newCardIsOpen && props.can_edit && (
             <div className="py-2 px-2 bg-lightgray rounded-b-md">
               <button
                 onClick={async () => {

@@ -1,7 +1,16 @@
 class ApplicationController < ActionController::Base
   include JsonResponse
+  include Pundit
   
   before_action :configure_permitted_parameters, if: :devise_controller?
+  rescue_from Pundit::NotAuthorizedError, with: :render404
+  rescue_from ActiveRecord::RecordNotFound, with: :render404
+
+  private
+
+  def render404
+    render 'pages/404'
+  end
 
   protected
 

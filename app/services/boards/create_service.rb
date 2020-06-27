@@ -7,7 +7,7 @@ module Boards
 
     def execute
       board = Board.create(@board_params)
-      @user.participations.create(participant: board)
+      @user.participations.create(participant: board, role: "admin")
       board
     end
   end

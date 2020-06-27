@@ -8,4 +8,8 @@ class User < ApplicationRecord
 
   validates :password_confirmation, presence: true, on: :create
   validates :name, presence: true, length: { maximum: 50 }
+
+  def board_titles
+    boards.titles
+  end
 end
