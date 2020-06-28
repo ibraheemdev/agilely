@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Sidebar from "./sidebar/sidebar";
 import Header from "./header/header";
-import NewList from "./new_list";
-import List from "./list";
+import NewList from "./list/new_list";
+import List from "./list/index";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { authenticityToken, url, midString } from "./lib";
 import axios from "axios";
@@ -11,6 +11,7 @@ const Board = (props) => {
   const [isOpen, toggleSidebar] = useState(false);
   const [board, updateBoard] = useState(props.board);
   const [newListTitle, setNewListTitle] = useState("");
+  const [view, toggleView] = useState("BOARD")
 
   const can_edit = props.role === "admin" || props.role === "editor"
 
@@ -188,6 +189,8 @@ const Board = (props) => {
             can_edit={can_edit}
             lists={board.lists}
             current_user={props.current_user}
+            toggleView={toggleView}
+            view={view}
           />
           <div className="flex-1 overflow-auto">
             <main className="p-3 h-full inline-flex">
@@ -212,6 +215,7 @@ const Board = (props) => {
                           board_slug={board.slug}
                           handleNewCard={handleNewCard}
                           can_edit={can_edit}
+                          view={view}
                         />
                       ))}
                       {provided.placeholder}

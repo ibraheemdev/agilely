@@ -89,7 +89,7 @@ const Header = (props) => {
             </div>
             <div className="flex">
               <span className="hidden sm:inline-flex p-1 border bg-gray-200 rounded-md">
-                <button className="px-2 py-1 rounded">
+                <button className={`px-2 py-1 rounded focus:outline-none ${props.view === "LIST" && "bg-white shadow"}`} onClick={() => props.toggleView("LIST")}>
                   <svg
                     className="h-6 w-6 text-gray-600"
                     viewBox="0 0 24 24"
@@ -103,7 +103,7 @@ const Header = (props) => {
                     />
                   </svg>
                 </button>
-                <button className="px-2 py-1 bg-white rounded shadow">
+                <button className={`px-2 py-1 rounded focus:outline-none ${props.view === "BOARD" && "bg-white shadow"}`} onClick={() => props.toggleView("BOARD")}>
                   <svg
                     className="h-6 w-6 text-gray-600"
                     viewBox="0 0 24 24"
@@ -128,7 +128,7 @@ const Header = (props) => {
           </div>
         </div>
         <div className="flex px-4 p-1 border-t border-b bg-gray-200 sm:hidden">
-          <button className="inline-flex items-center justify-center w-1/2 px-2 py-1 rounded">
+          <button className={`inline-flex items-center justify-center w-1/2 px-2 py-1 rounded focus:outline-none ${props.view === "LIST" && "bg-white shadow"}`} onClick={() => props.toggleView("LIST")}>
             <svg
               className="h-6 w-6 text-gray-600"
               viewBox="0 0 24 24"
@@ -145,7 +145,7 @@ const Header = (props) => {
               List
             </span>
           </button>
-          <button className="inline-flex items-center justify-center w-1/2 px-2 py-1 bg-white rounded shadow">
+          <button className={`inline-flex items-center justify-center w-1/2 px-2 py-1 rounded focus:outline-none ${props.view === "BOARD" && "bg-white shadow"}`} onClick={() => props.toggleView("BOARD")}>
             <svg
               className="h-6 w-6 text-gray-600"
               viewBox="0 0 24 24"

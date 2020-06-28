@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useOutsideAlerter } from "./lib"
+import { useOutsideAlerter } from "../lib"
 
 const NewList = React.forwardRef((props, ref) => {
   const [isOpen, toggleOpen] = useState(false);
