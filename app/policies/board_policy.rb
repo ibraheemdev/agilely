@@ -2,6 +2,6 @@ class BoardPolicy < ApplicationPolicy
   def show?
     user&.admin? ||
     record.public? || 
-    user && user.boards.exists?(record.id)
+    user&.has_participation_in?(record)
   end
 end

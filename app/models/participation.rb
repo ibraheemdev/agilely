@@ -7,6 +7,10 @@ class Participation < ApplicationRecord
 
   enum role: [:viewer, :editor, :admin]
   
+  def self.has_participation_in?(record)
+    exists?(participant: record)
+  end
+
   def self.role_in(record)
     find_by(participant: record)&.role || 'guest'
   end

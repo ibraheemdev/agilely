@@ -8,7 +8,7 @@ class BoardsController < ApplicationController
   def show
     @board = authorize Board.full(params[:slug])
     @board_titles = current_user&.board_titles
-    @role = @board.role_of current_user
+    @role = current_user&.role_in @board || "guest"
   end
 
   def update

@@ -11,4 +11,12 @@ class User < ApplicationRecord
   def board_titles
     boards.titles
   end
+
+  def has_participation_in?(record)
+    participations.has_participation_in?(record)
+  end
+
+  def role_in(record)
+    participations.role_in(record)
+  end
 end

@@ -8,6 +8,14 @@ class Board < ApplicationRecord
   
   before_validation :set_slug, on: :create
 
+  def to_param
+    slug
+  end
+
+  def full_json
+    as_json(include: { lists: { include: { cards: {} } }, participations: {} })
+  end
+
   class << self
     def full(slug)
       includes(:participations, lists: [:cards]).find_by!(slug: slug)
@@ -16,18 +24,6 @@ class Board < ApplicationRecord
     def titles
       select(:title, :slug)
     end
-  end
-  
-  def role_of(user)
-    user.try(:participations).try(:role_in, self) || 'guest'
-  end
-
-  def to_param
-    slug
-  end
-
-  def full_json
-    as_json(include: { lists: { include: { cards: {} } }, participations: {} })
   end
 
   private
