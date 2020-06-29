@@ -11,7 +11,15 @@ class Participation < ApplicationRecord
     exists?(participant: record)
   end
 
+  def self.participation_in(record)
+    find_by(participant: record)
+  end
+
   def self.role_in(record)
     find_by(participant: record)&.role || 'guest'
+  end
+
+  def can_edit?
+    admin? || editor?
   end
 end

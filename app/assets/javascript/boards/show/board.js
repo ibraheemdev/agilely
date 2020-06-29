@@ -177,7 +177,7 @@ const Board = (props) => {
         <Sidebar
           toggleSidebar={toggleSidebar}
           isOpen={isOpen}
-          boards={props.board_titles}
+          boards={props.boards_titles}
         />
       )}
       <div className="h-screen flex body-scrollbar">

@@ -7,16 +7,11 @@ class User < ApplicationRecord
          :confirmable
 
   validates :name, presence: true, length: { maximum: 50 }
+  
+  delegate :role_in, :participation_in, :has_participation_in?, to: :participations
+  delegate :titles, to: :boards, prefix: true
 
-  def board_titles
-    boards.titles
-  end
-
-  def has_participation_in?(record)
-    participations.has_participation_in?(record)
-  end
-
-  def role_in(record)
-    participations.role_in(record)
+  def can_edit?(record)
+    participation_in(record)&.can_edit? || false
   end
 end

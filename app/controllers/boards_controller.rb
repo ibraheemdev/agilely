@@ -1,4 +1,5 @@
 class BoardsController < ApplicationController
+  skip_before_action :authenticate_user!, only: [:show]
 
   def create
     board = Boards::CreateService.execute(board_params: board_params, user: current_user)
@@ -7,17 +8,19 @@ class BoardsController < ApplicationController
 
   def show
     @board = authorize Board.full(params[:slug])
-    @board_titles = current_user&.board_titles
+    @boards_titles = current_user&.boards_titles
     @role = current_user&.role_in @board || "guest"
   end
 
   def update
-    Board.find_by(slug: params[:slug]).update(board_params)
+    board = authorize Board.find_by(slug: params[:slug])
+    board.update(board_params)
     head :no_content
   end
 
   def destroy
-    Board.find_by(slug: params[:slug]).destroy
+    board = authorize Board.find_by(slug: params[:slug])
+    board.destroy
     head :no_content
   end
 
