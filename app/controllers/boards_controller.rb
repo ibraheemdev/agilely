@@ -1,7 +1,7 @@
 class BoardsController < ApplicationController
 
   def create
-    board = Boards::CreateService.execute({ board_params: board_params, user: current_user })
+    board = Boards::CreateService.execute(board_params: board_params, user: current_user)
     redirect_to show_board_path(slug: board.slug, data: { turbolinks: false })
   end
 
