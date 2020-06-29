@@ -4,7 +4,7 @@ class Board < ApplicationRecord
 
   validates :slug, presence: true, length: { is: 8 }, uniqueness: true
   validates :title, presence: true, length: { maximum: 512 }
-  validates :public, presence: true
+  validates :public, inclusion: { in: [ true, false ] }
   
   before_validation :set_slug, on: :create
 
