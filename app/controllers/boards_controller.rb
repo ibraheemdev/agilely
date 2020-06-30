@@ -15,13 +15,13 @@ class BoardsController < ApplicationController
   def update
     board = authorize Board.find_by(slug: params[:slug])
     board.update(board_params)
-    head :no_content
+    json_response(board)
   end
 
   def destroy
     board = authorize Board.find_by(slug: params[:slug])
     board.destroy
-    head :no_content
+    json_response(board)
   end
 
   private
