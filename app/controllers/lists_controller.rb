@@ -1,17 +1,20 @@
 class ListsController < ApplicationController
 
   def create
-    list = Board.find_by(slug: params[:board_slug]).lists.create(list_params)
-    json_response({type: "list", resource: list})
+    board = authorize Board.find_by(slug: params[:board_slug])
+    board.lists.create(list_params)
+    json_response(type: "list", resource: list)
   end
 
   def update
-    List.find(params[:id]).update(list_params)
+    list = authorize List.find(params[:id])
+    list.update(list_params)
     head :no_content
   end
 
   def destroy
-    List.find(params[:id]).destroy
+    list = authorize List.find(params[:id])
+    list.destroy
     head :no_content
   end
 
