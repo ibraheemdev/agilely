@@ -8,6 +8,8 @@ class Card < ApplicationRecord
 
   before_validation :set_position, on: :create
 
+  delegate :board, to: :list
+
   private
   
   def set_position

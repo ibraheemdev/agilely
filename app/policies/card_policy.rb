@@ -1,0 +1,2 @@
+class CardPolicy < ListPolicy
+end

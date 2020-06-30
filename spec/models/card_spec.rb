@@ -34,4 +34,8 @@ RSpec.describe Card, type: :model do
       expect(card2.position).to eq('o')
     end
   end
+
+  describe "#board" do
+    it { expect(card.board).to eq(board) }
+  end
 end

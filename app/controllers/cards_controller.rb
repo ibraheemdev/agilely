@@ -1,17 +1,20 @@
 class CardsController < ApplicationController
 
   def create
-    card = List.find(params[:list_id]).cards.create(card_params)
+    list = authorize List.find(params[:list_id])
+    card = list.cards.create(card_params)
     json_response({type: "card", resource: card})
   end
 
   def update
-    Card.find(params[:id]).update(card_params)
+    card = authorize Card.find(params[:id])
+    card.update(card_params)
     head :no_content
   end
 
   def destroy
-    Card.find(params[:id]).destroy
+    card = authorize Card.find(params[:id])
+    card.destroy
     head :no_content
   end
 

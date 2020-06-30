@@ -2,7 +2,7 @@ class ListsController < ApplicationController
 
   def create
     board = authorize Board.find_by(slug: params[:board_slug])
-    board.lists.create(list_params)
+    list = board.lists.create(list_params)
     json_response(type: "list", resource: list)
   end
 
