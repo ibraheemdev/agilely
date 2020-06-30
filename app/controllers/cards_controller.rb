@@ -8,6 +8,7 @@ class CardsController < ApplicationController
 
   def update
     card = authorize Card.find(params[:id])
+    card_params[:list_id] && ( authorize List.find(card_params[:list_id]) )
     card.update(card_params)
     head :no_content
   end
