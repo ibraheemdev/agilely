@@ -193,16 +193,16 @@ const Board = (props) => {
             view={view}
           />
           <div className="flex-1 overflow-auto">
-            <main className="p-3 h-full inline-flex">
+            <main className={`${view === "BOARD" && "inline-flex"} p-3 h-full`}>
               <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable
                   droppableId="board"
-                  direction="horizontal"
+                  direction={view === "BOARD" ? "horizontal" : "vertical"}
                   type="list"
                 >
                   {(provided) => (
                     <div
-                      className="inline-flex"
+                      className={`${view === "BOARD" && "inline-flex"}`}
                       {...provided.droppableProps}
                       ref={provided.innerRef}
                     >
