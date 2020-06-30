@@ -2,7 +2,7 @@ class ListPolicy < BoardPolicy
 
   def initialize(user, record)
     @user = user
-    @record = record.class.name === "Board" ? record : record.board
+    @record = record.board
   end
   
   def create?

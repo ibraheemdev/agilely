@@ -1,7 +1,7 @@
 class ListsController < ApplicationController
 
   def create
-    board = authorize Board.find_by(slug: params[:board_slug])
+    board = authorize Board.find_by(slug: params[:board_slug]), :update?, policy_class: BoardPolicy
     list = board.lists.create(list_params)
     json_response(list)
   end
