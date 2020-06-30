@@ -10,7 +10,7 @@ class ApplicationController < ActionController::Base
   private
 
   def render404
-    render 'pages/404'
+    render 'pages/404', status: 404
   end
 
   protected
