@@ -35,3 +35,8 @@ If you need help contributing, found a bug in our code, or just want to talk, pl
 ## Is it any good?
 
 Yes. Don't believe us? Try it out for yourself!
+
+## License
+
+Agilely is under the GNU General Public License v3.0
+See [COPYING](https://github.com/redline-gh/agilely/blob/master/.gitignore) for the full text
