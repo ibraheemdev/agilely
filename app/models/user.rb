@@ -3,21 +3,18 @@ class User < ApplicationDocument
          :recoverable, :rememberable, :validatable,
          :confirmable
 
+  field :email,              type: String, default: ""
   field :encrypted_password, type: String, default: ""
-  validates :encrypted_password, presence: true
 
-  field :reset_password_token, type: String
-  field :reset_password_sent_at, type: DateTime
+  field :reset_password_token,   type: String
+  field :reset_password_sent_at, type: Time
 
-  field :remember_created_at, type: DateTime
+  field :remember_created_at, type: Time
 
-  field :confirmation_token, type: String
-  field :confirmed_at, type: DateTime
-  field :confirmation_sent_at, type: DateTime
-  field :unconfirmed_email, type: String
-
-  field :email, type: String, default: ""
-  validates :email, presence: true
+  field :confirmation_token,   type: String
+  field :confirmed_at,         type: Time
+  field :confirmation_sent_at, type: Time
+  field :unconfirmed_email,    type: String
 
   field :name, type: String
   validates :name, presence: true, length: { maximum: 50 }
@@ -41,3 +38,4 @@ class User < ApplicationDocument
     participation_in(record)&.can_edit? || false
   end
 end
+

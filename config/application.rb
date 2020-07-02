@@ -8,8 +8,8 @@ require "active_job/railtie"
 # require "active_storage/engine"
 require "action_controller/railtie"
 require "action_mailer/railtie"
-require "action_mailbox/engine"
-require "action_text/engine"
+# require "action_mailbox/engine"
+# require "action_text/engine"
 require "action_view/railtie"
 require "action_cable/engine"
 # require "sprockets/railtie"
@@ -31,12 +31,9 @@ module Agilely
 
     # Don't generate system test files.
     config.generators.system_tests = nil
-    
+
     # Don't generate asset files
     config.generators.assets = false
-
-    # Use mongodb as databse
-    config.generators.orm = :mongoid
 
     # Don't wrap fields with errors in div
     config.action_view.field_error_proc = Proc.new { |html_tag, instance| 

@@ -7,6 +7,7 @@ Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
   config.cache_classes = false
+  config.action_view.cache_template_loading = true
 
   # Do not eager load code on boot. This avoids loading your whole application
   # just for the purpose of running a single test. If you are using a tool that
@@ -29,9 +30,6 @@ Rails.application.configure do
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
-
-  # Store uploaded files on the local file system in a temporary directory.
-  # config.active_storage.service = :test
 
   config.action_mailer.perform_caching = false
 

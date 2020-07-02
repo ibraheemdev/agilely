@@ -28,7 +28,7 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   
   config.before(:suite) do
-    DatabaseCleaner.strategy = :deletion
+    DatabaseCleaner[:mongoid].strategy = :truncation
   end
   
   config.around(:each) do |example|
