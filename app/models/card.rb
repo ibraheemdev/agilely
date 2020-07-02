@@ -1,10 +1,15 @@
-class Card < ApplicationRecord
+class Card < ApplicationDocument
   include Midstring
   
-  belongs_to :list
-  
+  field :title, type: String
   validates :title, presence: true
+
+  field :description, type: String
+
+  field :position, type: String
   validates :position, presence: true
+
+  belongs_to :list, index: true
 
   before_validation :set_position, on: :create
 

@@ -1,10 +1,16 @@
-class Board < ApplicationRecord
-  has_many :participations, as: :participant, dependent: :destroy
-  has_many :lists, -> { order(position: :asc) }, dependent: :destroy
+class Board < ApplicationDocument
 
-  validates :slug, presence: true, length: { is: 8 }, uniqueness: true
+  field :title, type: String
   validates :title, presence: true, length: { maximum: 512 }
+
+  field :slug, type: String
+  validates :slug, presence: true, length: { is: 8 }, uniqueness: true
+
+  field :public, type: Boolean
   validates :public, inclusion: { in: [ true, false ] }
+
+  has_many :participations, as: :participant, dependent: :destroy
+  has_many :lists, order: :position.asc, dependent: :destroy
   
   before_validation :set_slug, on: :create
 
