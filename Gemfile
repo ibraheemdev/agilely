@@ -10,7 +10,6 @@ gem 'webpacker', '~> 4.0'
 gem 'turbolinks', '~> 5'
 gem 'devise'
 gem 'pundit'
-gem 'sqlite3'
 
 gem 'bootsnap', '>= 1.4.2', require: false
 
