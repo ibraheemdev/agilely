@@ -28,7 +28,7 @@ group :test do
   gem 'capybara'
   gem "selenium-webdriver"
   gem 'rspec-rails'
-  gem 'shoulda-matchers'
+  gem 'mongoid-rspec'
   gem 'factory_bot_rails'
   gem 'database_cleaner-mongoid'
 end

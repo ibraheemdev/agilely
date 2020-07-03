@@ -7,9 +7,13 @@ require 'rspec/rails'
 require 'database_cleaner/mongoid'
 require "capybara/rspec"
 require 'support/json_response'
+require 'mongoid-rspec'
 
 RSpec.configure do |config|
+
   config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include Mongoid::Matchers, type: :model
+
   config.fixture_path = "#{::Rails.root}/spec/fixtures"
   config.use_transactional_fixtures = true
 
@@ -35,12 +39,5 @@ RSpec.configure do |config|
     DatabaseCleaner.cleaning do
       example.run
     end
-  end
-end
-
-Shoulda::Matchers.configure do |config|
-  config.integrate do |with|
-    with.test_framework :rspec
-    with.library :rails
   end
 end

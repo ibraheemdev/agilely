@@ -1,65 +1,91 @@
 require 'rails_helper'
 
 RSpec.describe User, type: :model do
-  let(:user) { create(:user) }
+  subject { create(:user) }
   let!(:board) { create(:board) }
-  let!(:participation) { board.participations.create(user_id: user.id, role: "admin") }
+  let!(:participation) { subject.participations.create(participant: board, role: :admin) }
 
   describe "attributes" do
-    it { expect(user).to respond_to(:email) }
-    it { expect(user).to respond_to(:encrypted_password) }
-    it { expect(user).to respond_to(:reset_password_token) }
-    it { expect(user).to respond_to(:reset_password_sent_at) }
-    it { expect(user).to respond_to(:remember_created_at) }
-    it { expect(user).to respond_to(:confirmation_token) }
-    it { expect(user).to respond_to(:confirmed_at) }
-    it { expect(user).to respond_to(:confirmation_sent_at) }
-    it { expect(user).to respond_to(:unconfirmed_email) }
-    it { expect(user).to respond_to(:name) } 
-    it { expect(user).to respond_to(:created_at) }
-    it { expect(user).to respond_to(:updated_at) }
-    it { expect(user).to respond_to(:admin) }
-  end
+    it { is_expected.to be_mongoid_document }
+    it { is_expected.to have_timestamps }
 
-  describe 'validations' do
-    it { expect(user).to validate_presence_of(:name) }
-    it { expect(user).to validate_length_of(:name).is_at_most(50) }
-    it { expect(user).to validate_presence_of(:email) }
-    it { expect(user).to validate_length_of(:password).is_at_least(6) }
-    it { expect(user.admin).to be false }
-    it { expect(user).to_not allow_value("").for(:password) }
-    it { expect(user.dup).to_not allow_value(user.email.upcase).for(:email) }
-
+    it { is_expected.to have_field(:email).of_type(String).with_default_value_of("") }
+    it { is_expected.to validate_uniqueness_of(:email) }
     it "is expected to follow valid email regex" do
       addresses = %w[user@foo,com user_at_foo.org example.user@foo. foo@bar_baz.com foo@bar+baz.com foo@bar..com]
       addresses.each do |invalid_address|
-        expect(user).to_not allow_value(invalid_address).for(:email)
+        is_expected.to validate_format_of(:email).not_to_allow(invalid_address)
       end
+    end
+
+    it { is_expected.to have_field(:encrypted_password).of_type(String).with_default_value_of("") }
+    it { is_expected.to validate_length_of(:password).with_minimum(6) }
+    it { is_expected.to validate_presence_of(:password) }
+
+    it { is_expected.to have_field(:reset_password_token).of_type(String) }
+    it { is_expected.to have_field(:reset_password_sent_at).of_type(Time) }
+
+    it { is_expected.to have_field(:remember_created_at).of_type(Time) }
+
+    it { is_expected.to have_field(:confirmation_token).of_type(String) }
+    it { is_expected.to have_field(:confirmed_at).of_type(Time) }
+    it { is_expected.to have_field(:confirmation_sent_at).of_type(Time) }
+    it { is_expected.to have_field(:unconfirmed_email).of_type(String) }
+
+    it { is_expected.to have_field(:name).of_type(String) }
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_length_of(:name).with_maximum(50) }
+
+    it { is_expected.to have_field(:admin).of_type(Mongoid::Boolean).with_default_value_of(false) }
+
+    it { is_expected.to embed_many(:participations) }
+
+    it do 
+      is_expected
+      .to have_index_for(confirmation_token: 1)
+      .with_options(unique: true, name: "index_users_on_confirmation_token" )
+    end
+
+    it do 
+      is_expected
+      .to have_index_for(reset_password_token: 1)
+      .with_options(unique: true, name: "index_users_on_reset_password_token" )
+    end
+
+    it do 
+      is_expected
+      .to have_index_for(email: 1)
+      .with_options(unique: true, name: "index_users_on_email" )
     end
   end
 
-  describe "associations" do
-    it { expect(user).to have_many(:participations) }
-    it { expect(user).to have_many(:boards).through(:participations).source(:participant).dependent(:destroy) }
+  describe "#boards" do
+    let(:board2) { create(:board) }
+    it { expect(subject.boards).to include(board) }
+    it { expect(subject.boards).not_to include(board2) }
   end
 
-  describe ".has_participation_in?" do
-    it { expect(user.has_participation_in? board).to be true }
+  describe ".#board_titles" do
+    it { expect(subject.boards_titles).to eq([[board.title, board.slug]]) }
   end
 
-  describe ".participation_in" do
-    it { expect(user.participation_in board).to eq(participation) }
+  describe "#has_participation_in?" do
+    it { expect(subject.has_participation_in? board).to be true }
   end
 
-  describe ".role_in" do
-    it { expect(user.role_in board).to eq(participation.role) }
+  describe "#participation_in" do
+    it { expect(subject.participation_in board).to eq(participation) }
+  end
+
+  describe "#role_in" do
+    it { expect(subject.role_in board).to eq(participation.role) }
   end
 
   describe "#can_edit?" do
-    it { expect(user.can_edit? board).to be true }
+    it { expect(subject.can_edit? board).to be true }
   end
 
-  describe ".titles" do
-    it { expect(user.boards_titles.first.as_json).to eq({"id"=> nil, "title"=> board.title, "slug"=> board.slug}) }
+  describe "#can_edit?" do
+    it { expect(subject.can_edit? board).to be true }
   end
 end

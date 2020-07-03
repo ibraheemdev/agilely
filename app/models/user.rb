@@ -21,23 +21,35 @@ class User
   field :name, type: String
   validates :name, presence: true, length: { maximum: 50 }
 
-  field :admin, type: Boolean
+  field :admin, type: Boolean, default: false
 
   embeds_many :participations
-
-  def boards
-    Board.in(id: participations.where(participant_type: "Board").pluck(:participant_id))
-  end
 
   index({ confirmation_token: 1 }, { unique: true, name: "index_users_on_confirmation_token" })
   index({ reset_password_token: 1 }, { unique: true, name: "index_users_on_reset_password_token" })
   index({ email: 1 }, { unique: true, name: "index_users_on_email" })
 
-  delegate :role_in, :participation_in, :has_participation_in?, to: :participations
   delegate :titles, to: :boards, prefix: true
 
+  def boards
+    Board.in(id: participations.where(participant_type: "Board").pluck(:participant_id))
+  end
+
+  def has_participation_in?(record)
+    participations.where(participant: record).exists?
+  end
+
+  def participation_in(record)
+    participations.find_by(participant: record)
+  end
+
+  def role_in(record)
+    participations.find_by(participant: record)&.role || :guest
+  end
+
   def can_edit?(record)
-    participation_in(record)&.can_edit? || false
+    participation = participation_in(record)
+    participation&.role === :admin || participation&.role === :editor
   end
 end
 
