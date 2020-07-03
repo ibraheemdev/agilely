@@ -1,4 +1,5 @@
-class List < ApplicationDocument
+class List
+  include ApplicationDocument
   include Midstring
   
   field :title, type: String

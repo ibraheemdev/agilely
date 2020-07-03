@@ -1,5 +1,6 @@
-class Board < ApplicationDocument
-
+class Board
+  include ApplicationDocument
+  
   field :title, type: String
   validates :title, presence: true, length: { maximum: 512 }
 

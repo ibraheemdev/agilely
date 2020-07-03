@@ -1,4 +1,5 @@
-class Card < ApplicationDocument
+class Card
+  include ApplicationDocument
   include Midstring
   
   field :title, type: String

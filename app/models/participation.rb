@@ -1,5 +1,6 @@
-class Participation < ApplicationDocument
-
+class Participation
+  include ApplicationDocument
+  
   field :role, type: Integer
   validates :role, presence: true
   # enum role: [:viewer, :editor, :admin]

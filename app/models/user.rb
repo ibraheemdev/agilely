@@ -1,4 +1,6 @@
-class User < ApplicationDocument
+class User
+  include ApplicationDocument
+  
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
          :confirmable
