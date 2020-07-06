@@ -10,27 +10,48 @@ class Board
   field :public, type: Boolean
   validates :public, inclusion: { in: [ true, false ] }
 
-  has_many :participations, as: :participant, dependent: :destroy
-  has_many :lists, order: :position.asc, dependent: :destroy
+  embeds_many :lists, order: :position.asc
   
   before_validation :set_slug, on: :create
 
-  def to_param
-    slug
+  def users
+    User.where('participations.participant_type': "Board")
+        .and('participations.participant_id': self.id)
+        .all
   end
 
-  def full_json
-    as_json(include: { lists: { include: { cards: {} } }, participations: {} })
+  def to_param() slug end
+
+  def self.full_json(slug)
+    Board.collection.aggregate([
+      { '$match' => { slug: slug } },
+      { '$lookup' => 
+        { from: "cards", localField: "lists._id",
+          foreignField: "list_id", as: "cards" } 
+      },
+      { '$project' => {
+        _id: true, title: true,
+        lists: { '$map' => { input: "$lists", as: "list",
+            in: { 
+              '$mergeObjects' => [
+                "$$list",
+                { cards: {
+                    '$filter' => {
+                      input: "$cards",
+                      cond: {
+                        '$eq' => [ "$$this.list_id", "$$list._id" ]
+                      }
+                    }
+                }}
+              ]
+            }
+         }}
+       }}
+    ]).as_json
   end
 
-  class << self
-    def full(slug)
-      includes(:participations, lists: [:cards]).find_by!(slug: slug)
-    end
-
-    def titles
-      select(:title, :slug)
-    end
+  def self.titles
+    pluck(:title, :slug)
   end
 
   private

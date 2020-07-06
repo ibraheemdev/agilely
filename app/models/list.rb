@@ -8,7 +8,7 @@ class List
   field :position, type: String
   validates :position, presence: true
 
-  belongs_to :board, index: true
+  embedded_in :board
   has_many :cards, order: :position.asc, dependent: :delete_all
 
   before_validation :set_position, on: :create
@@ -16,6 +16,6 @@ class List
   private
   
   def set_position
-    self.position = board.lists.blank? ? 'c' : midstring(board.lists.last.position, '')
+    self.position = self.board.lists.length === 1  ? 'c' : midstring(self.board.lists[-2].position, '')
   end
 end

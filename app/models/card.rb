@@ -19,6 +19,6 @@ class Card
   private
   
   def set_position
-    self.position = list.cards.blank? ? 'c' : midstring(list.cards.last.position, '')
+    self.position = self.list.cards.length === 1 ? 'c' : midstring(self.list.cards[-2].position, '')
   end
 end
