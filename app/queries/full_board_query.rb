@@ -4,7 +4,7 @@ class FullBoardQuery
   end
 
   def execute
-    Board.collection.aggregate(aggregation)
+    Board.collection.aggregate(aggregation).first
   end
 
   def aggregation
@@ -58,6 +58,7 @@ class FullBoardQuery
       '$project' => {
         _id: true,
         title: true,
+        slug: true,
         users: '$users',
         lists: {
           '$map' => {
