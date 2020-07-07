@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import GuestAlert from "./guest_alert";
-import ShareBoardModal from "./share_board";
 import AutosizeInput from "react-input-autosize";
 import Search from "./search";
 
 const Header = (props) => {
   const [title, setTitle] = useState(props.title);
-  const [shareBoardModalIsOpen, toggleShareBoardModal] = useState(true);
   return (
     <div className="sm:border-b-2 sm:border-gray-200">
       {!props.current_user && (
@@ -14,7 +12,6 @@ const Header = (props) => {
           <GuestAlert />
         </div>
       )}
-      {shareBoardModalIsOpen && <ShareBoardModal toggleSelf={toggleShareBoardModal} current_user={props.current_user} participations={props.participations}/>}
       <header>
         <div className="px-6">
           <div className="flex justify-between items-center py-3 border-b border-gray-200">
@@ -116,7 +113,7 @@ const Header = (props) => {
                   </svg>
                 </button>
               </span>
-              <button onClick={() => toggleShareBoardModal(true)}className="flex-shrink-0 ml-5 flex items-center pl-2 pr-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-500">
+              <button className="flex-shrink-0 ml-5 flex items-center pl-2 pr-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-500">
                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M12 7v10m5-5H7"
@@ -125,7 +122,7 @@ const Header = (props) => {
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className="ml-1">Share Board</span>
+                <span className="ml-1">New Issue</span>
               </button>
             </div>
           </div>
