@@ -25,25 +25,24 @@ class User
 
   embeds_many :participations do
 
-    def has_participation_in?(record)
-      where(participant: record).exists?
+    def has_participation?(type, id)
+      where(participant_type: type, participant_id: id).exists?
     end
   
-    def participation_in(record)
-      find_by(participant: record)
+    def participation_in(type, id)
+      find_by(participant_type: type, participant_id: id)
     end
   
-    def role_in(record)
-      find_by(participant: record)&.role || :guest
+    def role_in(type, id)
+      participation_in(type, id)&.role || :guest
     end
   
-    def can_edit?(record)
-      participation = participation_in(record)
-      participation&.role === :admin || participation&.role === :editor
+    def can_edit?(type, id)
+      role_in(type, id) === :admin || role_in(type, id) === :editor
     end
   end
   
-  delegate :can_edit?, :role_in, :participation_in, :has_participation_in?, to: :participations
+  delegate :can_edit?, :role_in, :participation_in, :has_participation?, to: :participations
 
   index({ confirmation_token: 1 }, { unique: true, name: "index_users_on_confirmation_token" })
   index({ reset_password_token: 1 }, { unique: true, name: "index_users_on_reset_password_token" })

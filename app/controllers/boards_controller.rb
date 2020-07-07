@@ -9,7 +9,7 @@ class BoardsController < ApplicationController
   def show
     @board = authorize Board.full(params[:slug]), policy_class: BoardPolicy
     @boards_titles = current_user&.boards_titles
-    @role = current_user&.role_in @board || "guest"
+    @role = current_user&.role_in("Board", @board["_id"]) || "guest"
   end
 
   def update

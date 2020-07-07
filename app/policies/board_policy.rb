@@ -7,16 +7,15 @@ class BoardPolicy < ApplicationPolicy
   def show?
     user&.admin? ||
     record["public"] || 
-    # the board json object contains the user
-    record["users"].select { |b_user| b_user["_id"] === user._id }.any? ||
+    user&.has_participation?("Board", record["_id"]) ||
     false
   end
 
   def update?
-    user&.can_edit?(record) || false
+    user&.can_edit?("Board", record["_id"]) || false
   end
   
   def destroy?
-    user&.can_edit?(record) || false
+    user&.can_edit?("Board", record["_id"]) || false
   end
 end
