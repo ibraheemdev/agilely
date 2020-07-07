@@ -17,7 +17,7 @@ const Board = (props) => {
 
   const handleNewCard = (listId, card) => {
     const newBoard = { ...board };
-    newBoard.lists.find((list) => list.id === listId).cards.push(card);
+    newBoard.lists.find((list) => list._id.$oid === listId).cards.push(card);
   };
 
   const handleNewList = () => {
@@ -53,7 +53,7 @@ const Board = (props) => {
   const handleDeleteList = (targetList) => {
     event.preventDefault();
     axios
-      .delete(`${url}/lists/${targetList.id}`, {
+      .delete(`${url}/lists/${targetList._id.$oid}`, {
         data: { authenticity_token: authenticityToken() },
       })
       .then(() => {
@@ -68,7 +68,7 @@ const Board = (props) => {
 
   const onDragEnd = (result) => {
     const { destination, source, draggableId, type } = result;
-
+console.log(result)
     if (!destination) return;
     if (
       destination.droppableId === source.droppableId &&
@@ -93,7 +93,7 @@ const Board = (props) => {
       console.log(result);
       const newLists = Array.from(board.lists);
       const targetList = board.lists.find(
-        (list) => list.id === parseInt(draggableId)
+        (list) => list._id.$oid === draggableId
       );
       newLists.splice(source.index, 1);
       newLists.splice(destination.index, 0, targetList);
@@ -106,7 +106,7 @@ const Board = (props) => {
         return newBoard;
       });
 
-      axios.patch(`${url}/lists/${targetList.id}`, {
+      axios.patch(`${url}/lists/${targetList._id.$oid}`, {
         authenticity_token: authenticityToken(),
         list: {
           position: midstring,
@@ -114,13 +114,14 @@ const Board = (props) => {
       });
     } else {
       const startList = board.lists.find(
-        (list) => list.id === parseInt(source.droppableId)
+        (list) => list._id.$oid === source.droppableId
       );
       const endList = board.lists.find(
-        (list) => list.id === parseInt(destination.droppableId)
+        (list) => list._id.$oid === destination.droppableId
       );
+      console.log(board.lists.find((l) => l ))
       const targetCard = startList.cards.find(
-        (card) => card.id === parseInt(draggableId)
+        (card) => card._id.$oid === draggableId
       );
 
       if (startList === endList) {
@@ -136,7 +137,7 @@ const Board = (props) => {
         ].cards = newCards;
         updateBoard({ ...newBoard });
 
-        axios.patch(`${url}/cards/${targetCard.id}`, {
+        axios.patch(`${url}/cards/${targetCard._id.$oid}`, {
           authenticity_token: authenticityToken(),
           card: {
             position: midstring,
@@ -159,18 +160,17 @@ const Board = (props) => {
         ].cards = endCards;
         updateBoard({ ...newBoard });
 
-        axios.patch(`${url}/cards/${targetCard.id}`, {
+        axios.patch(`${url}/cards/${targetCard._id.$oid}`, {
           authenticity_token: authenticityToken(),
           card: {
             position: midstring,
-            list_id: endList.id,
+            list_id: endList._id.$oid,
           },
         });
       }
     }
   };
 
-  console.log(props)
   return (
     <div>
       {props.current_user && (
@@ -189,6 +189,7 @@ const Board = (props) => {
             can_edit={can_edit}
             lists={board.lists}
             current_user={props.current_user}
+            users={props.users}
             toggleView={toggleView}
             view={view}
           />
@@ -211,7 +212,7 @@ const Board = (props) => {
                           index={index}
                           list={list}
                           handleDeletion={handleDeleteList}
-                          key={list.id}
+                          key={list._id.$oid}
                           board_slug={board.slug}
                           handleNewCard={handleNewCard}
                           can_edit={can_edit}

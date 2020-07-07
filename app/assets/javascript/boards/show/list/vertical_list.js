@@ -5,7 +5,7 @@ import TextareaAutosize from "react-textarea-autosize";
 
 const VerticalList = (props) => (
   <Draggable
-    draggableId={props.list.id.toString()}
+    draggableId={props.list._id.$oid}
     index={props.index}
     isDragDisabled={!props.can_edit}
   >
@@ -18,7 +18,7 @@ const VerticalList = (props) => (
         <div className="relative -mb-2" {...provided.dragHandleProps}>
           <div className="flex items-center justify-between rounded-t-md bg-lightgray pt-3 pb-1">
             <input
-              id={`list-${props.list.id}-title`}
+              id={`list-${props.list._id.$oid}-title`}
               value={props.title}
               className={`w-full text-sm font-medium text-gray-700 bg-lightgray mx-3 py-1 px-1 focus:bg-white rounded-md focus:cursor-auto hover:cursor-pointer ${
                 props.can_edit && "hover:bg-gray-500 hover:bg-opacity-25"
@@ -55,13 +55,13 @@ const VerticalList = (props) => (
           </div>
         </div>
         <div
-          id={`list${props.list.id}top`}
+          id={`list${props.list._id.$oid}top`}
           className={`min-h-0 overflow-y-auto bg-lightgray ${
             (!props.can_edit || props.newCardIsOpen) && "rounded-b-md pb-2"
           }`}
         >
           <div className="py-1 px-3">
-            <Droppable droppableId={props.list.id.toString()} type="card">
+            <Droppable droppableId={props.list._id.$oid} type="card">
               {(provided) => (
                 <div
                   {...provided.droppableProps}
@@ -70,7 +70,7 @@ const VerticalList = (props) => (
                 >
                   {props.list.cards.map((card, index) => (
                     <Card
-                      key={card.id}
+                      key={card._id.$oid}
                       card={card}
                       index={index}
                       can_edit={props.can_edit}
@@ -84,7 +84,7 @@ const VerticalList = (props) => (
               <form
                 ref={props.newCardRef}
                 onSubmit={() =>
-                  props.handleNewCard(props.newCardTitle, props.list.id)
+                  props.handleNewCard(props.newCardTitle, props.list._id.$oid)
                 }
               >
                 <div className="mt-2">
@@ -94,7 +94,7 @@ const VerticalList = (props) => (
                   >
                     <div className="flex justify-between">
                       <TextareaAutosize
-                        id={`new-card-title-${props.list.id}`}
+                        id={`new-card-title-${props.list._id.$oid}`}
                         maxRows={16}
                         onChange={(e) =>
                           props.updateNewCardTitle(e.target.value)
@@ -141,7 +141,7 @@ const VerticalList = (props) => (
               onClick={async () => {
                 await props.toggleNewCard(true);
                 let el = document.getElementById(
-                  `new-card-title-${props.list.id}`
+                  `new-card-title-${props.list._id.$oid}`
                 );
                 await el.scrollIntoView({ behavior: "smooth" });
                 await el.focus({ preventScroll: true });

@@ -7,7 +7,7 @@ const HorizontalList = (props) => {
   const [cardsAreVisible, toggleVisibility] = useState(false);
   return (
     <Draggable
-      draggableId={props.list.id.toString()}
+      draggableId={props.list._id.$oid}
       index={props.index}
       isDragDisabled={!props.can_edit}
     >
@@ -41,7 +41,7 @@ const HorizontalList = (props) => {
                 </svg>
               </button>
               <AutosizeInput
-                id={`list-${props.list.id}-title`}
+                id={`list-${props.list._id.$oid}-title`}
                 value={props.title}
                 inputClassName={`max-w-xs text-md font-medium text-gray-700 ml-2 mr-1 py-1 px-2 focus:bg-white rounded-md focus:cursor-auto hover:cursor-pointer ${
                   props.can_edit && "hover:bg-gray-500 hover:bg-opacity-25"
@@ -63,7 +63,7 @@ const HorizontalList = (props) => {
                       await toggleVisibility(true);
                       await props.toggleNewCard(true);
                       let el = document.getElementById(
-                        `new-card-title-${props.list.id}`
+                        `new-card-title-${props.list._id.$oid}`
                       );
                       await el.scrollIntoView({ behavior: "smooth" });
                       await el.focus({ preventScroll: true });
@@ -115,13 +115,13 @@ const HorizontalList = (props) => {
             </div>
           </div>
           <div
-            id={`list${props.list.id}top`}
+            id={`list${props.list._id.$oid}top`}
             className={`min-h-0 overflow-y-auto ${
               (!props.can_edit || props.newCardIsOpen) && "rounded-b-md pb-2"
             }`}
           >
             <div className="py-1 px-3">
-              <Droppable droppableId={props.list.id.toString()} type="card">
+              <Droppable droppableId={props.list._id.$oid} type="card">
                 {(provided) => (
                   <div
                     {...provided.droppableProps}
@@ -131,7 +131,7 @@ const HorizontalList = (props) => {
                     {cardsAreVisible &&
                       props.list.cards.map((card, index) => (
                         <Card
-                          key={card.id}
+                          key={card._id.$oid}
                           card={card}
                           index={index}
                           can_edit={props.can_edit}
@@ -145,7 +145,7 @@ const HorizontalList = (props) => {
                 <form
                   ref={props.newCardRef}
                   onSubmit={() =>
-                    props.handleNewCard(props.newCardTitle, props.list.id)
+                    props.handleNewCard(props.newCardTitle, props.list._id.$oid)
                   }
                 >
                   <div className="mt-2 py-2 px-3 bg-white rounded-md shadow flex flex-wrap justify-between items-baseline">
@@ -153,7 +153,7 @@ const HorizontalList = (props) => {
                       type="text"
                       value={props.newCardTitle}
                       onChange={(e) => props.updateNewCardTitle(e.target.value)}
-                      id={`new-card-title-${props.list.id}`}
+                      id={`new-card-title-${props.list._id.$oid}`}
                       className="text-sm font-normal leading-snug text-gray-900 outline-none"
                     />
                   </div>

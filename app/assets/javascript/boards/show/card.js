@@ -4,10 +4,11 @@ import CardDetail from "./card_detail";
 
 const Card = (props) => {
   const [modalIsOpen, openModal] = useState(false);
+
   return (
     <div className="cursor-pointer">
       <Draggable
-        draggableId={props.card.id.toString()}
+        draggableId={props.card._id.$oid}
         index={props.index}
         isDragDisabled={!props.can_edit}
       >
