@@ -189,6 +189,7 @@ const Board = (props) => {
             can_edit={can_edit}
             lists={board.lists}
             current_user={props.current_user}
+            participations={board.participations}
             toggleView={toggleView}
             view={view}
           />
