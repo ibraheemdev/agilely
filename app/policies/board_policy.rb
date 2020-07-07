@@ -6,8 +6,9 @@ class BoardPolicy < ApplicationPolicy
 
   def show?
     user&.admin? ||
-    record.public? || 
-    user&.has_participation_in?(record) ||
+    record["public"] || 
+    # the board json object contains the user
+    record["users"].select { |b_user| b_user["_id"] === user._id }.any? ||
     false
   end
 

@@ -7,7 +7,7 @@ class BoardsController < ApplicationController
   end
 
   def show
-    @board = authorize Board.full(params[:slug])
+    @board = authorize Board.full(params[:slug]), policy_class: BoardPolicy
     @boards_titles = current_user&.boards_titles
     @role = current_user&.role_in @board || "guest"
   end

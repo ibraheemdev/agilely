@@ -59,6 +59,7 @@ class FullBoardQuery
         _id: true,
         title: true,
         slug: true,
+        public: true,
         users: '$users',
         lists: {
           '$map' => {
