@@ -23,7 +23,27 @@ class User
 
   field :admin, type: Boolean, default: false
 
-  embeds_many :participations
+  embeds_many :participations do
+
+    def has_participation_in?(record)
+      where(participant: record).exists?
+    end
+  
+    def participation_in(record)
+      find_by(participant: record)
+    end
+  
+    def role_in(record)
+      find_by(participant: record)&.role || :guest
+    end
+  
+    def can_edit?(record)
+      participation = participation_in(record)
+      participation&.role === :admin || participation&.role === :editor
+    end
+  end
+  
+  delegate :can_edit?, :role_in, :participation_in, :has_participation_in?, to: :participations
 
   index({ confirmation_token: 1 }, { unique: true, name: "index_users_on_confirmation_token" })
   index({ reset_password_token: 1 }, { unique: true, name: "index_users_on_reset_password_token" })
@@ -33,23 +53,6 @@ class User
 
   def boards
     Board.in(id: participations.where(participant_type: "Board").pluck(:participant_id))
-  end
-
-  def has_participation_in?(record)
-    participations.where(participant: record).exists?
-  end
-
-  def participation_in(record)
-    participations.find_by(participant: record)
-  end
-
-  def role_in(record)
-    participations.find_by(participant: record)&.role || :guest
-  end
-
-  def can_edit?(record)
-    participation = participation_in(record)
-    participation&.role === :admin || participation&.role === :editor
   end
 end
 
