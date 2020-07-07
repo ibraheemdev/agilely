@@ -4,7 +4,14 @@ class FullBoardQuery
   end
 
   def execute
-    Board.collection.aggregate(aggregation).first
+    board = Board.collection.aggregate(aggregation).first || 
+    ( raise Mongoid::Errors::DocumentNotFound.new(Board, [@slug]) )
+    handleNullLists(board)
+  end
+
+  def handleNullLists(board)
+    !board["lists"] && board["lists"] = []
+    board
   end
 
   def aggregation
