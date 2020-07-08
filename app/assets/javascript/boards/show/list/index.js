@@ -15,7 +15,7 @@ const List = (props) => {
   const handleUpdateTitle = () => {
     event.preventDefault();
     if (title !== props.list.title) {
-      axios.patch(`${url}/lists/${props.list.id}`, {
+      axios.patch(`${url}/boards/${props.board_slug}/lists/${props.list._id.$oid}`, {
         authenticity_token: authenticityToken(),
         list: { title: title },
       });

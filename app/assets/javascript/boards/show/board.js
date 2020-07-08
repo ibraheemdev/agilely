@@ -53,7 +53,7 @@ const Board = (props) => {
   const handleDeleteList = (targetList) => {
     event.preventDefault();
     axios
-      .delete(`${url}/lists/${targetList._id.$oid}`, {
+      .delete(`${url}/boards/${board.slug}/lists/${targetList._id.$oid}`, {
         data: { authenticity_token: authenticityToken() },
       })
       .then(() => {
@@ -68,7 +68,7 @@ const Board = (props) => {
 
   const onDragEnd = (result) => {
     const { destination, source, draggableId, type } = result;
-console.log(result)
+
     if (!destination) return;
     if (
       destination.droppableId === source.droppableId &&
@@ -106,7 +106,7 @@ console.log(result)
         return newBoard;
       });
 
-      axios.patch(`${url}/lists/${targetList._id.$oid}`, {
+      axios.patch(`${url}/boards/${board.slug}/lists/${targetList._id.$oid}`, {
         authenticity_token: authenticityToken(),
         list: {
           position: midstring,
