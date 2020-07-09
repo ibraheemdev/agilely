@@ -10,11 +10,10 @@ class Card
   field :position, type: String
   validates :position, presence: true
 
-  belongs_to :list, index: true
+  belongs_to :board, index: true
+  belongs_to :list
 
   before_validation :set_position, on: :create
-
-  delegate :board, to: :list
 
   private
   

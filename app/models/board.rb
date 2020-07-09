@@ -10,8 +10,9 @@ class Board
   field :public, type: Boolean
   validates :public, inclusion: { in: [ true, false ] }
 
-  embeds_many :lists, order: :position.asc
-  
+  has_many :lists, order: :position.asc
+  has_many :cards, order: :position.asc
+
   before_validation :set_slug, on: :create
 
   def users
@@ -19,15 +20,28 @@ class Board
         .and('participations.participant_id': self.id)
         .all
   end
+
+  def full_json
+    as_json.merge(
+      "lists" => List.full(self.id),
+      "participants" => participants
+    )
+  end
+
+  def participants
+    users.map do |u|
+      u.participation_in(self)
+        .as_json
+        .merge("name" => u.name, "email" => u.email)
+    end
+  end
   
-  def to_param() slug end
+  def to_param
+    slug 
+  end
 
   def self.titles
     pluck(:title, :slug)
-  end
-
-  def self.full(slug)
-    FullBoardQuery.new(slug).execute
   end
 
   private

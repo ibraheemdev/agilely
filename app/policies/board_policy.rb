@@ -6,16 +6,16 @@ class BoardPolicy < ApplicationPolicy
 
   def show?
     user&.admin? ||
-    record["public"] || 
-    user&.has_participation?("Board", record["_id"]) ||
+    record.public? || 
+    user&.has_participation_in?(record) ||
     false
   end
 
   def update?
-    user&.can_edit?("Board", record["_id"]) || false
+    user&.can_edit?(record) || false
   end
   
   def destroy?
-    user&.can_edit?("Board", record["_id"]) || false
+    user&.can_edit?(record) || false
   end
 end
