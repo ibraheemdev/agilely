@@ -1,30 +1,38 @@
-class FullListsQuery
+class FullBoardQuery
 
   def self.execute(*args, &block)
     new(*args, &block).execute
   end
   
-  def initialize(board_id)
-    @board_id = board_id
+  def initialize(board)
+    @board = board
   end
 
   def execute
-    aggregation.as_json
+    @board.as_json.merge("lists" => lists, "participants" => participants)
   end
 
   private
 
-  def aggregation
+  def participants
+    @board.users.map do |u|
+      u.participation_in(@board)
+        .as_json
+        .merge("name" => u.name, "email" => u.email)
+    end
+  end
+
+  def lists
     List.collection.aggregate([
       find_lists, 
       lookup_cards,
       project_lists,
       sort_lists
-    ])
+    ]).as_json
   end
 
   def find_lists
-    { '$match' => { board_id: @board_id } }
+    { '$match' => { board_id: @board.id } }
   end
 
   def lookup_cards
@@ -32,7 +40,7 @@ class FullListsQuery
       '$lookup' => {
         from: "cards",
         pipeline: [
-          { '$match' => { board_id: @board_id } },
+          { '$match' => { board_id: @board.id } },
           { '$sort': { position: 1 } }
        ],
        as: "cards"
@@ -46,17 +54,19 @@ class FullListsQuery
         _id: true, 
         title: true, 
         position: true,
-        cards: filter_cards
+        created_at: true,
+        updated_at: true,
+        cards: list_cards("$_id")
        }
     }
   end
 
-  def filter_cards
+  def list_cards(list_id)
     { '$filter' => {
       input: "$cards",
       as: "card",
       cond: {
-        '$eq' => ["$$card.list_id", "$_id"]
+        '$eq' => ["$$card.list_id", list_id]
       }
     }}
   end

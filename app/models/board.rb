@@ -21,19 +21,8 @@ class Board
         .all
   end
 
-  def full_json
-    as_json.merge(
-      "lists" => List.full(self.id),
-      "participants" => participants
-    )
-  end
-
-  def participants
-    users.map do |u|
-      u.participation_in(self)
-        .as_json
-        .merge("name" => u.name, "email" => u.email)
-    end
+  def full
+    FullBoardQuery.execute(self)
   end
   
   def to_param
