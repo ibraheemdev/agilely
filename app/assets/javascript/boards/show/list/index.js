@@ -15,23 +15,23 @@ const List = (props) => {
   const handleUpdateTitle = () => {
     event.preventDefault();
     if (title !== props.list.title) {
-      axios.patch(`${url}/boards/${props.board_slug}/lists/${props.list._id.$oid}`, {
+      axios.patch(`${url}/lists/${props.list._id.$oid}`, {
         authenticity_token: authenticityToken(),
         list: { title: title },
       });
     }
   };
 
-  const handleNewCard = (title, id) => {
+  const handleNewCard = (title) => {
     event.preventDefault();
     if (/\S/.test(title)) {
       axios
-        .post(`${url}/lists/${id}/cards`, {
+        .post(`${url}/lists/${props.list._id.$oid}/cards`, {
           authenticity_token: authenticityToken(),
           card: { title: title },
         })
         .then((res) => {
-          props.handleNewCard(props.list.id, res.data.card);
+          props.handleNewCard(props.list._id.$oid, res.data.card);
           toggleNewCard(false);
           updateNewCardTitle("");
         });

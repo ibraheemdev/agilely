@@ -84,7 +84,7 @@ const VerticalList = (props) => (
               <form
                 ref={props.newCardRef}
                 onSubmit={() =>
-                  props.handleNewCard(props.newCardTitle, props.list._id.$oid)
+                  props.handleNewCard(props.newCardTitle)
                 }
               >
                 <div className="mt-2">

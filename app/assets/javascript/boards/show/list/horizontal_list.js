@@ -145,7 +145,7 @@ const HorizontalList = (props) => {
                 <form
                   ref={props.newCardRef}
                   onSubmit={() =>
-                    props.handleNewCard(props.newCardTitle, props.list._id.$oid)
+                    props.handleNewCard(props.newCardTitle)
                   }
                 >
                   <div className="mt-2 py-2 px-3 bg-white rounded-md shadow flex flex-wrap justify-between items-baseline">

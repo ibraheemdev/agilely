@@ -53,7 +53,7 @@ const Board = (props) => {
   const handleDeleteList = (targetList) => {
     event.preventDefault();
     axios
-      .delete(`${url}/boards/${board.slug}/lists/${targetList._id.$oid}`, {
+      .delete(`${url}/lists/${targetList._id.$oid}`, {
         data: { authenticity_token: authenticityToken() },
       })
       .then(() => {
