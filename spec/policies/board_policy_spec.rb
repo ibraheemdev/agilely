@@ -22,7 +22,7 @@ RSpec.describe BoardPolicy do
     end
 
     context "when user has participation" do
-      before { board.participations.create!(user_id: user.id, role: "admin") }
+      before { user.participations.create!(participant: board, role: "admin") }
       it { is_expected.to permit(:show) }
     end
 
@@ -33,24 +33,24 @@ RSpec.describe BoardPolicy do
 
   describe "#update?" do
     context "when user has edit access" do
-      before { board.participations.create!(user_id: user.id, role: "admin") }
+      before { user.participations.create!(participant: board, role: "admin") }
       it { is_expected.to permit(:update) }
     end
 
     context "when user has read only access" do
-      before { board.participations.create!(user_id: user.id, role: "viewer") }
+      before { user.participations.create!(participant: board, role: "viewer") }
       it { is_expected.not_to permit(:update) }
     end
   end
 
   describe "#destroy?" do
     context "when user has edit access" do
-      before { board.participations.create!(user_id: user.id, role: "admin") }
+      before { user.participations.create!(participant: board, role: "admin") }
       it { is_expected.to permit(:destroy) }
     end
 
     context "when user has read only access" do
-      before { board.participations.create!(user_id: user.id, role: "viewer") }
+      before { user.participations.create!(participant: board, role: "viewer") }
       it { is_expected.not_to permit(:destroy) }
     end
   end

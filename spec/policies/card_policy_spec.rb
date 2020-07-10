@@ -5,9 +5,9 @@ RSpec.describe CardPolicy do
   subject { CardPolicy.new(user, card) }
   let(:board) { create(:board) }
   let(:list) { create(:list, board_id: board.id) }
-  let(:card) { create(:card, list_id: list.id) }
+  let(:card) { create(:card, list_id: list.id, board_id: board.id) }
   let(:user) { create(:user) }
-  let!(:participation) { board.participations.create!(user_id: user.id, role: "admin") }
+  let!(:participation) { user.participations.create!(participant: board, role: "admin") }
 
   actions = [:create, :update, :destroy]
   

@@ -1,33 +1,58 @@
-class LoggerDecorator
-  WHITE = "\e[37m"
-  CYAN = "\e[36m"
-  MAGENTA = "\e[35m"
-  BLUE = "\e[34m"
-  YELLOW = "\e[33m"
-  GREEN = "\e[32m"
-  RED = "\e[31m"
-  BLACK = "\e[30m"
-  BOLD = "\e[1m"
-  CLEAR = "\e[0m"
-  STARTED_FIND = /STARTED.*find"=>/
-  STARTED_UPDATE = /STARTED.*update"=>/
-  STARTED_INSERT = /STARTED.*insert"=>/
-  STARTED_DELETE = /STARTED.*delete"=>/
+class MongoidLogger
+  
+  WHITE     = "\e[37m"
+  CYAN      = "\e[36m"
+  MAGENTA   = "\e[35m"
+  BLUE      = "\e[34m"
+  YELLOW    = "\e[33m"
+  GREEN     = "\e[32m"
+  RED       = "\e[31m"
+  BLACK     = "\e[30m"
+  BOLD      = "\e[1m"
+  CLEAR     = "\e[0m"
+
+  FIND      = { regex: /STARTED.*find"=>/, color: BLUE }
+  UPDATE    = { regex: /STARTED.*update"=>/, color: YELLOW }
+  INSERT    = { regex: /STARTED.*insert"=>/, color: GREEN }
+  DELETE    = { regex: /STARTED.*delete"=>/, color: RED }
+  AGGREGATE = { regex: /STARTED.*aggregate"=>/, color: MAGENTA }
+  SUCCEEDED = { regex: /SUCCEEDED/, color: GREEN }
+  FAILED    = { regex: /FAILED/, color: RED }
+
+  ACTIONS   = [ FIND, UPDATE, INSERT, DELETE, AGGREGATE, SUCCEEDED, FAILED ]
 
   def initialize(logger)
     @logger = logger
+  end
+  
+  def colorize_message(msg)
+    for i in 0 ... ACTIONS.size
+      msg = color(msg, ACTIONS[i][:color]) if msg.match?(ACTIONS[i][:regex])
+    end
+    msg = "#{msg}\n"
+  end
+
+  def remove_unnecessary(msg)
+    if msg.include?("opology") || msg.include?("Server description")
+      ""
+    else
+      msg
+      .sub("agilely_development.", "")
+      .sub(" localhost:27017 #1", "")
+      .sub(" localhost:27017", "")
+      .sub(/ \| \[\d+\]/, "")
+    end
   end
 
   %w[debug info warn error fatal unknown].each_with_index do |method, severity|
     define_method(method) do |message = nil, &block|
       message = block.call if message.nil? and block
+      message = send(:remove_unnecessary, message.to_s)
       message = send(:colorize_message, message.to_s)
-      message = send(:remove_prefix, message.to_s)
       @logger.add(severity, nil, message, &block)
     end
   end
 
-  # Proxy everything else to the logger instance
   def respond_to?(method)
     super || @logger.respond_to?(method)
   end
@@ -43,36 +68,6 @@ class LoggerDecorator
     bold  = bold ? BOLD : ""
     "#{bold}#{color}#{text}#{CLEAR}"
   end
-
-  def colorize_message(message)
-    message = "#{message}\n"
-    message = case
-    when message.match?(STARTED_FIND)
-      color(message, BLUE)
-    when message.match?(STARTED_UPDATE)
-      color(message, YELLOW)
-    when message.match?(STARTED_INSERT)
-      color(message, MAGENTA)
-    when message.match?(STARTED_DELETE)
-      color(message, RED)
-    when message.match?(/SUCCEEDED/)
-      color(message, GREEN)
-    when message.match?(/FAILED/)
-      color(message, RED)
-    when message.include?("opology") || message.include?("Server description")
-      ""
-    else
-      message
-    end
-  end
-
-  def remove_prefix(message)
-    message
-      .sub("agilely_development.", "")
-      .sub(" localhost:27017 #1", "")
-      .sub(" localhost:27017", "")
-      .sub(/ \| \[\d+\]/, "")
-  end
 end
 
 if Rails.env.development?
@@ -80,5 +75,5 @@ if Rails.env.development?
   logger.formatter = proc do |severity, datetime, progname, msg|
     "#{msg}"
   end
-  Mongoid.logger = LoggerDecorator.new(logger)
+  Mongoid.logger = MongoidLogger.new(logger)
 end

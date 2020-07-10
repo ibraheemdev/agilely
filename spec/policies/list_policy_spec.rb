@@ -6,7 +6,7 @@ RSpec.describe ListPolicy do
   let(:board) { create(:board) }
   let(:list) { create(:list, board_id: board.id) }
   let(:user) { create(:user) }
-  let!(:participation) { board.participations.create!(user_id: user.id, role: "admin") }
+  let!(:participation) { user.participations.create!(participant: board, role: "admin") }
 
   actions = [:create, :update, :destroy]
   
