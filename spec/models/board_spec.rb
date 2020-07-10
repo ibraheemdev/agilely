@@ -1,51 +1,46 @@
 require 'rails_helper'
 
 RSpec.describe Board, type: :model do
-  let(:board) { create(:board) }
+  subject { create(:board) }
   let!(:user) { create(:user) }
-  let!(:participation) { board.participations.create(user_id: user.id, role: "admin") }
-  let!(:list) { create(:list, board_id: board.id) }
-  let!(:card) { create_list(:card, 6, list_id: list.id) }
+  let!(:participation) { user.participations.create(participant: subject, role: "admin") }
+  let!(:list) { create(:list, board_id: subject.id) }
+  let!(:card) { create_list(:card, 1, list_id: list.id, board_id: subject.id) }
 
   describe "attributes" do
-    it { expect(board).to respond_to(:slug) }
-    it { expect(board).to respond_to(:public) }
-    it { expect(board).to respond_to(:title) }
-    it { expect(board).to respond_to(:created_at) }
-    it { expect(board).to respond_to(:updated_at) }
+    it { is_expected.to be_mongoid_document }
+    it { is_expected.to have_timestamps }
+
+    it { is_expected.to have_field(:title).of_type(String) }
+    it { is_expected.to validate_presence_of(:title) }
+    it { is_expected.to validate_length_of(:title).with_maximum(512) }
+
+    it { is_expected.to have_field(:slug).of_type(String) }
+    it { is_expected.to validate_presence_of(:slug) }
+    it { is_expected.to validate_length_of(:slug).is(8) }
+
+    it { is_expected.to have_field(:public).of_type(Mongoid::Boolean) }
+    it { is_expected.to validate_inclusion_of(:public).to_allow([true, false]) }
+    
+    it { is_expected.to have_many(:lists).ordered_by(:position.asc) }
+    it { is_expected.to have_many(:cards).ordered_by(:position.asc) }
   end
 
-  describe 'validations' do
-    it { expect(board).to validate_presence_of(:slug) }
-    it { expect(board).to validate_length_of(:slug).is_equal_to(8) }
-    it { expect(board.slug).to match(/^[a-zA-Z0-9]*$/) }
-    it { expect(board).to validate_presence_of(:title) }
-    it { expect(board).to validate_length_of(:title).is_at_most(512) }
-    it { expect(board).to validate_inclusion_of(:public).in_array([true, false]) }
+  describe "#users" do
+    let!(:user2) { create(:user, email: "idk@idk.com") }
+    it { expect(subject.users).to include(user) }
+    it { expect(subject.users).not_to include(user2) }
   end
 
-  describe "associations" do
-    it { expect(board).to have_many(:participations).dependent(:destroy) }
-    it { expect(board).to have_many(:lists).dependent(:destroy).order(position: :asc) }
+  describe "#full" do
+    it { expect(subject.full).to eq(FullBoardQuery.execute(subject)) }
   end
 
   describe "#to_param" do
-    it { expect(board.to_param).to eq(board.slug) }
-  end
-
-  describe "#full_json" do
-    it { expect(board.full_json["lists"]).to eq(board.lists.as_json(include: { cards: {} })) }
-    it { expect(board.full_json["lists"][0]["cards"]).to eq(board.lists.first.cards.as_json) }
-    it { expect(board.full_json["participations"]).to eq(board.participations.as_json) }
+    it { expect(subject.to_param).to eq(subject.slug) }
   end
 
   describe ".titles" do
-    it { expect(Board.where(id: board.id).titles.first.as_json).to eq({"id"=> nil, "title"=> board.title, "slug"=> board.slug}) }
-  end
-
-  describe "#set_slug" do
-    let(:board) { create(:board, slug: "abcdefgh") }
-    let(:board2) { create(:board, slug: "abcdefgh") }
-    it { expect(board.slug).not_to eq(board2.slug) }
+    it { expect(Board.titles).to eq([[subject.title, subject.slug]]) }
   end
 end
