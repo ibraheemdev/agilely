@@ -5,7 +5,7 @@ module Boards
 
     def execute
       board = Board.create(board_params)
-      user.participations.create(participant: board, role: "admin")
+      board.participations.create(user_id: user.id, role: "admin")
       board
     end
   end
