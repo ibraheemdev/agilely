@@ -4,13 +4,13 @@ RSpec.describe "Card", type: :request do
   let!(:user) { create(:user) }
   let!(:board) { create(:board) }
   let!(:list) { create(:list, board_id: board.id) }
-  let!(:card) { create(:card, list_id: list.id) }
+  let!(:card) { create(:card, list_id: list.id, board_id: board.id) }
 
   describe "#create" do
     context "user is signed in" do
       before { sign_in user }
       context "user has edit access" do
-        let!(:participation) { board.participations.create(user_id: user.id, role: "admin") }
+        let!(:participation) { user.participations.create(participant: board, role: "admin") }
         before { post list_cards_path(list_id: list.id), params: { card: { title: "a new card" } } }
     
         it "returns 200" do
@@ -23,7 +23,7 @@ RSpec.describe "Card", type: :request do
       end
     
       context "user has read only access" do
-        let!(:participation) { board.participations.create(user_id: user.id, role: "viewer") }
+        let!(:participation) { user.participations.create(participant: board, role: "viewer") }
     
         it "renders the 404 page" do
           post list_cards_path(list_id: list.id), params: { card: { title: "a new card" } }
@@ -45,7 +45,7 @@ RSpec.describe "Card", type: :request do
     context "user is signed in" do
       before { sign_in user }
       context "user has edit access" do
-        let!(:participation) { board.participations.create(user_id: user.id, role: "admin") }
+        let!(:participation) { user.participations.create(participant: board, role: "admin") }
         before { put card_path(id: card.id), params: { card: { title: "a new card title" } } }
 
         it "returns 200" do
@@ -58,7 +58,7 @@ RSpec.describe "Card", type: :request do
       end
 
       context "user has read only access" do
-        let!(:participation) { board.participations.create(user_id: user.id, role: "viewer") }
+        let!(:participation) { user.participations.create(participant: board, role: "viewer") }
 
         it "renders the 404 page" do
           put card_path(id: card.id), params: { card: { title: "a new card title" } }
@@ -90,7 +90,7 @@ RSpec.describe "Card", type: :request do
     context "user is signed in" do
       before { sign_in user }
       context "user has edit access" do
-        let!(:participation) { board.participations.create(user_id: user.id, role: "admin") }
+        let!(:participation) { user.participations.create(participant: board, role: "admin") }
         before { delete card_path(id: card.id) }
     
         it "returns 200" do
@@ -103,7 +103,7 @@ RSpec.describe "Card", type: :request do
       end
     
       context "user has read only access" do
-        let!(:participation) { board.participations.create(user_id: user.id, role: "viewer") }
+        let!(:participation) { user.participations.create(participant: board, role: "viewer") }
     
         it "renders the 404 page" do
           delete card_path(id: card.id)
