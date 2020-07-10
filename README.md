@@ -26,7 +26,7 @@ Agilely is a Ruby on Rails application that runs on the following software:
 - Ruby (MRI) 2.7.1
 - Rails 6.0
 - React.js 16.13+. We use react for the interactive parts of Agilely, such as the main board view.
-- PostgreSQL 12+
+- MongoDB 4.2+
 
 ## Getting help
 
@@ -39,4 +39,4 @@ Yes. Don't believe us? Try it out for yourself!
 ## License
 
 Agilely is under the GNU General Public License v3.0
-See [COPYING](https://github.com/redline-gh/agilely/blob/master/.gitignore) for the full text
+See [COPYING](https://github.com/redline-gh/agilely/blob/master/COPYING.md) for the full text
