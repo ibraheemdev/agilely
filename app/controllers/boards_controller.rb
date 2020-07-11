@@ -11,6 +11,7 @@ class BoardsController < ApplicationController
     @boards_titles = current_user&.boards_titles
     @role = current_user&.role_in(@board) || "guest"
     @board = @board.full
+    render 'boards/show/index'
   end
 
   def update

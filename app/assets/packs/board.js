@@ -1,4 +1,4 @@
-import Board from "javascript/boards/show/board"
+import Board from "boards/show/index"
 import mount from "javascript/lib/mount"
 
 mount(Board, "board");
