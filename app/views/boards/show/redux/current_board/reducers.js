@@ -2,12 +2,9 @@ import * as types from "./types";
 
 const reducer = (state = {}, action) => {
   switch (action.type) {
-    case types.SET_LISTS:
+    case types.SET_CURRENT_BOARD:
       return {
-        ...action.payload.reduce(
-          (obj, item) => Object.assign(obj, { [item._id]: item }),
-          {}
-        ),
+        ...action.payload,
       };
     default:
       return state;

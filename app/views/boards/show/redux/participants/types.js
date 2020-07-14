@@ -1,0 +1,3 @@
+const SET_PARTICIPANTS = "participants/SET_PARTICIPANTS";
+
+export { SET_PARTICIPANTS };
