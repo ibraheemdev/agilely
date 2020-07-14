@@ -7,21 +7,24 @@ class BoardsController < ApplicationController
   end
 
   def show
-    @board = authorize Board.find_by(slug: params[:slug]), policy_class: BoardPolicy
-    @boards_titles = current_user&.boards_titles
-    @role = current_user&.role_in(@board) || "guest"
-    @board = @board.full
+    board = authorize_board(params[:slug])
+    @react_props =
+      board.full.merge(
+        boards_titles: current_user&.boards_titles,
+        current_user: current_user,
+        role: current_user&.role_in(board) || "guest"
+      )
     render 'boards/show/index'
   end
 
   def update
-    board = authorize Board.find_by(slug: params[:slug])
+    board = authorize_board(params[:slug])
     board.update(board_params)
     json_response(board)
   end
 
   def destroy
-    board = authorize Board.find_by(slug: params[:slug])
+    board = authorize_board(params[:slug])
     board.destroy
     json_response(board)
   end
@@ -30,5 +33,9 @@ class BoardsController < ApplicationController
 
   def board_params
     params.require(:board).permit(:title, :public)
+  end
+
+  def authorize_board(slug)
+    authorize Board.find_by(slug: slug)
   end
 end
