@@ -16,10 +16,6 @@ class List
 
   before_validation :set_position, on: :create
 
-  def self.full(board_id)
-    FullListsQuery.execute(board_id)
-  end
-
   private
 
   def set_board_on_card(card)
