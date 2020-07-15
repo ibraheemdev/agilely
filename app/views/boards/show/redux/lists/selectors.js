@@ -2,4 +2,8 @@ const getLists = (state) => {
   return state.lists;
 };
 
-export { getLists };
+const getList = (state, id) => {
+  return state.lists[id]
+};
+
+export { getLists, getList };

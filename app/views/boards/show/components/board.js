@@ -1,70 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "./sidebar/sidebar";
 import Header from "./header/header";
 import NewList from "./list/new_list";
 import List from "./list/index";
+import { useSelector } from "react-redux";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { authenticityToken, url, midString } from "./lib";
 import axios from "axios";
+import { currentBoardSelectors } from "@redux/current_board";
+import { metadataSelectors } from "@redux/metadata";
 
-const Board = (props) => {
+const Board = () => {
   const [isOpen, toggleSidebar] = useState(false);
-  const [board, updateBoard] = useState(props.board);
   const [newListTitle, setNewListTitle] = useState("");
-  const [view, toggleView] = useState("BOARD")
 
-  const can_edit = props.role === "admin" || props.role === "editor"
-
-  const handleNewCard = (listId, card) => {
-    const newBoard = { ...board };
-    newBoard.lists.find((list) => list._id.$oid === listId).cards.push(card);
-  };
-
-  const handleNewList = () => {
-    event.preventDefault();
-    axios
-      .post(`${url}/boards/${board.slug}/lists`, {
-        authenticity_token: authenticityToken(),
-        list: { title: newListTitle },
-      })
-      .then((res) => {
-        let newBoard = { ...board };
-        res.data.list.cards = [];
-        newBoard.lists.push(res.data.list);
-        updateBoard(newBoard);
-      })
-      .catch((err) => console.log(err))
-      .then(() => {
-        setNewListTitle("");
-        document.getElementById("newListTitle").focus();
-      });
-  };
-
-  const handleUpdateTitle = (title) => {
-    event.preventDefault();
-    if (title !== board.title) {
-      axios.patch(`${url}/boards/${board.slug}`, {
-        authenticity_token: authenticityToken(),
-        board: { title: title },
-      });
-    }
-  };
-
-  const handleDeleteList = (targetList) => {
-    event.preventDefault();
-    axios
-      .delete(`${url}/lists/${targetList._id.$oid}`, {
-        data: { authenticity_token: authenticityToken() },
-      })
-      .then(() => {
-        updateBoard((oldBoard) => {
-          const newLists = oldBoard.lists.slice();
-          newLists.splice(oldBoard.lists.indexOf(targetList), 1);
-          return { ...oldBoard, lists: newLists };
-        });
-      })
-      .catch((err) => console.log(err));
-  };
+  const view = useSelector((state) => metadataSelectors.getBoardDirection(state))
+  const listIds = useSelector((state) =>
+    currentBoardSelectors.getListIds(state)
+  );
+  const canEdit = useSelector((state) => metadataSelectors.canEdit(state));
 
   const onDragEnd = (result) => {
     const { destination, source, draggableId, type } = result;
@@ -99,7 +53,6 @@ const Board = (props) => {
       newLists.splice(destination.index, 0, targetList);
       const midstring = getMidstring(newLists, destination.index);
       newLists[destination.index].position = midstring;
-
       updateBoard((oldBoard) => {
         const newBoard = { ...oldBoard };
         newBoard.lists = newLists;
@@ -119,7 +72,7 @@ const Board = (props) => {
       const endList = board.lists.find(
         (list) => list._id.$oid === destination.droppableId
       );
-      console.log(board.lists.find((l) => l ))
+      console.log(board.lists.find((l) => l));
       const targetCard = startList.cards.find(
         (card) => card._id.$oid === draggableId
       );
@@ -173,64 +126,45 @@ const Board = (props) => {
 
   return (
     <div>
-      {props.current_user && (
-        <Sidebar
-          toggleSidebar={toggleSidebar}
-          isOpen={isOpen}
-          boards={props.boards_titles}
-        />
-      )}
+      {true && <Sidebar toggleSidebar={toggleSidebar} isOpen={isOpen} />}
       <div className="h-screen flex body-scrollbar">
         <div className="flex-1 min-w-0 flex flex-col bg-white">
-          <Header
-            toggleSidebar={toggleSidebar}
-            title={board.title}
-            handleUpdateTitle={handleUpdateTitle}
-            can_edit={can_edit}
-            lists={board.lists}
-            current_user={props.current_user}
-            users={props.users}
-            toggleView={toggleView}
-            view={view}
-          />
+          <Header toggleSidebar={toggleSidebar} />
           <div className="flex-1 overflow-auto">
             <main className={`${view === "BOARD" && "inline-flex"} p-3 h-full`}>
               <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable
                   droppableId="board"
-                  direction={view === "BOARD" ? "horizontal" : "vertical"}
+                  direction={view}
                   type="list"
                 >
                   {(provided) => (
                     <div
-                      className={`${view === "BOARD" && "inline-flex"}`}
+                      className={`${view === "vertical" && "inline-flex"}`}
                       {...provided.droppableProps}
                       ref={provided.innerRef}
                     >
-                      {board.lists.map((list, index) => (
-                        <List
-                          index={index}
-                          list={list}
-                          handleDeletion={handleDeleteList}
-                          key={list._id.$oid}
-                          board_slug={board.slug}
-                          handleNewCard={handleNewCard}
-                          can_edit={can_edit}
-                          view={view}
-                        />
+                      {listIds.map((id, index) => (
+                        <List id={id} key={id} index={index} />
                       ))}
                       {provided.placeholder}
                     </div>
                   )}
                 </Droppable>
               </DragDropContext>
-              {props.current_user && (
+              {/* {props.current_user && (
                 <NewList
                   title={newListTitle}
                   setTitle={setNewListTitle}
-                  handleSubmit={handleNewList}
+                  handleSubmit={() => {
+                    dispatch(
+                      listActions.addList(props.board.slug, newListTitle)
+                    );
+                    setNewListTitle("");
+                    document.getElementById("newListTitle").focus();
+                  }}
                 />
-              )}
+              )} */}
             </main>
           </div>
         </div>

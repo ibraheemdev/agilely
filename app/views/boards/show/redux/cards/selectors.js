@@ -2,4 +2,7 @@ const getCards = (state) => {
   return state.cards;
 };
 
-export { getCards };
+const getCard = (state, id) => {
+  return state.cards[id];
+};
+export { getCards, getCard };

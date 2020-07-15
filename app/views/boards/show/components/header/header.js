@@ -31,7 +31,7 @@ const Header = (props) => {
                   </svg>
                 </button>
               )}
-              <Search lists={props.lists} />
+              {/* <Search lists={props.lists} /> */}
             </div>
             <div className="ml-6 flex-shrink-0 flex items-center">
               {/* <button>
