@@ -1,3 +1,3 @@
-const SET_METADATA = "metadata/SET_METADATA";
+const SET_ROLE = "metadata/SET_ROLE";
 
-export { SET_METADATA };
+export { SET_ROLE };

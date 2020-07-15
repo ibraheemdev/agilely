@@ -29,7 +29,7 @@ const App = (props) => {
     dispatch(cardActions.setCards(props.cards));
     dispatch(participantActions.setParticipants(props.participants));
     dispatch(boardTitleActions.setBoardTitles(props.boards_titles));
-    dispatch(metadataActions.setMetadata({ role: props.role }));
+    dispatch(metadataActions.setRole(props.role));
   }, []);
   return <Board />;
 };

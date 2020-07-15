@@ -1,8 +1,8 @@
 import * as types from "./types";
 
-const setMetadata = (metadata) => ({
-  type: types.SET_METADATA,
-  payload: { ...metadata },
+const setRole = (metadata) => ({
+  type: types.SET_ROLE,
+  payload: metadata,
 });
 
-export { setMetadata };
+export { setRole };
