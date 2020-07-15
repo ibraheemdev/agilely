@@ -1,50 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
 import Card from "../card";
 import { Droppable, Draggable } from "react-beautiful-dnd";
-import AutosizeInput from "react-input-autosize";
+import TextareaAutosize from "react-textarea-autosize";
+import { listActions } from "@redux/lists";
+import { useDispatch } from "react-redux";
 
 const HorizontalList = (props) => {
-  const [cardsAreVisible, toggleVisibility] = useState(false);
+  const dispatch = useDispatch();
   return (
     <Draggable
-      draggableId={props.list._id.$oid}
+      draggableId={props.id}
       index={props.index}
-      isDragDisabled={!props.can_edit}
+      isDragDisabled={!props.canEdit}
     >
       {(provided) => (
         <div
+          className="flex flex-col list-scrollbar w-72 rounded-md mr-2"
           {...provided.draggableProps}
           ref={provided.innerRef}
-          className="mb-3 mx-2"
         >
           <div className="relative -mb-2" {...provided.dragHandleProps}>
-            <div className="flex items-center">
-              <button
-                onClick={() => toggleVisibility(!cardsAreVisible)}
-                className="p-2 focus:outline-none hover:bg-gray-500 hover:bg-opacity-25 rounded-md"
-              >
-                <svg
-                  width="7"
-                  height="12"
-                  transform={cardsAreVisible ? "rotate(90)" : undefined}
-                  viewBox="0 0 7 12"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M1 1L6 6L1 11"
-                    stroke="#4A5568"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-              <AutosizeInput
-                id={`list-${props.list._id.$oid}-title`}
-                value={props.title}
-                inputClassName={`max-w-xs text-md font-medium text-gray-700 ml-2 mr-1 py-1 px-2 focus:bg-white rounded-md focus:cursor-auto hover:cursor-pointer ${
-                  props.can_edit && "hover:bg-gray-500 hover:bg-opacity-25"
+            <div className="flex items-center justify-between rounded-t-md bg-lightgray pt-3 pb-1">
+              <input
+                id={`list-${props.id}-title`}
+                value={props.list.title}
+                className={`w-full text-sm font-medium text-gray-700 bg-lightgray mx-3 py-1 px-1 focus:bg-white rounded-md focus:cursor-auto hover:cursor-pointer ${
+                  props.canEdit && "hover:bg-gray-500 hover:bg-opacity-25"
                 }`}
                 onChange={(event) => props.setTitle(event.target.value)}
                 onKeyPress={(e) => {
@@ -53,90 +34,49 @@ const HorizontalList = (props) => {
                   }
                 }}
                 onBlur={() => props.handleUpdateTitle()}
-                disabled={!props.can_edit}
+                disabled={!props.canEdit}
               />
-              {props.can_edit && (
-                <div className="flex items-center">
-                  <button
-                    className="hover:bg-gray-500 hover:bg-opacity-25 p-2 rounded-md"
-                    onClick={async () => {
-                      await toggleVisibility(true);
-                      await props.toggleNewCard(true);
-                      let el = document.getElementById(
-                        `new-card-title-${props.list._id.$oid}`
-                      );
-                      await el.scrollIntoView({ behavior: "smooth" });
-                      await el.focus({ preventScroll: true });
-                    }}
+              <span className="mr-3">{props.list.position}</span>
+              {props.canEdit && (
+                <button
+                  onClick={() => {
+                    dispatch(listActions.deleteList(props.id));
+                  }}
+                  className="text-gray-700 focus:outline-none hover:bg-gray-400 p-1 mr-2 rounded-md"
+                  disabled={!props.canEdit}
+                >
+                  <svg
+                    className="h-4 w-4 text-gray-700"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
                   >
-                    <svg
-                      width="12"
-                      height="12"
-                      className="text-gray-700"
-                      viewBox="0 0 12 12"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clipPath="url(#clip0)">
-                        <path
-                          d="M11.3333 6.00002H0.666664H11.3333ZM6 0.666687V11.3334V0.666687Z"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0">
-                          <rect width="12" height="12" fill="white" />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => props.handleDeletion(props.list)}
-                    className="hover:bg-gray-500 hover:bg-opacity-25 p-2 rounded-md"
-                    disabled={!props.can_edit}
-                  >
-                    <svg
-                      className="h-4 w-4 text-gray-700"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                        fillRule="evenodd"
-                      ></path>
-                    </svg>
-                  </button>
-                </div>
+                    <path
+                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                      fillRule="evenodd"
+                    ></path>
+                  </svg>
+                </button>
               )}
             </div>
           </div>
           <div
-            id={`list${props.list._id.$oid}top`}
-            className={`min-h-0 overflow-y-auto ${
-              (!props.can_edit || props.newCardIsOpen) && "rounded-b-md pb-2"
+            id={`list${props.id}top`}
+            className={`min-h-0 overflow-y-auto bg-lightgray ${
+              (!props.canEdit || props.newCardIsOpen) && "rounded-b-md pb-2"
             }`}
           >
             <div className="py-1 px-3">
-              <Droppable droppableId={props.list._id.$oid} type="card">
+              <Droppable droppableId={props.id} type="card">
                 {(provided) => (
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
                     className="min-h-1"
                   >
-                    {cardsAreVisible &&
-                      props.list.cards.map((card, index) => (
-                        <Card
-                          key={card._id.$oid}
-                          card={card}
-                          index={index}
-                          can_edit={props.can_edit}
-                        />
-                      ))}
+                    {props.list.card_ids.map((id, index) => (
+                      <Card key={id} id={id} index={index} />
+                    ))}
                     {provided.placeholder}
                   </div>
                 )}
@@ -144,40 +84,89 @@ const HorizontalList = (props) => {
               {props.newCardIsOpen && (
                 <form
                   ref={props.newCardRef}
-                  onSubmit={() =>
-                    props.handleNewCard(props.newCardTitle)
-                  }
+                  onSubmit={() => props.handleNewCard(props.newCardTitle)}
                 >
-                  <div className="mt-2 py-2 px-3 bg-white rounded-md shadow flex flex-wrap justify-between items-baseline">
-                    <input
-                      type="text"
-                      value={props.newCardTitle}
-                      onChange={(e) => props.updateNewCardTitle(e.target.value)}
-                      id={`new-card-title-${props.list._id.$oid}`}
-                      className="text-sm font-normal leading-snug text-gray-900 outline-none"
-                    />
-                  </div>
-                  <button
-                    onClick={() => props.toggleNewCard(false)}
-                    type="button"
-                    className="ml-2 text-gray-700 focus:outline-none hover:bg-gray-400 p-1 mr-3 rounded-md"
-                  >
-                    <svg
-                      className="h-4 w-4 text-gray-700"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+                  <div className="mt-2">
+                    <div
+                      href="#"
+                      className="block py-2 px-3 bg-white rounded-md shadow"
                     >
-                      <path
-                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                        fillRule="evenodd"
-                      ></path>
-                    </svg>
-                  </button>
+                      <div className="flex justify-between">
+                        <TextareaAutosize
+                          id={`new-card-title-${props.id}`}
+                          maxRows={16}
+                          onChange={(e) =>
+                            props.updateNewCardTitle(e.target.value)
+                          }
+                          value={props.newCardTitle}
+                          className="body-scrollbar w-full min-h-16 focus:outline-none text-sm font-normal leading-snug text-gray-900"
+                          placeholder="Enter a title for this card..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`flex items-center mt-3 rounded-sm`}>
+                    <button
+                      type="submit"
+                      className="flex px-3 py-1.5 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-500"
+                    >
+                      <span className="text-center">Add Card</span>
+                    </button>
+                    <button
+                      onClick={() => props.toggleNewCard(false)}
+                      type="button"
+                      className="ml-2 text-gray-700 focus:outline-none hover:bg-gray-400 p-1 mr-3 rounded-md"
+                    >
+                      <svg
+                        className="h-6 w-6 text-gray-700"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                          fillRule="evenodd"
+                        ></path>
+                      </svg>
+                    </button>
+                  </div>
                 </form>
               )}
             </div>
           </div>
+          {!props.newCardIsOpen && props.canEdit && (
+            <div className="py-2 px-2 bg-lightgray rounded-b-md">
+              <button
+                onClick={async () => {
+                  await props.toggleNewCard(true);
+                  let el = document.getElementById(
+                    `new-card-title-${props.id}`
+                  );
+                  await el.scrollIntoView({ behavior: "smooth" });
+                  await el.focus({ preventScroll: true });
+                }}
+                className="focus:outline-none hover:bg-gray-400 hover:bg-opacity-50 flex items-center w-full py-1 px-1 rounded-md"
+              >
+                <svg
+                  className="h-6 w-6 text-gray-600"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M12 7v10m5-5H7"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <h3
+                  className={`flex-shrink-0 text-sm text-gray-600 capitalize`}
+                >
+                  Add a card
+                </h3>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </Draggable>

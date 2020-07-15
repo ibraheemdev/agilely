@@ -1,7 +1,7 @@
 import * as types from "./types";
 
 const reducer = (
-  state = { role: "guest", board_direction: "vertical" },
+  state = { role: "guest", board_direction: "horizontal" },
   action
 ) => {
   switch (action.type) {

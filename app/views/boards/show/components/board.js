@@ -131,7 +131,7 @@ const Board = () => {
         <div className="flex-1 min-w-0 flex flex-col bg-white">
           <Header toggleSidebar={toggleSidebar} />
           <div className="flex-1 overflow-auto">
-            <main className={`${view === "BOARD" && "inline-flex"} p-3 h-full`}>
+            <main className={`${view === "horizontal" && "inline-flex"} p-3 h-full`}>
               <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable
                   droppableId="board"
@@ -140,7 +140,7 @@ const Board = () => {
                 >
                   {(provided) => (
                     <div
-                      className={`${view === "vertical" && "inline-flex"}`}
+                      className={`${view === "horizontal" && "inline-flex"}`}
                       {...provided.droppableProps}
                       ref={provided.innerRef}
                     >
