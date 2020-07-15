@@ -10,6 +10,7 @@ gem 'webpacker', '~> 4.0'
 gem 'turbolinks', '~> 5'
 gem 'devise'
 gem 'pundit'
+gem 'mongo_beautiful_logger'
 
 gem 'bootsnap', '>= 1.4.2', require: false
 
