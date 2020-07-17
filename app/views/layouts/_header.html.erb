@@ -1,7 +1,7 @@
 <div class="font-tempbugfix">
     <header id="nav" class="relative flex items-center justify-between px-8 py-6 md:pb-8 max-w-screen-xl mx-auto">
         <%= link_to("Agilely", root_path, class: "font-semibold text-2xl text-indigo-600 hover:text-indigo-500" )%>
-        <div class="md:hidden" onclick="toggleMenu(false)">
+        <div class="md:hidden z-50" id="openMenu">
             <button class="block rounded focus:outline-none focus-visible:shadow-outline">
                 <svg class="h-6 w-6 text-indigo-600 hover:text-indigo-500" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M3 7.5a1 1 0 011-1h16a1 1 0 110 2H4a1 1 0 01-1-1zM3 15.5a1 1 0 011-1h16a1 1 0 110 2H4a1 1 0 01-1-1z" />
@@ -9,11 +9,11 @@
             </button>
         </div>
         <div id="menu" class="z-50 absolute inset-0 p-4 md:block md:static md:z-auto md:p-0 hidden">
-            <div class=" fixed inset-0 bg-gray-900 opacity-50 md:hidden"></div>
+            <div id="overlay" class="ease-out duration-200 fixed inset-0 bg-gray-900 md:hidden opacity-50"></div>
             <nav class="relative max-w-sm ml-auto px-6 pt-6 pb-8 bg-white rounded-lg md:max-w-full md:ml-0 md:p-0 md:bg-transparent">
                 <div class="flex items-center justify-between md:hidden">
                     <h3 class="text-sm text-gray-600 leading-none">Agilely</h3>
-                    <button onclick="toggleMenu(true)" class="text-gray-800 rounded focus:outline-none focus-visible:shadow-outline">
+                    <button id="closeMenu" class="text-gray-800 rounded focus:outline-none focus-visible:shadow-outline">
                         <svg class="h-6 w-6" viewBox="0 0 24 24">
                             <path d="M10.586 12L7.05 8.464l-.077-.087A1 1 0 018.464 7.05L12 10.586l3.536-3.536a1 1 0 011.491 1.327l-.077.087L13.414 12l3.536 3.536.077.087a1 1 0 01-1.491 1.327L12 13.414 8.464 16.95a1 1 0 01-1.491-1.327l.077-.087L10.586 12z" fill="currentColor" />
                         </svg>
@@ -57,11 +57,13 @@
         </div>
     </header>
     <script>
-        function toggleMenu(isOpen) {
-            var x = document.getElementById('menu')
-            isOpen && x.classList.add('hidden');
-            x.classList.remove('block') !isOpen && x.classList.remove('hidden');
-            x.classList.add('block')
+        function openMenu() {
+            document.getElementById("menu").classList.remove("hidden")
         }
+        function closeMenu() {
+            document.getElementById("menu").classList.add("hidden")
+        }
+        document.getElementById("openMenu").addEventListener("click", openMenu, false);
+        document.getElementById("closeMenu").addEventListener("click", closeMenu, false);
     </script>
 </div>
