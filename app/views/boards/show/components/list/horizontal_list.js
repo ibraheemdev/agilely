@@ -23,11 +23,11 @@ const HorizontalList = (props) => {
             <div className="flex items-center justify-between rounded-t-md bg-lightgray pt-3 pb-1">
               <input
                 id={`list-${props.id}-title`}
-                value={props.list.title}
+                value={props.title}
                 className={`w-full text-sm font-medium text-gray-700 bg-lightgray mx-3 py-1 px-1 focus:bg-white rounded-md focus:cursor-auto hover:cursor-pointer ${
                   props.canEdit && "hover:bg-gray-500 hover:bg-opacity-25"
                 }`}
-                onChange={(event) => props.setTitle(event.target.value)}
+                onChange={(event) => props.updateTitle(event.target.value)}
                 onKeyPress={(e) => {
                   if (e && e.charCode == 13) {
                     document.activeElement.blur();

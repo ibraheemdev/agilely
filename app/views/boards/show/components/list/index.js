@@ -10,6 +10,7 @@ const List = (props) => {
   const [newCardIsOpen, toggleNewCard] = useState(false);
   const [newCardTitle, updateNewCardTitle] = useState("");
   const list = useSelector((state) => listSelectors.getList(state, props.id));
+  const [title, updateTitle] = useState(list.title);
   const view = useSelector((state) =>
     metadataSelectors.getBoardDirection(state)
   );
@@ -18,32 +19,23 @@ const List = (props) => {
   const newCardRef = useRef(null);
   useOutsideAlerter(newCardRef, () => toggleNewCard(false));
 
+  const listProps = {
+    ...props,
+    list: list,
+    title: title,
+    updateTitle: updateTitle,
+    newCardIsOpen: newCardIsOpen,
+    toggleNewCard: toggleNewCard,
+    canEdit: canEdit,
+    newCardRef: newCardRef,
+    updateNewCardTitle: updateNewCardTitle,
+    newCardTitle: newCardTitle,
+  };
+
   if (view === "vertical") {
-    return (
-      <VerticalList
-        {...props}
-        newCardIsOpen={newCardIsOpen}
-        list={list}
-        canEdit={canEdit}
-        toggleNewCard={toggleNewCard}
-        newCardRef={newCardRef}
-        updateNewCardTitle={updateNewCardTitle}
-        newCardTitle={newCardTitle}
-      />
-    );
+    return <VerticalList {...listProps} />;
   } else if (view === "horizontal") {
-    return (
-      <HorizontalList
-        {...props}
-        newCardIsOpen={newCardIsOpen}
-        list={list}
-        canEdit={canEdit}
-        toggleNewCard={toggleNewCard}
-        newCardRef={newCardRef}
-        updateNewCardTitle={updateNewCardTitle}
-        newCardTitle={newCardTitle}
-      />
-    );
+    return <HorizontalList {...listProps} />;
   }
 };
 
