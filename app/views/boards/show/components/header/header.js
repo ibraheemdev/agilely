@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import GuestAlert from "./guest_alert";
 import AutosizeInput from "react-input-autosize";
 import Search from "./search";
+import Status from "./status"
 
 const Header = (props) => {
   const [title, setTitle] = useState(props.title);
@@ -12,6 +13,7 @@ const Header = (props) => {
           <GuestAlert />
         </div>
       )}
+      <Status />
       <header>
         <div className="px-6">
           <div className="flex justify-between items-center py-3 border-b border-gray-200">
