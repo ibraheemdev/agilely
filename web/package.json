@@ -1,0 +1,43 @@
+{
+  "name": "decider.client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@types/node": "^14.0.27",
+    "@types/react": "^16.9.43",
+    "@types/react-dom": "^16.9.8",
+    "axios": "^0.19.2",
+    "npm-run-all": "^4.1.5",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.1",
+    "typescript": "^3.9.7"
+  },
+  "scripts": {
+    "start": "run-p watch:tailwind start:react",
+    "watch:tailwind": "postcss -w src/stylesheets/index.css -o src/stylesheets/compiled.css",
+    "start:react": "react-scripts start",
+    "prebuild": "npm run build:tailwind",
+    "build:tailwind": "postcss src/stylesheets/index.css -o src/stylesheets/compiled.css",
+    "build": "react-scripts build",
+    "format!": "prettier --write ./src/"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "autoprefixer": "^9.8.6",
+    "postcss-cli": "^7.1.1",
+    "prettier": "^2.0.5",
+    "tailwindcss": "^1.6.0"
+  }
+}

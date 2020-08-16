@@ -1,0 +1,14 @@
+{
+  "go.vetFlags": ["-composites=false"],
+  "search.exclude": {
+    "vendor/**/*": true
+  },
+  "files.associations": {
+    "*.tpl": "nunjucks",
+ },
+ "[nunjucks]": {
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true,
+  "editor.tabSize": 2
+  },
+}
