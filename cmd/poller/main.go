@@ -6,6 +6,7 @@ import (
 
 	"github.com/ibraheemdev/poller/config"
 	"github.com/ibraheemdev/poller/internal/router"
+	_ "github.com/ibraheemdev/poller/internal/users"
 	"github.com/ibraheemdev/poller/pkg/database"
 	"github.com/julienschmidt/httprouter"
 )
@@ -21,6 +22,6 @@ func main() {
 	client := database.Connect()
 	defer database.Disconnect(client)
 	r := httprouter.New()
-	router.ListenAndServe(r)
 	config.SetupAuthboss(r)
+	router.ListenAndServe(r)
 }
