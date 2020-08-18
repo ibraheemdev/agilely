@@ -6,10 +6,5 @@ database:
 server:
   host: "agilely.com"
   port: "5000"
-  api:
-    subdomain: "api."
   static:
-    subdomain: ""
-    homepage: "/"
-    buildpath: "web/build"
     manifestpath: "web/build/asset-manifest.json"

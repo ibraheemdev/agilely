@@ -28,20 +28,11 @@ type DatabaseConfig struct {
 type ServerConfig struct {
 	Host   string       `yaml:"host"`
 	Port   string       `yaml:"port"`
-	API    APIConfig    `yaml:"api"`
 	Static StaticConfig `yaml:"static"`
-}
-
-// APIConfig :
-type APIConfig struct {
-	SubDomain string `yaml:"subdomain"`
 }
 
 // StaticConfig :
 type StaticConfig struct {
-	SubDomain    string `yaml:"subdomain"`
-	HomePage     string `yaml:"homepage"`
-	BuildPath    string `yaml:"buildpath"`
 	ManifestPath string `yaml:"manifestpath"`
 }
 
