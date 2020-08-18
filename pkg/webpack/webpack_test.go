@@ -5,21 +5,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ibraheemdev/poller/config"
 	"github.com/ibraheemdev/poller/test"
 )
 
 func TestPreloadAssets(t *testing.T) {
 	t.Parallel()
 	test.MoveToRoot()
-	config.Init()
 	manifest := PreloadAssets("test/manifest.json")
 	want := []string{"static/js/runtime-main.a0de9167.js", "static/js/2.19dfafba.chunk.js", "static/css/main.5e844b86.chunk.css", "static/js/main.f096cf97.chunk.js"}
 	if !reflect.DeepEqual(manifest.Entrypoints, want) {
 		t.Errorf("expected %s, manifest: %s", want, manifest.Entrypoints)
 	}
 
-	got := "web/build/static/css/main.5e844b86.chunk.css"
+	got := "/static/css/main.5e844b86.chunk.css"
 	if manifest.Assets["main.css"] != got {
 		t.Errorf("expected %s, manifest: %s", got, manifest.Assets["main.css"])
 	}

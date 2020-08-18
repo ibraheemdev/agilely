@@ -6,8 +6,6 @@ import (
 	"log"
 	"os"
 	"strings"
-
-	"github.com/ibraheemdev/poller/config"
 )
 
 // Manifest :
@@ -29,12 +27,10 @@ func PreloadAssets(file string) Manifest {
 		log.Fatal(err)
 		os.Exit(2)
 	}
-	for k, a := range w.Assets {
+	for k := range w.Assets {
 		if strings.HasSuffix(k, ".map") {
 			delete(w.Assets, k)
-			break
 		}
-		w.Assets[k] = config.Config.Server.Static.BuildPath + a
 	}
 	return w
 }
