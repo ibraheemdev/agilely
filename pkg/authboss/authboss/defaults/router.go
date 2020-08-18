@@ -3,63 +3,55 @@ package defaults
 import (
 	"io"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 // Router implementation
-// Does not use a dynamic map to hope to be slightly more performant
 type Router struct {
-	gets    *http.ServeMux
-	posts   *http.ServeMux
-	deletes *http.ServeMux
+	Router *httprouter.Router
 }
 
 // NewRouter creates a new router
-func NewRouter() *Router {
-	r := &Router{
-		gets:    http.NewServeMux(),
-		posts:   http.NewServeMux(),
-		deletes: http.NewServeMux(),
-	}
-
-	// Nothing gets handled at the root of the authboss router
-	r.gets.Handle("/", http.NotFoundHandler())
-	r.posts.Handle("/", http.NotFoundHandler())
-	r.deletes.Handle("/", http.NotFoundHandler())
-
-	return r
+func NewRouter(r *httprouter.Router) *Router {
+	return &Router{Router: r}
 }
 
 // Get method route
 func (r *Router) Get(path string, handler http.Handler) {
-	r.gets.Handle(path, handler)
+	r.Router.GET(path, func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		handler.ServeHTTP(w, r)
+	})
 }
 
 // Post method route
 func (r *Router) Post(path string, handler http.Handler) {
-	r.posts.Handle(path, handler)
+	r.Router.POST(path, func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		handler.ServeHTTP(w, r)
+	})
 }
 
 // Delete method route
 func (r *Router) Delete(path string, handler http.Handler) {
-	r.deletes.Handle(path, handler)
+	r.Router.DELETE(path, func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		handler.ServeHTTP(w, r)
+	})
 }
 
-// ServeHTTP for http.Handler
-// Only does get/posts, all other request types are a bad request
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var router http.Handler
 	switch req.Method {
 	case "GET":
-		router = r.gets
+		r.Router.ServeHTTP(w, req)
+		return
 	case "POST":
-		router = r.posts
+		r.Router.ServeHTTP(w, req)
+		return
 	case "DELETE":
-		router = r.deletes
+		r.Router.ServeHTTP(w, req)
+		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		io.WriteString(w, "method not allowed")
 		return
 	}
-
-	router.ServeHTTP(w, req)
 }

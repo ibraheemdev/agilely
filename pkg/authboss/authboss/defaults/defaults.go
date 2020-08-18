@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/julienschmidt/httprouter"
 )
 
 // SetCore creates instances of all the default pieces
@@ -19,7 +20,7 @@ import (
 func SetCore(config *authboss.Config, readJSON, useUsername bool, mountPath, templatesPath, layoutPath string) {
 	logger := NewLogger(os.Stdout)
 
-	config.Core.Router = NewRouter()
+	config.Core.Router = NewRouter(httprouter.New())
 	config.Core.ErrorHandler = NewErrorHandler(logger)
 	config.Core.ViewRenderer = NewHTMLRenderer(mountPath, templatesPath, layoutPath)
 	config.Core.MailRenderer = NewMailRenderer(mountPath, templatesPath)

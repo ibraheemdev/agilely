@@ -6,12 +6,14 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func TestRouter(t *testing.T) {
 	t.Parallel()
 
-	r := NewRouter()
+	r := NewRouter(httprouter.New())
 	var get, post, del string
 	wantGet, wantPost, wantDelete := "testget", "testpost", "testdelete"
 
@@ -71,7 +73,7 @@ func TestRouter(t *testing.T) {
 func TestRouterBadMethod(t *testing.T) {
 	t.Parallel()
 
-	r := NewRouter()
+	r := NewRouter(httprouter.New())
 	wr := httptest.NewRecorder()
 	req := httptest.NewRequest("OPTIONS", "/", nil)
 
