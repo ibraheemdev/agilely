@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ibraheemdev/poller/internal/users"
+	"github.com/ibraheemdev/poller/internal/app/users"
 	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
 	"github.com/ibraheemdev/poller/pkg/authboss/authboss/defaults"
 	"github.com/julienschmidt/httprouter"

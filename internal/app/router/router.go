@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/ibraheemdev/poller/config"
-	"github.com/ibraheemdev/poller/internal/polls"
+	"github.com/ibraheemdev/poller/internal/app/polls"
 	"github.com/ibraheemdev/poller/pkg/middleware"
 	"github.com/julienschmidt/httprouter"
 )

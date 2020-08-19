@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/ibraheemdev/poller/config"
-	"github.com/ibraheemdev/poller/internal/router"
-	_ "github.com/ibraheemdev/poller/internal/users"
+	"github.com/ibraheemdev/poller/internal/app/router"
+	_ "github.com/ibraheemdev/poller/internal/app/users"
 	"github.com/ibraheemdev/poller/pkg/database"
 	"github.com/julienschmidt/httprouter"
 )
