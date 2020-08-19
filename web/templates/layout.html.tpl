@@ -3,7 +3,7 @@
     {{ safe "<!-- Application Layout -->" }}
     <html>
         <head>
-            <title>Poller</title>
+            <title>Agilely</title>
         </head>
         <body>
             {{ template "content" . }}

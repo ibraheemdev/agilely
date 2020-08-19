@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
-	"github.com/ibraheemdev/poller/test"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/test"
 )
 
 func TestRegisterInit(t *testing.T) {

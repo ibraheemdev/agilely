@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // Responder helps respond to http requests

@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // SessionState is an authboss.ClientState implementation that

@@ -6,23 +6,23 @@ import (
 	"os"
 	"time"
 
-	"github.com/ibraheemdev/poller/internal/app/users"
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss/defaults"
+	"github.com/ibraheemdev/agilely/internal/app/users"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss/defaults"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 
 	// Import all the authboss modules you want to use
 	// with a blank import. This will register the routes
 	// and handlers automatically
-	_ "github.com/ibraheemdev/poller/pkg/authboss/authenticatable"
-	_ "github.com/ibraheemdev/poller/pkg/authboss/confirmable"
-	_ "github.com/ibraheemdev/poller/pkg/authboss/lockable"
-	_ "github.com/ibraheemdev/poller/pkg/authboss/logoutable"
-	_ "github.com/ibraheemdev/poller/pkg/authboss/oauthable"
-	_ "github.com/ibraheemdev/poller/pkg/authboss/recoverable"
-	_ "github.com/ibraheemdev/poller/pkg/authboss/registerable"
-	_ "github.com/ibraheemdev/poller/pkg/authboss/rememberable"
+	_ "github.com/ibraheemdev/agilely/pkg/authboss/authenticatable"
+	_ "github.com/ibraheemdev/agilely/pkg/authboss/confirmable"
+	_ "github.com/ibraheemdev/agilely/pkg/authboss/lockable"
+	_ "github.com/ibraheemdev/agilely/pkg/authboss/logoutable"
+	_ "github.com/ibraheemdev/agilely/pkg/authboss/oauthable"
+	_ "github.com/ibraheemdev/agilely/pkg/authboss/recoverable"
+	_ "github.com/ibraheemdev/agilely/pkg/authboss/registerable"
+	_ "github.com/ibraheemdev/agilely/pkg/authboss/rememberable"
 )
 
 // SetupAuthboss :

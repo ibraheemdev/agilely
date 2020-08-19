@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 func init() {

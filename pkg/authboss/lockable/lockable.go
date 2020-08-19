@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // Storage key constants

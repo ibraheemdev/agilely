@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ibraheemdev/poller/config"
-	"github.com/ibraheemdev/poller/internal/app/polls"
-	"github.com/ibraheemdev/poller/pkg/middleware"
+	"github.com/ibraheemdev/agilely/config"
+	"github.com/ibraheemdev/agilely/internal/app/polls"
+	"github.com/ibraheemdev/agilely/pkg/middleware"
 	"github.com/julienschmidt/httprouter"
 )
 

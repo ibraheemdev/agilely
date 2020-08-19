@@ -16,7 +16,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 const (

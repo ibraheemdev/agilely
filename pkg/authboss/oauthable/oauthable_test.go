@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
-	"github.com/ibraheemdev/poller/test"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/test"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"

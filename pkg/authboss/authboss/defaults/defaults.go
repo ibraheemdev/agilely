@@ -10,7 +10,7 @@ package defaults
 import (
 	"os"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 	"github.com/julienschmidt/httprouter"
 )
 

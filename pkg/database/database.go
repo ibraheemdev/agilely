@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/ibraheemdev/poller/config"
+	"github.com/ibraheemdev/agilely/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )

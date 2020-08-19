@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 func TestGetCookieState(t *testing.T) {

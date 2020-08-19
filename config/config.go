@@ -42,7 +42,7 @@ func Init() {
 }
 
 func readConfig() *EnvironmentConfig {
-	file := fmt.Sprintf("config/environments/%s.yml", os.Getenv("POLLER_ENV"))
+	file := fmt.Sprintf("config/environments/%s.yml", os.Getenv("AGILELY_ENV"))
 	f, err := os.Open(file)
 	if err != nil {
 		log.Fatal(err)

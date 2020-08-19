@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ibraheemdev/poller/pkg/base"
+	"github.com/ibraheemdev/agilely/pkg/base"
 	"github.com/julienschmidt/httprouter"
 )
 

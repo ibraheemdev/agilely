@@ -1,4 +1,4 @@
-module github.com/ibraheemdev/poller
+module github.com/ibraheemdev/agilely
 
 go 1.14
 

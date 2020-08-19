@@ -1,7 +1,7 @@
 database:
   host: "agilely.com"
   port: "27017"
-  name: "poller_development"
+  name: "agilely_development"
 
 server:
   host: "agilely.com"

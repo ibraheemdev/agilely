@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
-	"github.com/ibraheemdev/poller/test"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/test"
 )
 
 func TestInit(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ibraheemdev/poller/pkg/database"
-	"github.com/ibraheemdev/poller/pkg/validator"
+	"github.com/ibraheemdev/agilely/pkg/database"
+	"github.com/ibraheemdev/agilely/pkg/validator"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

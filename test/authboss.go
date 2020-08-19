@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // User represents all possible fields a authboss User may have

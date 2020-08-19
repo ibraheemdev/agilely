@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 func TestJSONRenderer(t *testing.T) {

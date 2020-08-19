@@ -52,7 +52,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // FormValue constants

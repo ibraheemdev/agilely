@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/securecookie"
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // CookieState is an authboss.ClientState implementation to hold

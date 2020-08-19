@@ -8,11 +8,11 @@ import (
 	"net/url"
 	"regexp"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
-	"github.com/ibraheemdev/poller/pkg/authboss/authenticatable"
-	"github.com/ibraheemdev/poller/pkg/authboss/confirmable"
-	"github.com/ibraheemdev/poller/pkg/authboss/recoverable"
-	"github.com/ibraheemdev/poller/pkg/authboss/registerable"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authenticatable"
+	"github.com/ibraheemdev/agilely/pkg/authboss/confirmable"
+	"github.com/ibraheemdev/agilely/pkg/authboss/recoverable"
+	"github.com/ibraheemdev/agilely/pkg/authboss/registerable"
 )
 
 // FormValue types

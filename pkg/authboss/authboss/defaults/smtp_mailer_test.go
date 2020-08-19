@@ -9,7 +9,7 @@ import (
 	"net/smtp"
 	"testing"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 var (

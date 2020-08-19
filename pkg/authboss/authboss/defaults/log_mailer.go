@@ -5,7 +5,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // LogMailer logs e-mails instead of sending them.

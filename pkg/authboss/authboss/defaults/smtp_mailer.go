@@ -11,7 +11,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ibraheemdev/poller/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // NewSMTPMailer creates an SMTP Mailer to send emails with.

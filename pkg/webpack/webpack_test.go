@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ibraheemdev/poller/test"
+	"github.com/ibraheemdev/agilely/test"
 )
 
 func TestPreloadAssets(t *testing.T) {
