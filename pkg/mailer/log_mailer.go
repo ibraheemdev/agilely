@@ -1,11 +1,9 @@
-package defaults
+package mailer
 
 import (
 	"bytes"
 	"context"
 	"io"
-
-	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // LogMailer logs e-mails instead of sending them.
@@ -20,12 +18,12 @@ func NewLogMailer(writer io.Writer) *LogMailer {
 }
 
 // Send an e-mail
-func (l LogMailer) Send(ctx context.Context, mail authboss.Email) error {
+func (l LogMailer) Send(ctx context.Context, mail Email) error {
 	buf := &bytes.Buffer{}
 
 	data := struct {
 		Boundary string
-		Mail     authboss.Email
+		Mail     Email
 	}{
 		Boundary: "284fad24nao8f4na284f2n4",
 		Mail:     mail,

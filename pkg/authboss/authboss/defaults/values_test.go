@@ -55,7 +55,7 @@ func TestHTTPBodyReaderConfirm(t *testing.T) {
 	h := NewHTTPBodyReader(false, false)
 	r := test.Request("POST", FormValueConfirm, "token")
 
-	validator, err := h.Read("mailer/confirm.html.tpl", r)
+	validator, err := h.Read("confirm.html.tpl", r)
 	if err != nil {
 		t.Error(err)
 	}

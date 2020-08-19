@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -12,7 +13,9 @@ func TestHTMLRenderSuccess(t *testing.T) {
 	t.Parallel()
 	test.MoveToRoot()
 
-	r := NewHTMLRenderer("/auth", "web/templates/authboss", "web/templates/layouts/*")
+	r := NewHTMLRenderer("/auth", "web/templates/authboss/*.tpl", "web/templates/layouts/*.tpl")
+	r.LoadAll()
+	fmt.Println(r)
 	err := r.Load("login.html.tpl", "register.html.tpl")
 	if err != nil {
 		t.Error(err)
@@ -42,7 +45,8 @@ func TestHTMLRenderSuccess(t *testing.T) {
 
 func TestMailRenderSuccess(t *testing.T) {
 	test.MoveToRoot()
-	r := NewMailRenderer("/auth", "web/templates/authboss/mailer")
+	r := NewHTMLRenderer("/auth", "web/templates/authboss/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
+	r.LoadAll()
 	err := r.Load("confirm.html.tpl")
 	if err != nil {
 		t.Error(err)

@@ -1,4 +1,4 @@
-package defaults
+package mailer
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"net/smtp"
 	"testing"
-
-	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 var (
@@ -42,7 +40,7 @@ func TestSMTPMailer(t *testing.T) {
 	server := fmt.Sprintf("%s:%d", creds.Server, creds.Port)
 	mailer := NewSMTPMailer(server, smtp.PlainAuth("", creds.Email, creds.Password, creds.Server))
 
-	mail := authboss.Email{
+	mail := Email{
 		From:    creds.Email,
 		To:      []string{creds.Email},
 		Subject: "Authboss Test SMTP Mailer",

@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/mailer"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -27,8 +28,8 @@ const (
 
 	FormValueToken = "token"
 
-	EmailRecoverHTML = "mailer/recover.html.tpl"
-	EmailRecoverTxt  = "mailer/recover.text.tpl"
+	EmailRecoverHTML = "recover.html.tpl"
+	EmailRecoverTxt  = "recover.text.tpl"
 
 	PageRecoverStart  = "recover_start.html.tpl"
 	PageRecoverMiddle = "recover_middle.html.tpl"
@@ -141,7 +142,7 @@ func (r *Recover) SendRecoverEmail(ctx context.Context, to, encodedToken string)
 
 	mailURL := r.mailURL(encodedToken)
 
-	email := authboss.Email{
+	email := mailer.Email{
 		To:       []string{to},
 		From:     r.Authboss.Config.Mail.From,
 		FromName: r.Authboss.Config.Mail.FromName,

@@ -17,16 +17,17 @@ import (
 	"path"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/mailer"
 )
 
 const (
 	// PageConfirm is only really used for the BodyReader
-	PageConfirm = "mailer/confirm.html.tpl"
+	PageConfirm = "confirm.html.tpl"
 
 	// EmailConfirmHTML is the name of the html template for e-mails
-	EmailConfirmHTML = "mailer/confirm.html.tpl"
+	EmailConfirmHTML = "confirm.html.tpl"
 	// EmailConfirmTxt is the name of the text template for e-mails
-	EmailConfirmTxt = "mailer/confirm.text.tpl"
+	EmailConfirmTxt = "confirm.text.tpl"
 
 	// FormValueConfirm is the name of the form value for
 	FormValueConfirm = "cnf"
@@ -155,7 +156,7 @@ func (c *Confirm) SendConfirmEmail(ctx context.Context, to, token string) {
 
 	mailURL := c.mailURL(token)
 
-	email := authboss.Email{
+	email := mailer.Email{
 		To:       []string{to},
 		From:     c.Config.Mail.From,
 		FromName: c.Config.Mail.FromName,

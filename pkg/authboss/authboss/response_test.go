@@ -3,11 +3,13 @@ package authboss
 import (
 	"context"
 	"testing"
+
+	"github.com/ibraheemdev/agilely/pkg/mailer"
 )
 
 type testMailer struct{ sent bool }
 
-func (t *testMailer) Send(context.Context, Email) error {
+func (t *testMailer) Send(context.Context, mailer.Email) error {
 	t.sent = true
 	return nil
 }
@@ -17,12 +19,12 @@ func TestEmail(t *testing.T) {
 
 	ab := New()
 
-	mailer := &testMailer{}
+	m := &testMailer{}
 	renderer := &mockEmailRenderer{}
-	ab.Config.Core.Mailer = mailer
+	ab.Config.Core.Mailer = m
 	ab.Config.Core.MailRenderer = renderer
 
-	email := Email{
+	email := mailer.Email{
 		To:      []string{"support@authboss.com"},
 		Subject: "Send help",
 	}
@@ -37,7 +39,7 @@ func TestEmail(t *testing.T) {
 		t.Error(err)
 	}
 
-	if !mailer.sent {
+	if !m.sent {
 		t.Error("the e-mail should have been sent")
 	}
 }

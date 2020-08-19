@@ -1,4 +1,4 @@
-package defaults
+package mailer
 
 import (
 	"bytes"
@@ -10,8 +10,6 @@ import (
 	"strings"
 	"text/template"
 	"time"
-
-	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
 // NewSMTPMailer creates an SMTP Mailer to send emails with.
@@ -35,7 +33,7 @@ type SMTPMailer struct {
 }
 
 // Send an e-mail
-func (s SMTPMailer) Send(ctx context.Context, mail authboss.Email) error {
+func (s SMTPMailer) Send(ctx context.Context, mail Email) error {
 	if len(mail.TextBody) == 0 && len(mail.HTMLBody) == 0 {
 		return errors.New("refusing to send mail without text or html body")
 	}
@@ -44,7 +42,7 @@ func (s SMTPMailer) Send(ctx context.Context, mail authboss.Email) error {
 
 	data := struct {
 		Boundary string
-		Mail     authboss.Email
+		Mail     Email
 	}{
 		Boundary: s.boundary(),
 		Mail:     mail,

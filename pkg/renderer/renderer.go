@@ -29,22 +29,14 @@ type HTMLRenderer struct {
 
 // NewHTMLRenderer :
 func NewHTMLRenderer(mountPath, templatesDir, layoutsDir string) *HTMLRenderer {
-	return &HTMLRenderer{
+	r := &HTMLRenderer{
 		mountPath:    mountPath,
 		templates:    make(map[string]*template.Template),
 		templatesDir: templatesDir,
 		layoutsDir:   layoutsDir,
 	}
-}
-
-// NewMailRenderer : Returns a new HTML renderer without a template directory
-// because the default mailer templates are standalone
-func NewMailRenderer(mountPath, templatesDir string) *HTMLRenderer {
-	return &HTMLRenderer{
-		mountPath:    mountPath,
-		templates:    make(map[string]*template.Template),
-		templatesDir: templatesDir,
-	}
+	r.LoadAll()
+	return r
 }
 
 // Render a page
@@ -56,11 +48,7 @@ func (r *HTMLRenderer) Render(ctx context.Context, name string, data authboss.HT
 
 	buf := &bytes.Buffer{}
 
-	if len(r.layoutsDir) != 0 {
-		name = "base"
-	}
-
-	err = tmpl.ExecuteTemplate(buf, filepath.Base(name), data)
+	err = tmpl.ExecuteTemplate(buf, "base", data)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to render template for page %s: %w", name, err)
 	}
@@ -68,8 +56,8 @@ func (r *HTMLRenderer) Render(ctx context.Context, name string, data authboss.HT
 	return buf.Bytes(), "text/html", nil
 }
 
-// Load a template directory
-func (r *HTMLRenderer) Load(templates ...string) error {
+// LoadAll templates in the templates directory
+func (r *HTMLRenderer) LoadAll() error {
 	funcMap := template.FuncMap{
 		"mountpathed": func(location string) string {
 			return path.Join(r.mountPath, location)
@@ -77,32 +65,40 @@ func (r *HTMLRenderer) Load(templates ...string) error {
 		"safe": func(s string) template.HTML { return template.HTML(s) },
 	}
 
+	templates, err := filepath.Glob(r.templatesDir)
+	if err != nil {
+		return fmt.Errorf("could not parse templates glob %s, %w", templates, err)
+	}
+
 	for _, tpl := range templates {
-		filePath := fmt.Sprintf("%s/%s", r.templatesDir, tpl)
-
-		var Files []string = []string{filePath}
-
-		if len(r.layoutsDir) != 0 {
-			layouts, err := filepath.Glob(r.layoutsDir)
-			if err != nil {
-				return fmt.Errorf("could not parse layouts glob %s, %w", layouts, err)
-			}
-
-			mainTemplate, err := template.New("main").Funcs(funcMap).Parse(mainTmpl)
-			if err != nil {
-				return err
-			}
-
-			r.templates[tpl], err = mainTemplate.Clone()
-
-			Files = append(Files, layouts...)
+		layouts, err := filepath.Glob(r.layoutsDir)
+		if err != nil {
+			return fmt.Errorf("could not parse layouts glob %s, %w", layouts, err)
 		}
 
-		template, err := r.templates[tpl].ParseFiles(Files...)
+		mainTemplate, err := template.New("main").Funcs(funcMap).Parse(mainTmpl)
+		if err != nil {
+			return err
+		}
+
+		r.templates[filepath.Base(tpl)], err = mainTemplate.Clone()
+
+		files := append(layouts, tpl)
+		r.templates[filepath.Base(tpl)], err = r.templates[filepath.Base(tpl)].ParseFiles(files...)
 		if err != nil {
 			return fmt.Errorf("failed to parse template %s: %w", tpl, err)
 		}
-		r.templates[tpl] = template
+	}
+	return nil
+}
+
+// Load : Checks to see if a particular templates has been loaded
+func (r *HTMLRenderer) Load(templates ...string) error {
+	for _, tpl := range templates {
+		_, ok := r.templates[tpl]
+		if !ok {
+			return fmt.Errorf("failed to load template: %s", tpl)
+		}
 	}
 	return nil
 }

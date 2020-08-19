@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/mailer"
 	"github.com/ibraheemdev/agilely/pkg/renderer"
 	"github.com/julienschmidt/httprouter"
 )
@@ -24,10 +25,10 @@ func SetCore(config *authboss.Config, readJSON, useUsername bool, mountPath, tem
 	config.Core.Router = NewRouter(httprouter.New())
 	config.Core.ErrorHandler = NewErrorHandler(logger)
 	config.Core.ViewRenderer = renderer.NewHTMLRenderer(mountPath, templatesPath, layoutsDir)
-	config.Core.MailRenderer = renderer.NewMailRenderer(mountPath, templatesPath)
+	config.Core.MailRenderer = renderer.NewHTMLRenderer(mountPath, templatesPath, layoutsDir)
 	config.Core.Responder = NewResponder(config.Core.ViewRenderer)
 	config.Core.Redirector = NewRedirector(config.Core.ViewRenderer, authboss.FormValueRedirect)
 	config.Core.BodyReader = NewHTTPBodyReader(readJSON, useUsername)
-	config.Core.Mailer = NewLogMailer(os.Stdout)
+	config.Core.Mailer = mailer.NewLogMailer(os.Stdout)
 	config.Core.Logger = logger
 }

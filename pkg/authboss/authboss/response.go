@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+
+	"github.com/ibraheemdev/agilely/pkg/mailer"
 )
 
 const (
@@ -64,7 +66,7 @@ type EmailResponseOptions struct {
 
 // Email renders the e-mail templates for the given email and
 // sends it using the mailer.
-func (a *Authboss) Email(ctx context.Context, email Email, ro EmailResponseOptions) error {
+func (a *Authboss) Email(ctx context.Context, email mailer.Email, ro EmailResponseOptions) error {
 	ctxData := ctx.Value(CTXKeyData)
 	if ctxData != nil {
 		if ro.Data == nil {

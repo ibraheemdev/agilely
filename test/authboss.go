@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/pkg/mailer"
 )
 
 // User represents all possible fields a authboss User may have
@@ -422,7 +423,7 @@ func Request(method string, postKeyValues ...string) *http.Request {
 
 // Mailer helps simplify mailer testing by storing the last sent email
 type Mailer struct {
-	Last    authboss.Email
+	Last    mailer.Email
 	SendErr string
 }
 
@@ -432,7 +433,7 @@ func NewMailer() *Mailer {
 }
 
 // Send an e-mail
-func (m *Mailer) Send(ctx context.Context, email authboss.Email) error {
+func (m *Mailer) Send(ctx context.Context, email mailer.Email) error {
 	if len(m.SendErr) > 0 {
 		return errors.New(m.SendErr)
 	}
@@ -533,11 +534,11 @@ func (r *Redirector) Redirect(w http.ResponseWriter, req *http.Request, ro authb
 
 // Emailer that holds the options it was given
 type Emailer struct {
-	Email authboss.Email
+	Email mailer.Email
 }
 
 // Send an e-mail
-func (e *Emailer) Send(ctx context.Context, email authboss.Email) error {
+func (e *Emailer) Send(ctx context.Context, email mailer.Email) error {
 	e.Email = email
 	return nil
 }
