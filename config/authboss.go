@@ -9,6 +9,7 @@ import (
 	"github.com/ibraheemdev/agilely/internal/app/users"
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss/defaults"
+	"github.com/ibraheemdev/agilely/pkg/renderer"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/bcrypt"
 
@@ -29,8 +30,8 @@ func SetupAuthboss(r *httprouter.Router) {
 
 	ab.Config.Core.Router = defaults.NewRouter(r)
 	ab.Config.Core.ErrorHandler = defaults.NewErrorHandler(defaults.NewLogger(os.Stdout))
-	ab.Config.Core.ViewRenderer = defaults.NewHTMLRenderer("/", "web/templates/authboss", "web/templates/layout.html.tpl")
-	ab.Config.Core.MailRenderer = defaults.NewMailRenderer("/", "web/templates/authboss")
+	ab.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/authboss", "web/templates/layout.html.tpl")
+	ab.Config.Core.MailRenderer = renderer.NewMailRenderer("/", "web/templates/authboss")
 	ab.Config.Core.Responder = defaults.NewResponder(ab.Config.Core.ViewRenderer)
 	ab.Config.Core.Redirector = defaults.NewRedirector(ab.Config.Core.ViewRenderer, authboss.FormValueRedirect)
 	ab.Config.Core.BodyReader = defaults.NewHTTPBodyReader(false, false)

@@ -11,65 +11,100 @@ import (
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
-var mainTmpl = `{{define "main" }} {{ template "base" . }} {{ end }}`
-
-// Renderer :
-type Renderer struct {
+// HTMLRenderer :
+type HTMLRenderer struct {
 	// url mount path
 	mountPath string
 
-	templates map[string]*template.Template
+	templatesDir string
+	templates    map[string]*template.Template
+
+	// path to layout template.
+	// templates are rendered without
+	// a layout if this field is empty
+	layout string
+}
+
+// NewHTMLRenderer :
+func NewHTMLRenderer(mountPath, templatesDir, layout string) *HTMLRenderer {
+	return &HTMLRenderer{
+		mountPath:    mountPath,
+		templates:    make(map[string]*template.Template),
+		templatesDir: templatesDir,
+		layout:       layout,
+	}
+}
+
+// NewMailRenderer : Returns a new HTML renderer without a template directory
+// because the default mailer templates are standalone
+func NewMailRenderer(mountPath, templatesDir string) *HTMLRenderer {
+	return &HTMLRenderer{
+		mountPath:    mountPath,
+		templates:    make(map[string]*template.Template),
+		templatesDir: templatesDir,
+	}
 }
 
 // Render a page
-func (t *Renderer) Render(ctx context.Context, page string, data authboss.HTMLData) (output []byte, contentType string, err error) {
-	tmpl, ok := t.templates[page]
+func (r *HTMLRenderer) Render(ctx context.Context, name string, data authboss.HTMLData) (output []byte, contentType string, err error) {
+	tmpl, ok := r.templates[name]
 	if !ok {
-		return nil, "", fmt.Errorf("the template %s does not exist", page)
+		return nil, "", fmt.Errorf("the template %s does not exist", name)
 	}
+	fmt.Print(tmpl.DefinedTemplates())
+
 	buf := &bytes.Buffer{}
-	err = tmpl.ExecuteTemplate(buf, "base", data)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to render template for page %s: %w", page, err)
+
+	if len(r.layout) != 0 {
+		name = r.layout
 	}
+
+	err = tmpl.ExecuteTemplate(buf, filepath.Base(name), data)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to render template for page %s: %w", name, err)
+	}
+
 	return buf.Bytes(), "text/html", nil
 }
 
 // Load a template directory
-func (t *Renderer) Load(layoutsDir, templatesDir string) error {
-	layouts, err := filepath.Glob(layoutsDir)
-	if err != nil {
-		return fmt.Errorf("glob pattern is malformed: %w", err)
-	}
-
-	templates, err := filepath.Glob(templatesDir)
-	if err != nil {
-		return fmt.Errorf("glob pattern is malformed: %w", err)
-	}
-
+func (r *HTMLRenderer) Load(templates ...string) error {
 	funcMap := template.FuncMap{
 		"mountpathed": func(location string) string {
-
-			return path.Join(t.mountPath, location)
+			return path.Join(r.mountPath, location)
 		},
 		"safe": func(s string) template.HTML { return template.HTML(s) },
 	}
 
-	mainTemplate, err := template.New("main").Funcs(funcMap).Parse(mainTmpl)
-	if err != nil {
-		return fmt.Errorf("could not parse main template: %w", err)
+	var Layout *template.Template
+	if len(r.layout) != 0 {
+		l, err := template.New("layout").Funcs(funcMap).ParseFiles(r.layout)
+		Layout = l
+		if err != nil {
+			return fmt.Errorf("could not parse main template: %w", err)
+		}
 	}
 
 	for _, tpl := range templates {
-		fileName := filepath.Base(tpl)
-		files := append(layouts, tpl)
+		filePath := fmt.Sprintf("%s/%s", r.templatesDir, tpl)
 
-		t.templates[fileName], err = mainTemplate.Clone()
-		if err != nil {
-			return fmt.Errorf("template has already been executed: %w", err)
+		var Files []string = []string{filePath}
+
+		if len(r.layout) != 0 {
+			clone, err := Layout.Clone()
+			if err != nil {
+				return err
+			}
+			r.templates[tpl] = clone
+			Files = append(Files, r.layout)
+			fmt.Print(Files)
 		}
 
-		t.templates[fileName] = template.Must(t.templates[fileName].ParseFiles(files...))
+		template, err := r.templates[tpl].ParseFiles(Files...)
+		if err != nil {
+			return fmt.Errorf("failed to parse template %s: %w", tpl, err)
+		}
+		r.templates[tpl] = template
 	}
 	return nil
 }
