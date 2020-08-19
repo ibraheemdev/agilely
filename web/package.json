@@ -16,6 +16,7 @@
   "scripts": {
     "start": "run-p watch:tailwind start:react",
     "watch:tailwind": "postcss -w src/stylesheets/index.css -o src/stylesheets/compiled.css",
+    "watch": "chmod +x ./scripts/watch.js && ./scripts/watch.js",
     "start:react": "react-scripts start",
     "prebuild": "npm run build:tailwind",
     "build:tailwind": "postcss src/stylesheets/index.css -o src/stylesheets/compiled.css",
