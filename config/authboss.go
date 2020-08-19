@@ -30,7 +30,7 @@ func SetupAuthboss(r *httprouter.Router) {
 
 	ab.Config.Core.Router = defaults.NewRouter(r)
 	ab.Config.Core.ErrorHandler = defaults.NewErrorHandler(defaults.NewLogger(os.Stdout))
-	ab.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/authboss", "web/templates/layout.html.tpl")
+	ab.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/authboss", "web/templates/layouts/*")
 	ab.Config.Core.MailRenderer = renderer.NewMailRenderer("/", "web/templates/authboss")
 	ab.Config.Core.Responder = defaults.NewResponder(ab.Config.Core.ViewRenderer)
 	ab.Config.Core.Redirector = defaults.NewRedirector(ab.Config.Core.ViewRenderer, authboss.FormValueRedirect)

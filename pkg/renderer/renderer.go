@@ -11,6 +11,8 @@ import (
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 )
 
+var mainTmpl = `{{define "main" }} {{ template "base" . }} {{ end }}`
+
 // HTMLRenderer :
 type HTMLRenderer struct {
 	// url mount path
@@ -22,16 +24,16 @@ type HTMLRenderer struct {
 	// path to layout template.
 	// templates are rendered without
 	// a layout if this field is empty
-	layout string
+	layoutsDir string
 }
 
 // NewHTMLRenderer :
-func NewHTMLRenderer(mountPath, templatesDir, layout string) *HTMLRenderer {
+func NewHTMLRenderer(mountPath, templatesDir, layoutsDir string) *HTMLRenderer {
 	return &HTMLRenderer{
 		mountPath:    mountPath,
 		templates:    make(map[string]*template.Template),
 		templatesDir: templatesDir,
-		layout:       layout,
+		layoutsDir:   layoutsDir,
 	}
 }
 
@@ -51,12 +53,11 @@ func (r *HTMLRenderer) Render(ctx context.Context, name string, data authboss.HT
 	if !ok {
 		return nil, "", fmt.Errorf("the template %s does not exist", name)
 	}
-	fmt.Print(tmpl.DefinedTemplates())
 
 	buf := &bytes.Buffer{}
 
-	if len(r.layout) != 0 {
-		name = r.layout
+	if len(r.layoutsDir) != 0 {
+		name = "base"
 	}
 
 	err = tmpl.ExecuteTemplate(buf, filepath.Base(name), data)
@@ -76,28 +77,25 @@ func (r *HTMLRenderer) Load(templates ...string) error {
 		"safe": func(s string) template.HTML { return template.HTML(s) },
 	}
 
-	var Layout *template.Template
-	if len(r.layout) != 0 {
-		l, err := template.New("layout").Funcs(funcMap).ParseFiles(r.layout)
-		Layout = l
-		if err != nil {
-			return fmt.Errorf("could not parse main template: %w", err)
-		}
-	}
-
 	for _, tpl := range templates {
 		filePath := fmt.Sprintf("%s/%s", r.templatesDir, tpl)
 
 		var Files []string = []string{filePath}
 
-		if len(r.layout) != 0 {
-			clone, err := Layout.Clone()
+		if len(r.layoutsDir) != 0 {
+			layouts, err := filepath.Glob(r.layoutsDir)
+			if err != nil {
+				return fmt.Errorf("could not parse layouts glob %s, %w", layouts, err)
+			}
+
+			mainTemplate, err := template.New("main").Funcs(funcMap).Parse(mainTmpl)
 			if err != nil {
 				return err
 			}
-			r.templates[tpl] = clone
-			Files = append(Files, r.layout)
-			fmt.Print(Files)
+
+			r.templates[tpl], err = mainTemplate.Clone()
+
+			Files = append(Files, layouts...)
 		}
 
 		template, err := r.templates[tpl].ParseFiles(Files...)

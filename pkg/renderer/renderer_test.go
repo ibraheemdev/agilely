@@ -2,7 +2,6 @@ package renderer
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -13,14 +12,13 @@ func TestHTMLRenderSuccess(t *testing.T) {
 	t.Parallel()
 	test.MoveToRoot()
 
-	r := NewHTMLRenderer("/auth", "web/templates/authboss", "web/templates/layout.html.tpl")
+	r := NewHTMLRenderer("/auth", "web/templates/authboss", "web/templates/layouts/*")
 	err := r.Load("login.html.tpl", "register.html.tpl")
 	if err != nil {
 		t.Error(err)
 	}
 
 	o, content, err := r.Render(context.Background(), "login.html.tpl", nil)
-	fmt.Println(string(o))
 	if err != nil {
 		t.Error(err)
 	}
@@ -66,7 +64,7 @@ func TestMailRenderSuccess(t *testing.T) {
 func TestRenderFail(t *testing.T) {
 	t.Parallel()
 	test.MoveToRoot()
-	r := NewHTMLRenderer("/auth", "web/templates/authboss", "web/templates/layout.html.tpl")
+	r := NewHTMLRenderer("/auth", "web/templates/authboss", "web/templates/layouts/*")
 
 	_, _, err := r.Render(context.Background(), "doesntexist....html.tpl", nil)
 	if !strings.Contains(err.Error(), "the template doesntexist....html.tpl does not exist") {
@@ -77,7 +75,7 @@ func TestRenderFail(t *testing.T) {
 func TestLoadFail(t *testing.T) {
 	t.Parallel()
 	test.MoveToRoot()
-	r := NewHTMLRenderer("/auth", "web/templates/authboss", "web/templates/layout.html.tpl")
+	r := NewHTMLRenderer("/auth", "web/templates/authboss", "web/templates/layouts/*")
 	err := r.Load("doesntexist....html.tpl")
 	if err == nil {
 		t.Error("Expected error due to nonexistent file")
