@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ibraheemdev/agilely/pkg/database"
+	"github.com/ibraheemdev/agilely/config"
 	"github.com/ibraheemdev/agilely/pkg/validator"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,7 +22,7 @@ type Poll struct {
 
 // Collection : The poll collection
 func (p Poll) Collection() *mongo.Collection {
-	return database.Client.Collection("polls")
+	return config.DatabaseClient.Collection("polls")
 }
 
 // PollParams : Valid poll params
@@ -53,7 +53,7 @@ func createPoll(poll *PollParams) (string, validator.ValidationErrors) {
 		return "", nil
 	}
 	create := bson.M{"title": poll.Title, "password": pwd}
-	res, err := database.Client.Collection("polls").InsertOne(ctx, create)
+	res, err := config.DatabaseClient.Collection("polls").InsertOne(ctx, create)
 	if err != nil {
 		log.Println(err.Error())
 		// TODO : Move to base
@@ -68,7 +68,7 @@ func updatePoll(id string, poll *PollParams) error {
 	defer cancel()
 	filter := bson.D{{"_id", id}}
 	update := bson.D{{"$set", bson.D{{"title", poll.Title}}}}
-	_, err := database.Client.Collection("polls").UpdateOne(ctx, filter, update)
+	_, err := config.DatabaseClient.Collection("polls").UpdateOne(ctx, filter, update)
 	if err != nil {
 		log.Println(err.Error())
 		return err

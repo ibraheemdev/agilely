@@ -36,12 +36,8 @@ type StaticConfig struct {
 	ManifestPath string `yaml:"manifestpath"`
 }
 
-// Init :
-func Init() {
-	Config = readConfig()
-}
-
-func readConfig() *EnvironmentConfig {
+// ReadConfig : read configuration files into global Config variable
+func ReadConfig() {
 	file := fmt.Sprintf("config/environments/%s.yml", os.Getenv("AGILELY_ENV"))
 	f, err := os.Open(file)
 	if err != nil {
@@ -57,5 +53,5 @@ func readConfig() *EnvironmentConfig {
 		log.Fatal(err)
 		os.Exit(2)
 	}
-	return &cfg
+	Config = &cfg
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/ibraheemdev/agilely/config"
 	"github.com/ibraheemdev/agilely/internal/app/router"
 	_ "github.com/ibraheemdev/agilely/internal/app/users"
-	"github.com/ibraheemdev/agilely/pkg/database"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -18,9 +17,9 @@ func main() {
 	}
 	log.Printf("starting application in %s environment", env)
 
-	config.Init()
-	client := database.Connect()
-	defer database.Disconnect(client)
+	config.ReadConfig()
+	client := config.ConnectToDatabase()
+	defer config.DisconnectFromDatabase(client)
 	r := httprouter.New()
 	config.SetupAuthboss(r)
 	router.ListenAndServe(r)

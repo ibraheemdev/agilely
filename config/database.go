@@ -1,4 +1,4 @@
-package database
+package config
 
 import (
 	"context"
@@ -6,30 +6,29 @@ import (
 	"log"
 	"time"
 
-	"github.com/ibraheemdev/agilely/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
-	// Client : A pointer to the database client
-	Client *mongo.Database
+	// DatabaseClient : A pointer to the database client
+	DatabaseClient *mongo.Database
 )
 
-// Connect :
-func Connect() *mongo.Client {
+// ConnectToDatabase :
+func ConnectToDatabase() *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s", config.Config.Database.Host, config.Config.Database.Port)))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s", Config.Database.Host, Config.Database.Port)))
 	if err != nil {
 		log.Fatal(err)
 	}
-	Client = client.Database(config.Config.Database.Name)
+	DatabaseClient = client.Database(Config.Database.Name)
 	return client
 }
 
-// Disconnect :
-func Disconnect(client *mongo.Client) {
+// DisconnectFromDatabase :
+func DisconnectFromDatabase(client *mongo.Client) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := client.Disconnect(ctx); err != nil {
