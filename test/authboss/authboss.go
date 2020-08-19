@@ -654,18 +654,18 @@ type Router struct {
 func (Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
-// Get records the path in the router
-func (r *Router) Get(path string, _ http.Handler) {
+// GET records the path in the router
+func (r *Router) GET(path string, _ http.Handler) {
 	r.Gets = append(r.Gets, path)
 }
 
-// Post records the path in the router
-func (r *Router) Post(path string, _ http.Handler) {
+// POST records the path in the router
+func (r *Router) POST(path string, _ http.Handler) {
 	r.Posts = append(r.Posts, path)
 }
 
-// Delete records the path in the router
-func (r *Router) Delete(path string, _ http.Handler) {
+// DELETE records the path in the router
+func (r *Router) DELETE(path string, _ http.Handler) {
 	r.Deletes = append(r.Deletes, path)
 }
 

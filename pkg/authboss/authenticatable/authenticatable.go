@@ -33,8 +33,8 @@ func (a *Auth) Init(ab *authboss.Authboss) (err error) {
 		return err
 	}
 
-	a.Authboss.Config.Core.Router.Get("/login", a.Authboss.Core.ErrorHandler.Wrap(a.LoginGet))
-	a.Authboss.Config.Core.Router.Post("/login", a.Authboss.Core.ErrorHandler.Wrap(a.LoginPost))
+	a.Authboss.Config.Core.Router.GET("/login", a.Authboss.Core.ErrorHandler.Wrap(a.LoginGet))
+	a.Authboss.Config.Core.Router.POST("/login", a.Authboss.Core.ErrorHandler.Wrap(a.LoginPost))
 
 	return nil
 }

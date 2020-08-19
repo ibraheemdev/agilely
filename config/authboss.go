@@ -11,6 +11,7 @@ import (
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss/defaults"
 	"github.com/ibraheemdev/agilely/pkg/mailer"
 	"github.com/ibraheemdev/agilely/pkg/renderer"
+	"github.com/ibraheemdev/agilely/pkg/router"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 	"golang.org/x/crypto/bcrypt"
@@ -30,7 +31,7 @@ import (
 func SetupAuthboss(r *httprouter.Router) {
 	ab := authboss.New()
 
-	rt := defaults.NewRouter(r)
+	rt := router.NewRouter(r)
 	rt.Use(alice.New(ab.LoadClientStateMiddleware, rememberable.Middleware(ab)))
 	ab.Config.Core.Router = rt
 

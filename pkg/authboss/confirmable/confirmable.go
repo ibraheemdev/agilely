@@ -61,9 +61,9 @@ func (c *Confirm) Init(ab *authboss.Authboss) (err error) {
 	methodConfig := c.Config.Modules.MailRouteMethod
 	switch methodConfig {
 	case http.MethodGet:
-		callbackMethod = c.Authboss.Config.Core.Router.Get
+		callbackMethod = c.Authboss.Config.Core.Router.GET
 	case http.MethodPost:
-		callbackMethod = c.Authboss.Config.Core.Router.Post
+		callbackMethod = c.Authboss.Config.Core.Router.POST
 	default:
 		panic("invalid config for MailRouteMethod")
 	}

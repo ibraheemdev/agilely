@@ -63,10 +63,10 @@ func (r *Recover) Init(ab *authboss.Authboss) (err error) {
 		return err
 	}
 
-	r.Authboss.Config.Core.Router.Get("/recover", r.Core.ErrorHandler.Wrap(r.StartGet))
-	r.Authboss.Config.Core.Router.Post("/recover", r.Core.ErrorHandler.Wrap(r.StartPost))
-	r.Authboss.Config.Core.Router.Get("/recover/end", r.Core.ErrorHandler.Wrap(r.EndGet))
-	r.Authboss.Config.Core.Router.Post("/recover/end", r.Core.ErrorHandler.Wrap(r.EndPost))
+	r.Authboss.Config.Core.Router.GET("/recover", r.Core.ErrorHandler.Wrap(r.StartGet))
+	r.Authboss.Config.Core.Router.POST("/recover", r.Core.ErrorHandler.Wrap(r.StartPost))
+	r.Authboss.Config.Core.Router.GET("/recover/end", r.Core.ErrorHandler.Wrap(r.EndGet))
+	r.Authboss.Config.Core.Router.POST("/recover/end", r.Core.ErrorHandler.Wrap(r.EndPost))
 
 	return nil
 }

@@ -94,8 +94,8 @@ func (o *OAuth2) Init(ab *authboss.Authboss) error {
 		init := fmt.Sprintf("/oauth2/%s", provider)
 		callback := fmt.Sprintf("/oauth2/callback/%s", provider)
 
-		o.Authboss.Config.Core.Router.Get(init, o.Authboss.Core.ErrorHandler.Wrap(o.Start))
-		o.Authboss.Config.Core.Router.Get(callback, o.Authboss.Core.ErrorHandler.Wrap(o.End))
+		o.Authboss.Config.Core.Router.GET(init, o.Authboss.Core.ErrorHandler.Wrap(o.Start))
+		o.Authboss.Config.Core.Router.GET(callback, o.Authboss.Core.ErrorHandler.Wrap(o.End))
 
 		if mount := o.Authboss.Config.Paths.Mount; len(mount) > 0 {
 			callback = path.Join(mount, callback)

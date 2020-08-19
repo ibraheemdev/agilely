@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/ibraheemdev/agilely/config"
-	"github.com/ibraheemdev/agilely/internal/app/router"
+	"github.com/ibraheemdev/agilely/internal/app/routes"
 	_ "github.com/ibraheemdev/agilely/internal/app/users"
 	"github.com/julienschmidt/httprouter"
 )
@@ -22,5 +22,5 @@ func main() {
 	defer config.DisconnectFromDatabase(client)
 	r := httprouter.New()
 	config.SetupAuthboss(r)
-	router.ListenAndServe(r)
+	routes.ListenAndServe(r)
 }

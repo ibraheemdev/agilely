@@ -40,8 +40,8 @@ func (r *Register) Init(ab *authboss.Authboss) (err error) {
 
 	sort.Strings(ab.Config.Modules.RegisterPreserveFields)
 
-	ab.Config.Core.Router.Get("/register", ab.Config.Core.ErrorHandler.Wrap(r.Get))
-	ab.Config.Core.Router.Post("/register", ab.Config.Core.ErrorHandler.Wrap(r.Post))
+	ab.Config.Core.Router.GET("/register", ab.Config.Core.ErrorHandler.Wrap(r.Get))
+	ab.Config.Core.Router.POST("/register", ab.Config.Core.ErrorHandler.Wrap(r.Post))
 
 	return nil
 }

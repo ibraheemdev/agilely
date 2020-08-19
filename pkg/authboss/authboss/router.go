@@ -8,7 +8,7 @@ import (
 type Router interface {
 	http.Handler
 
-	Get(path string, handler http.Handler)
-	Post(path string, handler http.Handler)
-	Delete(path string, handler http.Handler)
+	GET(path string, handler http.Handler)
+	POST(path string, handler http.Handler)
+	DELETE(path string, handler http.Handler)
 }
