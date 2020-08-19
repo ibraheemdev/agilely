@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 func TestInit(t *testing.T) {
@@ -24,7 +24,7 @@ func TestInit(t *testing.T) {
 func TestExpireSetup(t *testing.T) {
 	ab := authboss.New()
 
-	clientRW := test.NewClientRW()
+	clientRW := authboss_test.NewClientRW()
 	ab.Storage.SessionState = clientRW
 
 	new(Timeout).Init(ab)
@@ -49,7 +49,7 @@ func TestExpireSetup(t *testing.T) {
 func TestExpireIsExpired(t *testing.T) {
 	ab := authboss.New()
 
-	clientRW := test.NewClientRW()
+	clientRW := authboss_test.NewClientRW()
 	clientRW.ClientValues[authboss.SessionKey] = "username"
 	clientRW.ClientValues[authboss.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)
 	ab.Storage.SessionState = clientRW
@@ -104,7 +104,7 @@ func TestExpireIsExpired(t *testing.T) {
 
 func TestExpireNotExpired(t *testing.T) {
 	ab := authboss.New()
-	clientRW := test.NewClientRW()
+	clientRW := authboss_test.NewClientRW()
 	clientRW.ClientValues[authboss.SessionKey] = "username"
 	clientRW.ClientValues[authboss.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)
 	ab.Storage.SessionState = clientRW
@@ -176,7 +176,7 @@ func TestExpireRefreshExpiry(t *testing.T) {
 	t.Parallel()
 
 	ab := authboss.New()
-	clientRW := test.NewClientRW()
+	clientRW := authboss_test.NewClientRW()
 	ab.Storage.SessionState = clientRW
 	r := httptest.NewRequest("GET", "/", nil)
 	w := ab.NewResponse(httptest.NewRecorder())

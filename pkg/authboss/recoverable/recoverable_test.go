@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 const (
@@ -26,10 +26,10 @@ func TestInit(t *testing.T) {
 
 	ab := authboss.New()
 
-	router := &test.Router{}
-	renderer := &test.Renderer{}
-	mailRenderer := &test.Renderer{}
-	errHandler := &test.ErrorHandler{}
+	router := &authboss_test.Router{}
+	renderer := &authboss_test.Renderer{}
+	mailRenderer := &authboss_test.Renderer{}
+	errHandler := &authboss_test.ErrorHandler{}
 	ab.Config.Core.Router = router
 	ab.Config.Core.ViewRenderer = renderer
 	ab.Config.Core.MailRenderer = mailRenderer
@@ -59,32 +59,32 @@ type testHarness struct {
 	recover *Recover
 	ab      *authboss.Authboss
 
-	bodyReader *test.BodyReader
-	mailer     *test.Emailer
-	redirector *test.Redirector
-	renderer   *test.Renderer
-	responder  *test.Responder
-	session    *test.ClientStateRW
-	storer     *test.ServerStorer
+	bodyReader *authboss_test.BodyReader
+	mailer     *authboss_test.Emailer
+	redirector *authboss_test.Redirector
+	renderer   *authboss_test.Renderer
+	responder  *authboss_test.Responder
+	session    *authboss_test.ClientStateRW
+	storer     *authboss_test.ServerStorer
 }
 
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
 	harness.ab = authboss.New()
-	harness.bodyReader = &test.BodyReader{}
-	harness.mailer = &test.Emailer{}
-	harness.redirector = &test.Redirector{}
-	harness.renderer = &test.Renderer{}
-	harness.responder = &test.Responder{}
-	harness.session = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.bodyReader = &authboss_test.BodyReader{}
+	harness.mailer = &authboss_test.Emailer{}
+	harness.redirector = &authboss_test.Redirector{}
+	harness.renderer = &authboss_test.Renderer{}
+	harness.responder = &authboss_test.Responder{}
+	harness.session = authboss_test.NewClientRW()
+	harness.storer = authboss_test.NewServerStorer()
 
 	harness.ab.Paths.RecoverOK = "/recover/ok"
 	harness.ab.Modules.MailNoGoroutine = true
 
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
+	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Mailer = harness.mailer
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Core.MailRenderer = harness.renderer
@@ -102,7 +102,7 @@ func TestStartGet(t *testing.T) {
 
 	h := testSetup()
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.StartGet(w, r); err != nil {
@@ -125,15 +125,15 @@ func TestStartPostSuccess(t *testing.T) {
 
 	h := testSetup()
 
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		PID: "test@test.com",
 	}
-	h.storer.Users["test@test.com"] = &test.User{
+	h.storer.Users["test@test.com"] = &authboss_test.User{
 		Email:    "test@test.com",
 		Password: "i can't recall, doesn't seem like something bcrypted though",
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.StartPost(w, r); err != nil {
@@ -166,11 +166,11 @@ func TestStartPostFailure(t *testing.T) {
 
 	h := testSetup()
 
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		PID: "test@test.com",
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.StartPost(w, r); err != nil {
@@ -197,11 +197,11 @@ func TestEndGet(t *testing.T) {
 
 	h := testSetup()
 
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		Token: "abcd",
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.EndGet(w, r); err != nil {
@@ -224,10 +224,10 @@ func TestEndPostSuccess(t *testing.T) {
 
 	h := testSetup()
 
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		Token: testToken,
 	}
-	h.storer.Users["test@test.com"] = &test.User{
+	h.storer.Users["test@test.com"] = &authboss_test.User{
 		Email:              "test@test.com",
 		Password:           "to-overwrite",
 		RecoverSelector:    testSelector,
@@ -235,7 +235,7 @@ func TestEndPostSuccess(t *testing.T) {
 		RecoverTokenExpiry: time.Now().UTC().AddDate(0, 0, 1),
 	}
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.EndPost(w, r); err != nil {
@@ -265,10 +265,10 @@ func TestEndPostSuccessLogin(t *testing.T) {
 	h := testSetup()
 
 	h.ab.Config.Modules.RecoverLoginAfterRecovery = true
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		Token: testToken,
 	}
-	h.storer.Users["test@test.com"] = &test.User{
+	h.storer.Users["test@test.com"] = &authboss_test.User{
 		Email:              "test@test.com",
 		Password:           "to-overwrite",
 		RecoverSelector:    testSelector,
@@ -276,7 +276,7 @@ func TestEndPostSuccessLogin(t *testing.T) {
 		RecoverTokenExpiry: time.Now().UTC().AddDate(0, 0, 1),
 	}
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.EndPost(h.ab.NewResponse(w), r); err != nil {
@@ -302,10 +302,10 @@ func TestEndPostValidationFailure(t *testing.T) {
 
 	h := testSetup()
 
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		Errors: []error{errors.New("password is not sufficiently complex")},
 	}
-	h.storer.Users["test@test.com"] = &test.User{
+	h.storer.Users["test@test.com"] = &authboss_test.User{
 		Email:              "test@test.com",
 		Password:           "to-overwrite",
 		RecoverSelector:    testSelector,
@@ -313,7 +313,7 @@ func TestEndPostValidationFailure(t *testing.T) {
 		RecoverTokenExpiry: time.Now().UTC().AddDate(0, 0, 1),
 	}
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.EndPost(w, r); err != nil {
@@ -341,11 +341,11 @@ func TestEndPostInvalidBase64(t *testing.T) {
 
 	h := testSetup()
 
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		Token: "a",
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.EndPost(w, r); err != nil {
@@ -360,10 +360,10 @@ func TestEndPostExpiredToken(t *testing.T) {
 
 	h := testSetup()
 
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		Token: testToken,
 	}
-	h.storer.Users["test@test.com"] = &test.User{
+	h.storer.Users["test@test.com"] = &authboss_test.User{
 		Email:              "test@test.com",
 		Password:           "to-overwrite",
 		RecoverSelector:    testSelector,
@@ -371,7 +371,7 @@ func TestEndPostExpiredToken(t *testing.T) {
 		RecoverTokenExpiry: time.Now().UTC().AddDate(0, 0, -1),
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.EndPost(w, r); err != nil {
@@ -386,11 +386,11 @@ func TestEndPostUserNotExist(t *testing.T) {
 
 	h := testSetup()
 
-	h.bodyReader.Return = &test.Values{
+	h.bodyReader.Return = &authboss_test.Values{
 		Token: testToken,
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := h.recover.EndPost(w, r); err != nil {

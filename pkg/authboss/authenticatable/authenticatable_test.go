@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 func TestAuthInit(t *testing.T) {
@@ -14,9 +14,9 @@ func TestAuthInit(t *testing.T) {
 
 	ab := authboss.New()
 
-	router := &test.Router{}
-	renderer := &test.Renderer{}
-	errHandler := &test.ErrorHandler{}
+	router := &authboss_test.Router{}
+	renderer := &authboss_test.Renderer{}
+	errHandler := &authboss_test.ErrorHandler{}
 	ab.Config.Core.Router = router
 	ab.Config.Core.ViewRenderer = renderer
 	ab.Config.Core.ErrorHandler = errHandler
@@ -42,12 +42,12 @@ func TestAuthGet(t *testing.T) {
 	t.Parallel()
 
 	ab := authboss.New()
-	responder := &test.Responder{}
+	responder := &authboss_test.Responder{}
 	ab.Config.Core.Responder = responder
 
 	a := &Auth{ab}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r.URL.RawQuery = "redir=/redirectpage"
 	if err := a.LoginGet(nil, r); err != nil {
 		t.Error(err)
@@ -70,27 +70,27 @@ type testHarness struct {
 	auth *Auth
 	ab   *authboss.Authboss
 
-	bodyReader *test.BodyReader
-	responder  *test.Responder
-	redirector *test.Redirector
-	session    *test.ClientStateRW
-	storer     *test.ServerStorer
+	bodyReader *authboss_test.BodyReader
+	responder  *authboss_test.Responder
+	redirector *authboss_test.Redirector
+	session    *authboss_test.ClientStateRW
+	storer     *authboss_test.ServerStorer
 }
 
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
 	harness.ab = authboss.New()
-	harness.bodyReader = &test.BodyReader{}
-	harness.redirector = &test.Redirector{}
-	harness.responder = &test.Responder{}
-	harness.session = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.bodyReader = &authboss_test.BodyReader{}
+	harness.redirector = &authboss_test.Redirector{}
+	harness.responder = &authboss_test.Responder{}
+	harness.session = authboss_test.NewClientRW()
+	harness.storer = authboss_test.NewServerStorer()
 
 	harness.ab.Paths.AuthLoginOK = "/login/ok"
 
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
+	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Responder = harness.responder
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Storage.SessionState = harness.session
@@ -105,11 +105,11 @@ func TestAuthPostSuccess(t *testing.T) {
 	t.Parallel()
 
 	setupMore := func(h *testHarness) *testHarness {
-		h.bodyReader.Return = test.Values{
+		h.bodyReader.Return = authboss_test.Values{
 			PID:      "test@test.com",
 			Password: "hello world",
 		}
-		h.storer.Users["test@test.com"] = &test.User{
+		h.storer.Users["test@test.com"] = &authboss_test.User{
 			Email:    "test@test.com",
 			Password: "$2a$10$IlfnqVyDZ6c1L.kaA/q3bu1nkAC6KukNUsizvlzay1pZPXnX2C9Ji", // hello world
 		}
@@ -135,7 +135,7 @@ func TestAuthPostSuccess(t *testing.T) {
 			return false, nil
 		})
 
-		r := test.Request("POST")
+		r := authboss_test.Request("POST")
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
@@ -182,7 +182,7 @@ func TestAuthPostSuccess(t *testing.T) {
 			return true, nil
 		})
 
-		r := test.Request("POST")
+		r := authboss_test.Request("POST")
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
@@ -216,7 +216,7 @@ func TestAuthPostSuccess(t *testing.T) {
 			return true, nil
 		})
 
-		r := test.Request("POST")
+		r := authboss_test.Request("POST")
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
@@ -244,11 +244,11 @@ func TestAuthPostBadPassword(t *testing.T) {
 	t.Parallel()
 
 	setupMore := func(h *testHarness) *testHarness {
-		h.bodyReader.Return = test.Values{
+		h.bodyReader.Return = authboss_test.Values{
 			PID:      "test@test.com",
 			Password: "world hello",
 		}
-		h.storer.Users["test@test.com"] = &test.User{
+		h.storer.Users["test@test.com"] = &authboss_test.User{
 			Email:    "test@test.com",
 			Password: "$2a$10$IlfnqVyDZ6c1L.kaA/q3bu1nkAC6KukNUsizvlzay1pZPXnX2C9Ji", // hello world
 		}
@@ -260,7 +260,7 @@ func TestAuthPostBadPassword(t *testing.T) {
 		t.Parallel()
 		h := setupMore(testSetup())
 
-		r := test.Request("POST")
+		r := authboss_test.Request("POST")
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
@@ -295,7 +295,7 @@ func TestAuthPostBadPassword(t *testing.T) {
 		t.Parallel()
 		h := setupMore(testSetup())
 
-		r := test.Request("POST")
+		r := authboss_test.Request("POST")
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
@@ -330,12 +330,12 @@ func TestAuthPostUserNotFound(t *testing.T) {
 	t.Parallel()
 
 	harness := testSetup()
-	harness.bodyReader.Return = test.Values{
+	harness.bodyReader.Return = authboss_test.Values{
 		PID:      "test@test.com",
 		Password: "world hello",
 	}
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	resp := httptest.NewRecorder()
 	w := harness.ab.NewResponse(resp)
 

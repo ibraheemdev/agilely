@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 func TestInit(t *testing.T) {
@@ -28,20 +28,20 @@ type testHarness struct {
 	remember *Remember
 	ab       *authboss.Authboss
 
-	session *test.ClientStateRW
-	cookies *test.ClientStateRW
-	storer  *test.ServerStorer
+	session *authboss_test.ClientStateRW
+	cookies *authboss_test.ClientStateRW
+	storer  *authboss_test.ServerStorer
 }
 
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
 	harness.ab = authboss.New()
-	harness.session = test.NewClientRW()
-	harness.cookies = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.session = authboss_test.NewClientRW()
+	harness.cookies = authboss_test.NewClientRW()
+	harness.storer = authboss_test.NewServerStorer()
 
-	harness.ab.Config.Core.Logger = test.Logger{}
+	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Storage.SessionState = harness.session
 	harness.ab.Config.Storage.CookieState = harness.cookies
 	harness.ab.Config.Storage.Server = harness.storer
@@ -56,10 +56,10 @@ func TestRememberAfterAuth(t *testing.T) {
 
 	h := testSetup()
 
-	user := &test.User{Email: "test@test.com"}
+	user := &authboss_test.User{Email: "test@test.com"}
 
-	r := test.Request("POST")
-	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyValues, test.Values{Remember: true}))
+	r := authboss_test.Request("POST")
+	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyValues, authboss_test.Values{Remember: true}))
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)
@@ -87,7 +87,7 @@ func TestRememberAfterAuthSkip(t *testing.T) {
 
 	h := testSetup()
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)
 
@@ -101,7 +101,7 @@ func TestRememberAfterAuthSkip(t *testing.T) {
 		t.Error("expected no tokens to be created")
 	}
 
-	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyValues, test.Values{Remember: false}))
+	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyValues, authboss_test.Values{Remember: false}))
 
 	if handled, err := h.remember.RememberAfterAuth(w, r, false); err != nil {
 		t.Fatal(err)
@@ -119,14 +119,14 @@ func TestMiddlewareAuth(t *testing.T) {
 
 	h := testSetup()
 
-	user := &test.User{Email: "test@test.com"}
+	user := &authboss_test.User{Email: "test@test.com"}
 	hash, token, _ := GenerateToken(user.Email)
 
 	h.storer.Users[user.Email] = user
 	h.storer.RMTokens[user.Email] = []string{hash}
 	h.cookies.ClientValues[authboss.CookieRemember] = token
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)
 
@@ -159,14 +159,14 @@ func TestAuthenticateSuccess(t *testing.T) {
 
 	h := testSetup()
 
-	user := &test.User{Email: "test@test.com"}
+	user := &authboss_test.User{Email: "test@test.com"}
 	hash, token, _ := GenerateToken(user.Email)
 
 	h.storer.Users[user.Email] = user
 	h.storer.RMTokens[user.Email] = []string{hash}
 	h.cookies.ClientValues[authboss.CookieRemember] = token
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)
 
@@ -209,13 +209,13 @@ func TestAuthenticateTokenNotFound(t *testing.T) {
 
 	h := testSetup()
 
-	user := &test.User{Email: "test@test.com"}
+	user := &authboss_test.User{Email: "test@test.com"}
 	_, token, _ := GenerateToken(user.Email)
 
 	h.storer.Users[user.Email] = user
 	h.cookies.ClientValues[authboss.CookieRemember] = token
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)
 
@@ -252,7 +252,7 @@ func TestAuthenticateBadTokens(t *testing.T) {
 	doTest := func(t *testing.T) {
 		t.Helper()
 
-		r := test.Request("POST")
+		r := authboss_test.Request("POST")
 		rec := httptest.NewRecorder()
 		w := h.ab.NewResponse(rec)
 
@@ -296,7 +296,7 @@ func TestAfterPasswordReset(t *testing.T) {
 
 	h := testSetup()
 
-	user := &test.User{Email: "test@test.com"}
+	user := &authboss_test.User{Email: "test@test.com"}
 	hash1, _, _ := GenerateToken(user.Email)
 	hash2, token2, _ := GenerateToken(user.Email)
 
@@ -304,7 +304,7 @@ func TestAfterPasswordReset(t *testing.T) {
 	h.storer.RMTokens[user.Email] = []string{hash1, hash2}
 	h.cookies.ClientValues[authboss.CookieRemember] = token2
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)

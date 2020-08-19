@@ -1,5 +1,5 @@
-// Package test defines implemented interfaces for testing modules
-package test
+// Package authboss_test defines implemented interfaces for testing modules
+package authboss_test
 
 import (
 	"context"

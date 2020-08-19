@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 func TestLogout(t *testing.T) {
@@ -16,8 +16,8 @@ func TestLogout(t *testing.T) {
 
 	ab := authboss.New()
 
-	router := &test.Router{}
-	errHandler := &test.ErrorHandler{}
+	router := &authboss_test.Router{}
+	errHandler := &authboss_test.ErrorHandler{}
 	ab.Config.Core.Router = router
 	ab.Config.Core.ErrorHandler = errHandler
 
@@ -35,8 +35,8 @@ func TestLogoutRoutes(t *testing.T) {
 	t.Parallel()
 
 	ab := authboss.New()
-	router := &test.Router{}
-	errHandler := &test.ErrorHandler{}
+	router := &authboss_test.Router{}
+	errHandler := &authboss_test.ErrorHandler{}
 	ab.Config.Core.Router = router
 	ab.Config.Core.ErrorHandler = errHandler
 
@@ -67,24 +67,24 @@ type testHarness struct {
 	logout *Logout
 	ab     *authboss.Authboss
 
-	redirector *test.Redirector
-	session    *test.ClientStateRW
-	cookies    *test.ClientStateRW
-	storer     *test.ServerStorer
+	redirector *authboss_test.Redirector
+	session    *authboss_test.ClientStateRW
+	cookies    *authboss_test.ClientStateRW
+	storer     *authboss_test.ServerStorer
 }
 
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
 	harness.ab = authboss.New()
-	harness.redirector = &test.Redirector{}
-	harness.session = test.NewClientRW()
-	harness.cookies = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.redirector = &authboss_test.Redirector{}
+	harness.session = authboss_test.NewClientRW()
+	harness.cookies = authboss_test.NewClientRW()
+	harness.storer = authboss_test.NewServerStorer()
 
 	harness.ab.Paths.LogoutOK = "/logout/ok"
 
-	harness.ab.Config.Core.Logger = test.Logger{}
+	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Storage.SessionState = harness.session
 	harness.ab.Config.Storage.CookieState = harness.cookies
@@ -105,13 +105,13 @@ func TestLogoutLogout(t *testing.T) {
 	h.session.ClientValues[authboss.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)
 	h.cookies.ClientValues[authboss.CookieRemember] = "token"
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	resp := httptest.NewRecorder()
 	w := h.ab.NewResponse(resp)
 
 	// This enables the logging portion
 	// which is debatable-y not useful in a log out method
-	user := &test.User{Email: "test@test.com"}
+	user := &authboss_test.User{Email: "test@test.com"}
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 
 	var err error

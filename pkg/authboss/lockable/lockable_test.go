@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 func TestInit(t *testing.T) {
@@ -26,26 +26,26 @@ type testHarness struct {
 	lock *Lock
 	ab   *authboss.Authboss
 
-	bodyReader *test.BodyReader
-	mailer     *test.Emailer
-	redirector *test.Redirector
-	renderer   *test.Renderer
-	responder  *test.Responder
-	session    *test.ClientStateRW
-	storer     *test.ServerStorer
+	bodyReader *authboss_test.BodyReader
+	mailer     *authboss_test.Emailer
+	redirector *authboss_test.Redirector
+	renderer   *authboss_test.Renderer
+	responder  *authboss_test.Responder
+	session    *authboss_test.ClientStateRW
+	storer     *authboss_test.ServerStorer
 }
 
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
 	harness.ab = authboss.New()
-	harness.bodyReader = &test.BodyReader{}
-	harness.mailer = &test.Emailer{}
-	harness.redirector = &test.Redirector{}
-	harness.renderer = &test.Renderer{}
-	harness.responder = &test.Responder{}
-	harness.session = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.bodyReader = &authboss_test.BodyReader{}
+	harness.mailer = &authboss_test.Emailer{}
+	harness.redirector = &authboss_test.Redirector{}
+	harness.renderer = &authboss_test.Renderer{}
+	harness.responder = &authboss_test.Responder{}
+	harness.session = authboss_test.NewClientRW()
+	harness.storer = authboss_test.NewServerStorer()
 
 	harness.ab.Paths.LockNotOK = "/lock/not/ok"
 	harness.ab.Modules.LockAfter = 3
@@ -53,7 +53,7 @@ func testSetup() *testHarness {
 	harness.ab.Modules.LockWindow = time.Minute
 
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
+	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Mailer = harness.mailer
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Core.MailRenderer = harness.renderer
@@ -71,13 +71,13 @@ func TestBeforeAuthAllow(t *testing.T) {
 
 	harness := testSetup()
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Email:  "test@test.com",
 		Locked: time.Time{},
 	}
 	harness.storer.Users["test@test.com"] = user
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
@@ -95,13 +95,13 @@ func TestBeforeAuthDisallow(t *testing.T) {
 
 	harness := testSetup()
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Email:  "test@test.com",
 		Locked: time.Now().UTC().Add(time.Hour),
 	}
 	harness.storer.Users["test@test.com"] = user
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
@@ -133,7 +133,7 @@ func TestAfterAuthSuccess(t *testing.T) {
 	harness := testSetup()
 
 	last := time.Now().UTC().Add(-time.Hour)
-	user := &test.User{
+	user := &authboss_test.User{
 		Email:        "test@test.com",
 		AttemptCount: 45,
 		LastAttempt:  last,
@@ -141,7 +141,7 @@ func TestAfterAuthSuccess(t *testing.T) {
 
 	harness.storer.Users["test@test.com"] = user
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
@@ -167,7 +167,7 @@ func TestAfterAuthFailure(t *testing.T) {
 
 	harness := testSetup()
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Email: "test@test.com",
 	}
 	harness.storer.Users["test@test.com"] = user
@@ -176,7 +176,7 @@ func TestAfterAuthFailure(t *testing.T) {
 		t.Error("should not be locked")
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	var handled bool
@@ -235,7 +235,7 @@ func TestLock(t *testing.T) {
 
 	harness := testSetup()
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Email: "test@test.com",
 	}
 	harness.storer.Users["test@test.com"] = user
@@ -258,7 +258,7 @@ func TestUnlock(t *testing.T) {
 
 	harness := testSetup()
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Email:  "test@test.com",
 		Locked: time.Now().UTC().Add(time.Hour),
 	}
@@ -286,11 +286,11 @@ func TestMiddlewareAllow(t *testing.T) {
 		called = true
 	}))
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Locked: time.Now().UTC().Add(-time.Hour),
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
@@ -305,9 +305,9 @@ func TestMiddlewareDisallow(t *testing.T) {
 	t.Parallel()
 
 	ab := authboss.New()
-	redirector := &test.Redirector{}
+	redirector := &authboss_test.Redirector{}
 	ab.Config.Paths.LockNotOK = "/lock/not/ok"
-	ab.Config.Core.Logger = test.Logger{}
+	ab.Config.Core.Logger = authboss_test.Logger{}
 	ab.Config.Core.Redirector = redirector
 
 	called := false
@@ -315,11 +315,11 @@ func TestMiddlewareDisallow(t *testing.T) {
 		called = true
 	}))
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Locked: time.Now().UTC().Add(time.Hour),
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 

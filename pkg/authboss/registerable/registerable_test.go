@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 func TestRegisterInit(t *testing.T) {
@@ -17,13 +17,13 @@ func TestRegisterInit(t *testing.T) {
 
 	ab := authboss.New()
 
-	router := &test.Router{}
-	renderer := &test.Renderer{}
-	errHandler := &test.ErrorHandler{}
+	router := &authboss_test.Router{}
+	renderer := &authboss_test.Renderer{}
+	errHandler := &authboss_test.ErrorHandler{}
 	ab.Config.Core.Router = router
 	ab.Config.Core.ViewRenderer = renderer
 	ab.Config.Core.ErrorHandler = errHandler
-	ab.Config.Storage.Server = &test.ServerStorer{}
+	ab.Config.Storage.Server = &authboss_test.ServerStorer{}
 
 	reg := &Register{}
 	if err := reg.Init(ab); err != nil {
@@ -46,7 +46,7 @@ func TestRegisterGet(t *testing.T) {
 	t.Parallel()
 
 	ab := authboss.New()
-	responder := &test.Responder{}
+	responder := &authboss_test.Responder{}
 	ab.Config.Core.Responder = responder
 
 	a := &Register{ab}
@@ -67,27 +67,27 @@ type testHarness struct {
 	reg *Register
 	ab  *authboss.Authboss
 
-	bodyReader *test.BodyReader
-	responder  *test.Responder
-	redirector *test.Redirector
-	session    *test.ClientStateRW
-	storer     *test.ServerStorer
+	bodyReader *authboss_test.BodyReader
+	responder  *authboss_test.Responder
+	redirector *authboss_test.Redirector
+	session    *authboss_test.ClientStateRW
+	storer     *authboss_test.ServerStorer
 }
 
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
 	harness.ab = authboss.New()
-	harness.bodyReader = &test.BodyReader{}
-	harness.redirector = &test.Redirector{}
-	harness.responder = &test.Responder{}
-	harness.session = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.bodyReader = &authboss_test.BodyReader{}
+	harness.redirector = &authboss_test.Redirector{}
+	harness.responder = &authboss_test.Responder{}
+	harness.session = authboss_test.NewClientRW()
+	harness.storer = authboss_test.NewServerStorer()
 
 	harness.ab.Paths.RegisterOK = "/ok"
 
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
+	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Responder = harness.responder
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Storage.SessionState = harness.session
@@ -103,7 +103,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 
 	setupMore := func(harness *testHarness) *testHarness {
 		harness.ab.Modules.RegisterPreserveFields = []string{"email", "another"}
-		harness.bodyReader.Return = test.ArbValues{
+		harness.bodyReader.Return = authboss_test.ArbValues{
 			Values: map[string]string{
 				"email":    "test@test.com",
 				"password": "hello world",
@@ -118,7 +118,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 		t.Parallel()
 		h := setupMore(testSetup())
 
-		r := test.Request("POST")
+		r := authboss_test.Request("POST")
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
@@ -161,7 +161,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 			return true, nil
 		})
 
-		r := test.Request("POST")
+		r := authboss_test.Request("POST")
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
@@ -199,7 +199,7 @@ func TestRegisterPostValidationFailure(t *testing.T) {
 	// Ensure the below is sorted, the sort normally happens in Init()
 	// that we don't call
 	h.ab.Modules.RegisterPreserveFields = []string{"another", "email"}
-	h.bodyReader.Return = test.ArbValues{
+	h.bodyReader.Return = authboss_test.ArbValues{
 		Values: map[string]string{
 			"email":    "test@test.com",
 			"password": "hello world",
@@ -210,7 +210,7 @@ func TestRegisterPostValidationFailure(t *testing.T) {
 		},
 	}
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	resp := httptest.NewRecorder()
 	w := h.ab.NewResponse(resp)
 
@@ -253,8 +253,8 @@ func TestRegisterPostUserExists(t *testing.T) {
 	// Ensure the below is sorted, the sort normally happens in Init()
 	// that we don't call
 	h.ab.Modules.RegisterPreserveFields = []string{"another", "email"}
-	h.storer.Users["test@test.com"] = &test.User{}
-	h.bodyReader.Return = test.ArbValues{
+	h.storer.Users["test@test.com"] = &authboss_test.User{}
+	h.bodyReader.Return = authboss_test.ArbValues{
 		Values: map[string]string{
 			"email":    "test@test.com",
 			"password": "hello world",
@@ -262,7 +262,7 @@ func TestRegisterPostUserExists(t *testing.T) {
 		},
 	}
 
-	r := test.Request("POST")
+	r := authboss_test.Request("POST")
 	resp := httptest.NewRecorder()
 	w := h.ab.NewResponse(resp)
 

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
@@ -61,10 +61,10 @@ func TestInit(t *testing.T) {
 	ab := authboss.New()
 	oauth := &OAuth2{}
 
-	router := &test.Router{}
+	router := &authboss_test.Router{}
 	ab.Config.Modules.OAuth2Providers = testProviders
 	ab.Config.Core.Router = router
-	ab.Config.Core.ErrorHandler = &test.ErrorHandler{}
+	ab.Config.Core.ErrorHandler = &authboss_test.ErrorHandler{}
 
 	ab.Config.Paths.Mount = "/auth"
 	ab.Config.Paths.RootURL = "https://www.example.com"
@@ -86,25 +86,25 @@ type testHarness struct {
 	oauth *OAuth2
 	ab    *authboss.Authboss
 
-	redirector *test.Redirector
-	session    *test.ClientStateRW
-	storer     *test.ServerStorer
+	redirector *authboss_test.Redirector
+	session    *authboss_test.ClientStateRW
+	storer     *authboss_test.ServerStorer
 }
 
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
 	harness.ab = authboss.New()
-	harness.redirector = &test.Redirector{}
-	harness.session = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.redirector = &authboss_test.Redirector{}
+	harness.session = authboss_test.NewClientRW()
+	harness.storer = authboss_test.NewServerStorer()
 
 	harness.ab.Modules.OAuth2Providers = testProviders
 
 	harness.ab.Paths.OAuth2LoginOK = "/auth/oauth2/ok"
 	harness.ab.Paths.OAuth2LoginNotOK = "/auth/oauth2/not/ok"
 
-	harness.ab.Config.Core.Logger = test.Logger{}
+	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Storage.SessionState = harness.session
 	harness.ab.Config.Storage.Server = harness.storer

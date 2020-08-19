@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 func TestInit(t *testing.T) {
@@ -19,9 +19,9 @@ func TestInit(t *testing.T) {
 
 	ab := authboss.New()
 
-	router := &test.Router{}
-	renderer := &test.Renderer{}
-	errHandler := &test.ErrorHandler{}
+	router := &authboss_test.Router{}
+	renderer := &authboss_test.Renderer{}
+	errHandler := &authboss_test.ErrorHandler{}
 	ab.Config.Core.Router = router
 	ab.Config.Core.MailRenderer = renderer
 	ab.Config.Core.ErrorHandler = errHandler
@@ -44,33 +44,33 @@ type testHarness struct {
 	confirm *Confirm
 	ab      *authboss.Authboss
 
-	bodyReader *test.BodyReader
-	mailer     *test.Emailer
-	redirector *test.Redirector
-	renderer   *test.Renderer
-	responder  *test.Responder
-	session    *test.ClientStateRW
-	storer     *test.ServerStorer
+	bodyReader *authboss_test.BodyReader
+	mailer     *authboss_test.Emailer
+	redirector *authboss_test.Redirector
+	renderer   *authboss_test.Renderer
+	responder  *authboss_test.Responder
+	session    *authboss_test.ClientStateRW
+	storer     *authboss_test.ServerStorer
 }
 
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
 	harness.ab = authboss.New()
-	harness.bodyReader = &test.BodyReader{}
-	harness.mailer = &test.Emailer{}
-	harness.redirector = &test.Redirector{}
-	harness.renderer = &test.Renderer{}
-	harness.responder = &test.Responder{}
-	harness.session = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.bodyReader = &authboss_test.BodyReader{}
+	harness.mailer = &authboss_test.Emailer{}
+	harness.redirector = &authboss_test.Redirector{}
+	harness.renderer = &authboss_test.Renderer{}
+	harness.responder = &authboss_test.Responder{}
+	harness.session = authboss_test.NewClientRW()
+	harness.storer = authboss_test.NewServerStorer()
 
 	harness.ab.Paths.ConfirmOK = "/confirm/ok"
 	harness.ab.Paths.ConfirmNotOK = "/confirm/not/ok"
 	harness.ab.Modules.MailNoGoroutine = true
 
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
+	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Mailer = harness.mailer
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Core.MailRenderer = harness.renderer
@@ -88,11 +88,11 @@ func TestPreventAuthAllow(t *testing.T) {
 
 	harness := testSetup()
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Confirmed: true,
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
@@ -111,11 +111,11 @@ func TestPreventDisallow(t *testing.T) {
 
 	harness := testSetup()
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Confirmed: false,
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
@@ -142,10 +142,10 @@ func TestStartConfirmationWeb(t *testing.T) {
 
 	harness := testSetup()
 
-	user := &test.User{Email: "test@test.com"}
+	user := &authboss_test.User{Email: "test@test.com"}
 	harness.storer.Users["test@test.com"] = user
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
@@ -181,13 +181,13 @@ func TestGetSuccess(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user := &test.User{Email: "test@test.com", Confirmed: false, ConfirmSelector: selector, ConfirmVerifier: verifier}
+	user := &authboss_test.User{Email: "test@test.com", Confirmed: false, ConfirmSelector: selector, ConfirmVerifier: verifier}
 	harness.storer.Users["test@test.com"] = user
-	harness.bodyReader.Return = test.Values{
+	harness.bodyReader.Return = authboss_test.Values{
 		Token: token,
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := harness.confirm.Get(w, r); err != nil {
@@ -217,11 +217,11 @@ func TestGetValidationFailure(t *testing.T) {
 
 	harness := testSetup()
 
-	harness.bodyReader.Return = test.Values{
+	harness.bodyReader.Return = authboss_test.Values{
 		Errors: []error{errors.New("fail")},
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := harness.confirm.Get(w, r); err != nil {
@@ -244,11 +244,11 @@ func TestGetBase64DecodeFailure(t *testing.T) {
 
 	harness := testSetup()
 
-	harness.bodyReader.Return = test.Values{
+	harness.bodyReader.Return = authboss_test.Values{
 		Token: "5",
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := harness.confirm.Get(w, r); err != nil {
@@ -276,11 +276,11 @@ func TestGetUserNotFoundFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	harness.bodyReader.Return = test.Values{
+	harness.bodyReader.Return = authboss_test.Values{
 		Token: token,
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	w := httptest.NewRecorder()
 
 	if err := harness.confirm.Get(w, r); err != nil {
@@ -307,11 +307,11 @@ func TestMiddlewareAllow(t *testing.T) {
 		called = true
 	}))
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Confirmed: true,
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
@@ -326,9 +326,9 @@ func TestMiddlewareDisallow(t *testing.T) {
 	t.Parallel()
 
 	ab := authboss.New()
-	redirector := &test.Redirector{}
+	redirector := &authboss_test.Redirector{}
 	ab.Config.Paths.ConfirmNotOK = "/confirm/not/ok"
-	ab.Config.Core.Logger = test.Logger{}
+	ab.Config.Core.Logger = authboss_test.Logger{}
 	ab.Config.Core.Redirector = redirector
 
 	called := false
@@ -336,11 +336,11 @@ func TestMiddlewareDisallow(t *testing.T) {
 		called = true
 	}))
 
-	user := &test.User{
+	user := &authboss_test.User{
 		Confirmed: false,
 	}
 
-	r := test.Request("GET")
+	r := authboss_test.Request("GET")
 	r = r.WithContext(context.WithValue(r.Context(), authboss.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 

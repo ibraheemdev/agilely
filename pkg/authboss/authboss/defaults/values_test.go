@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 func TestHTTPBodyReaderLogin(t *testing.T) {
 	t.Parallel()
 
 	h := NewHTTPBodyReader(false, false)
-	r := test.Request("POST", "email", "john@john.john", "password", "flowers")
+	r := authboss_test.Request("POST", "email", "john@john.john", "password", "flowers")
 
 	validator, err := h.Read("login.html.tpl", r)
 	if err != nil {
@@ -53,7 +53,7 @@ func TestHTTPBodyReaderConfirm(t *testing.T) {
 	t.Parallel()
 
 	h := NewHTTPBodyReader(false, false)
-	r := test.Request("POST", FormValueConfirm, "token")
+	r := authboss_test.Request("POST", FormValueConfirm, "token")
 
 	validator, err := h.Read("confirm.html.tpl", r)
 	if err != nil {
@@ -70,7 +70,7 @@ func TestHTTPBodyReaderRecoverStart(t *testing.T) {
 	t.Parallel()
 
 	h := NewHTTPBodyReader(false, false)
-	r := test.Request("POST", FormValueEmail, "email")
+	r := authboss_test.Request("POST", FormValueEmail, "email")
 
 	validator, err := h.Read("recover_start.html.tpl", r)
 	if err != nil {
@@ -104,7 +104,7 @@ func TestHTTPBodyReaderRecoverEnd(t *testing.T) {
 	t.Parallel()
 
 	h := NewHTTPBodyReader(false, false)
-	r := test.Request("POST", "token", "token", "password", "password")
+	r := authboss_test.Request("POST", "token", "token", "password", "password")
 
 	validator, err := h.Read("recover_end.html.tpl", r)
 	if err != nil {
@@ -125,7 +125,7 @@ func TestHTTPBodyReaderRegister(t *testing.T) {
 
 	h := NewHTTPBodyReader(false, false)
 	h.Whitelist["register.html.tpl"] = []string{"address"}
-	r := test.Request("POST", "email", "a@a.com", "password", "1234", "address", "555 go street")
+	r := authboss_test.Request("POST", "email", "a@a.com", "password", "1234", "address", "555 go street")
 
 	validator, err := h.Read("register.html.tpl", r)
 	if err != nil {

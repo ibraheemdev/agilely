@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
-	"github.com/ibraheemdev/agilely/test"
+	"github.com/ibraheemdev/agilely/test/authboss"
 )
 
 type testRenderer struct {
@@ -193,8 +193,8 @@ func TestResponseRedirectNonAPI(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	ab := authboss.New()
-	ab.Config.Storage.SessionState = test.NewClientRW()
-	ab.Config.Storage.CookieState = test.NewClientRW()
+	ab.Config.Storage.SessionState = authboss_test.NewClientRW()
+	ab.Config.Storage.CookieState = authboss_test.NewClientRW()
 	aw := ab.NewResponse(w)
 
 	ro := authboss.RedirectOptions{
@@ -232,8 +232,8 @@ func TestResponseRedirectNonAPIFollowRedir(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	ab := authboss.New()
-	ab.Config.Storage.SessionState = test.NewClientRW()
-	ab.Config.Storage.CookieState = test.NewClientRW()
+	ab.Config.Storage.SessionState = authboss_test.NewClientRW()
+	ab.Config.Storage.CookieState = authboss_test.NewClientRW()
 	aw := ab.NewResponse(w)
 
 	ro := authboss.RedirectOptions{
