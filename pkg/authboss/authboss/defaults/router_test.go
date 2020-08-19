@@ -1,6 +1,7 @@
 package defaults
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/justinas/alice"
 )
 
 func TestRouter(t *testing.T) {
@@ -82,4 +84,23 @@ func TestRouterBadMethod(t *testing.T) {
 	if wr.Code != http.StatusMethodNotAllowed {
 		t.Error("want method not allowed code, got:", wr.Code)
 	}
+}
+
+func TestRouterMiddleware(t *testing.T) {
+	t.Parallel()
+
+	r := NewRouter(httprouter.New())
+	r.Use(alice.New(helloWorldMiddleware))
+	r.Get("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if val := r.Context().Value("called").(string); val != "yup" {
+			t.Error("expected middleware to be called")
+		}
+	}))
+}
+
+func helloWorldMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "called", "yup")
+		h.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

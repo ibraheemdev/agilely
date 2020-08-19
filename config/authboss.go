@@ -12,6 +12,7 @@ import (
 	"github.com/ibraheemdev/agilely/pkg/mailer"
 	"github.com/ibraheemdev/agilely/pkg/renderer"
 	"github.com/julienschmidt/httprouter"
+	"github.com/justinas/alice"
 	"golang.org/x/crypto/bcrypt"
 
 	// Blank import all the modules for init functions
@@ -22,14 +23,17 @@ import (
 	_ "github.com/ibraheemdev/agilely/pkg/authboss/oauthable"
 	_ "github.com/ibraheemdev/agilely/pkg/authboss/recoverable"
 	_ "github.com/ibraheemdev/agilely/pkg/authboss/registerable"
-	_ "github.com/ibraheemdev/agilely/pkg/authboss/rememberable"
+	"github.com/ibraheemdev/agilely/pkg/authboss/rememberable"
 )
 
 // SetupAuthboss :
 func SetupAuthboss(r *httprouter.Router) {
 	ab := authboss.New()
 
-	ab.Config.Core.Router = defaults.NewRouter(r)
+	rt := defaults.NewRouter(r)
+	rt.Use(alice.New(ab.LoadClientStateMiddleware, rememberable.Middleware(ab)))
+	ab.Config.Core.Router = rt
+
 	ab.Config.Core.ErrorHandler = defaults.NewErrorHandler(defaults.NewLogger(os.Stdout))
 	ab.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/authboss/*.tpl", "web/templates/layouts/*.tpl")
 	ab.Config.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/authboss/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
