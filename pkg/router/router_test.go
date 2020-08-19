@@ -18,100 +18,45 @@ func TestRouter(t *testing.T) {
 	rt := NewRouter(httprouter.New())
 	var get, post, del, head, options, put, patch string
 
-	rt.GET("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		get = string(b)
-	}))
-	rt.POST("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		post = string(b)
-	}))
-	rt.DELETE("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		del = string(b)
-	}))
-	rt.HEAD("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		head = string(b)
-	}))
-	rt.OPTIONS("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		options = string(b)
-	}))
-	rt.PUT("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		put = string(b)
-	}))
-	rt.PATCH("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
-
-		patch = string(b)
-	}))
-
-	requests := [][]string{
-		[]string{"PUT", "testput"},
-		[]string{"GET", "testget"},
-		[]string{"HEAD", "testhead"},
-		[]string{"OPTIONS", "testoptions"},
-		[]string{"POST", "testpost"},
-		[]string{"DELETE", "testdelete"},
-		[]string{"PATCH", "testpatch"},
+	requests := [][]interface{}{
+		[]interface{}{"PUT", "testput", &put, rt.PUT},
+		[]interface{}{"GET", "testget", &get, rt.GET},
+		[]interface{}{"HEAD", "testhead", &head, rt.HEAD},
+		[]interface{}{"OPTIONS", "testoptions", &options, rt.OPTIONS},
+		[]interface{}{"POST", "testpost", &post, rt.POST},
+		[]interface{}{"DELETE", "testdelete", &del, rt.DELETE},
+		[]interface{}{"PATCH", "testpatch", &patch, rt.PATCH},
 	}
 
-	writers := []*string{&put, &get, &head, &options, &post, &del, &patch}
+	for _, r := range requests {
+		r[3].(func(path string, handler http.Handler))("/test", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			b, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				panic(err)
+			}
 
-	for k, r := range requests {
+			*r[2].(*string) = string(b)
+		}))
+
 		wr := httptest.NewRecorder()
-		req := httptest.NewRequest(r[0], "/test", strings.NewReader(r[1]))
+		req := httptest.NewRequest(r[0].(string), "/test", strings.NewReader(r[1].(string)))
 		rt.ServeHTTP(wr, req)
-		if *writers[k] != r[1] {
-			t.Error("want:", r[1], "got:", writers[k])
+		if *r[2].(*string) != r[1].(string) {
+			t.Error("want:", r[1], "got:", *r[2].(*string))
 		}
 	}
 }
 
 func TestRouterMiddleware(t *testing.T) {
-	// TODO : Test all request types for middlewares
 	t.Parallel()
 
 	r := NewRouter(httprouter.New())
 	r.Use(alice.New(helloWorldMiddleware))
 	r.GET("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		val, ok := r.Context().Value("called").(string)
-		if val != "yup" || !ok {
+		if val := r.Context().Value("called").(string); val != "yup" {
 			t.Error("expected middleware to be called")
 		}
 	}))
-	w := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/test", nil)
-	r.ServeHTTP(w, req)
 }
 
 func helloWorldMiddleware(h http.Handler) http.Handler {
