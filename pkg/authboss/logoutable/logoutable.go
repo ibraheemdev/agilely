@@ -2,7 +2,6 @@
 package logoutable
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
@@ -21,19 +20,7 @@ type Logout struct {
 func (l *Logout) Init(ab *authboss.Authboss) error {
 	l.Authboss = ab
 
-	var logoutRouteMethod func(string, http.Handler)
-	switch l.Authboss.Config.Modules.LogoutMethod {
-	case "GET":
-		logoutRouteMethod = l.Authboss.Config.Core.Router.GET
-	case "POST":
-		logoutRouteMethod = l.Authboss.Config.Core.Router.POST
-	case "DELETE":
-		logoutRouteMethod = l.Authboss.Config.Core.Router.DELETE
-	default:
-		return fmt.Errorf("logout wants to register a logout route but was given an invalid method: %s", l.Authboss.Config.Modules.LogoutMethod)
-	}
-
-	logoutRouteMethod("/logout", l.Authboss.Core.ErrorHandler.Wrap(l.Logout))
+	l.Authboss.Config.Core.Router.DELETE("/logout", l.Authboss.Core.ErrorHandler.Wrap(l.Logout))
 
 	return nil
 }

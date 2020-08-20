@@ -69,7 +69,6 @@ func SetupAuthboss(r *httprouter.Router) {
 	ab.Config.Modules.LockAfter = 3
 	ab.Config.Modules.LockWindow = 5 * time.Minute
 	ab.Config.Modules.LockDuration = 12 * time.Hour
-	ab.Config.Modules.LogoutMethod = "DELETE"
 	ab.Config.Modules.RegisterPreserveFields = []string{"email"}
 	ab.Config.Modules.RecoverTokenDuration = 24 * time.Hour
 	ab.Config.Modules.RecoverLoginAfterRecovery = false

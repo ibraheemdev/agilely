@@ -73,10 +73,6 @@ type Config struct {
 		// LockDuration is how long an account is locked for.
 		LockDuration time.Duration
 
-		// LogoutMethod is the method the logout route should use
-		// (default should be DELETE)
-		LogoutMethod string
-
 		// RegisterPreserveFields are fields used with registration that are
 		// to be rendered when post fails in a normal way
 		// (for example validation errors), they will be passed back in the
@@ -208,7 +204,6 @@ func (c *Config) Defaults() {
 	c.Modules.LockAfter = 3
 	c.Modules.LockWindow = 5 * time.Minute
 	c.Modules.LockDuration = 12 * time.Hour
-	c.Modules.LogoutMethod = "DELETE"
 	c.Modules.RecoverLoginAfterRecovery = false
 	c.Modules.RecoverTokenDuration = 24 * time.Hour
 	c.Modules.TwoFactorEmailAuthRequired = true

@@ -41,24 +41,11 @@ func TestLogoutRoutes(t *testing.T) {
 	ab.Config.Core.ErrorHandler = errHandler
 
 	l := &Logout{}
-	ab.Config.Modules.LogoutMethod = "what"
-	if err := l.Init(ab); err == nil {
-		t.Error("should have failed to register the route")
-	}
 
-	ab.Config.Modules.LogoutMethod = "GET"
 	if err := l.Init(ab); err != nil {
 		t.Error("should have failed to register the route")
 	}
-	if err := router.HasGets("/logout"); err != nil {
-		t.Error(err)
-	}
-
-	ab.Config.Modules.LogoutMethod = "POST"
-	if err := l.Init(ab); err != nil {
-		t.Error("should have failed to register the route")
-	}
-	if err := router.HasPosts("/logout"); err != nil {
+	if err := router.HasDeletes("/logout"); err != nil {
 		t.Error(err)
 	}
 }
