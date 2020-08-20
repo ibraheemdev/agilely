@@ -1,7 +1,6 @@
 package authboss
 
 import (
-	"net/http"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -77,15 +76,6 @@ type Config struct {
 		// LogoutMethod is the method the logout route should use
 		// (default should be DELETE)
 		LogoutMethod string
-
-		// MailRouteMethod is used to set the type of request that's used for
-		// routes that require a token from an e-mail link's query string.
-		// This is things like confirm and two factor e-mail auth.
-		//
-		// You should probably set this to POST if you are building an API
-		// so that the user goes to the frontend with their link & token
-		// and the front-end calls the API with the token in a POST JSON body.
-		MailRouteMethod string
 
 		// RegisterPreserveFields are fields used with registration that are
 		// to be rendered when post fails in a normal way
@@ -219,7 +209,6 @@ func (c *Config) Defaults() {
 	c.Modules.LockWindow = 5 * time.Minute
 	c.Modules.LockDuration = 12 * time.Hour
 	c.Modules.LogoutMethod = "DELETE"
-	c.Modules.MailRouteMethod = http.MethodGet
 	c.Modules.RecoverLoginAfterRecovery = false
 	c.Modules.RecoverTokenDuration = 24 * time.Hour
 	c.Modules.TwoFactorEmailAuthRequired = true

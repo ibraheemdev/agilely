@@ -149,6 +149,7 @@ func TestStartPostSuccess(t *testing.T) {
 		t.Error("expected a nice success message")
 	}
 
+	time.Sleep(time.Second)
 	if h.mailer.Email.To[0] != "test@test.com" {
 		t.Error("e-mail to address is wrong:", h.mailer.Email.To)
 	}
