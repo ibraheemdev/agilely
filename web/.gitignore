@@ -11,6 +11,9 @@
 # production
 /build
 
+# development watch mode
+/dist
+
 # misc
 .DS_Store
 .env.local
