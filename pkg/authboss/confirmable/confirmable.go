@@ -141,11 +141,7 @@ func (c *Confirm) StartConfirmation(ctx context.Context, user authboss.Confirmab
 		return fmt.Errorf("%w failed to save user during StartConfirmation, user data may be in weird state", err)
 	}
 
-	if c.Authboss.Config.Modules.MailNoGoroutine {
-		c.SendConfirmEmail(ctx, user.GetEmail(), token)
-	} else {
-		go c.SendConfirmEmail(ctx, user.GetEmail(), token)
-	}
+	go c.SendConfirmEmail(ctx, user.GetEmail(), token)
 
 	return nil
 }

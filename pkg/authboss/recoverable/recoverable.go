@@ -120,11 +120,7 @@ func (r *Recover) StartPost(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	if r.Authboss.Modules.MailNoGoroutine {
-		r.SendRecoverEmail(req.Context(), ru.GetEmail(), token)
-	} else {
-		go r.SendRecoverEmail(req.Context(), ru.GetEmail(), token)
-	}
+	go r.SendRecoverEmail(req.Context(), ru.GetEmail(), token)
 
 	logger.Infof("user %s password recovery initiated", ru.GetPID())
 	ro := authboss.RedirectOptions{

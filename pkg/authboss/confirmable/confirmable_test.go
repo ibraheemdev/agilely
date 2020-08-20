@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
 	"github.com/ibraheemdev/agilely/test/authboss"
@@ -67,7 +68,6 @@ func testSetup() *testHarness {
 
 	harness.ab.Paths.ConfirmOK = "/confirm/ok"
 	harness.ab.Paths.ConfirmNotOK = "/confirm/not/ok"
-	harness.ab.Modules.MailNoGoroutine = true
 
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
 	harness.ab.Config.Core.Logger = authboss_test.Logger{}
@@ -166,6 +166,7 @@ func TestStartConfirmationWeb(t *testing.T) {
 		t.Error("redirect path was wrong:", p)
 	}
 
+	time.Sleep(time.Second)
 	if to := harness.mailer.Email.To[0]; to != "test@test.com" {
 		t.Error("mailer sent e-mail to wrong person:", to)
 	}

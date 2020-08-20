@@ -81,7 +81,6 @@ func testSetup() *testHarness {
 	harness.storer = authboss_test.NewServerStorer()
 
 	harness.ab.Paths.RecoverOK = "/recover/ok"
-	harness.ab.Modules.MailNoGoroutine = true
 
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
 	harness.ab.Config.Core.Logger = authboss_test.Logger{}
