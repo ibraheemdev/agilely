@@ -61,11 +61,6 @@ type Config struct {
 		// OAuth2Providers lists all providers that can be used. See
 		// OAuthProvider documentation for more details.
 		OAuth2Providers map[string]OAuth2Provider
-
-		// TwoFactorEmailAuthRequired forces users to first confirm they have
-		// access to their e-mail with the current device by clicking a link
-		// and confirming a token stored in the session.
-		TwoFactorEmailAuthRequired bool
 	}
 
 	Mail struct {
@@ -155,6 +150,5 @@ func (c *Config) Defaults() {
 	c.Modules.LockDuration = 12 * time.Hour
 	c.Modules.RecoverLoginAfterRecovery = false
 	c.Modules.RecoverTokenDuration = 24 * time.Hour
-	c.Modules.TwoFactorEmailAuthRequired = true
 	c.Modules.RegisterPreserveFields = []string{"email"}
 }

@@ -60,7 +60,6 @@ func SetupAuthboss(r *httprouter.Router) {
 	ab.Config.Modules.RecoverTokenDuration = 24 * time.Hour
 	ab.Config.Modules.RecoverLoginAfterRecovery = false
 	ab.Config.Modules.OAuth2Providers = map[string]authboss.OAuth2Provider{}
-	ab.Config.Modules.TwoFactorEmailAuthRequired = true
 
 	ab.Config.Mail.RootURL = ""
 	ab.Config.Mail.From = "agilely@agilely.com"
