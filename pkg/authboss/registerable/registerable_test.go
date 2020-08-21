@@ -84,8 +84,6 @@ func testSetup() *testHarness {
 	harness.session = authboss_test.NewClientRW()
 	harness.storer = authboss_test.NewServerStorer()
 
-	harness.ab.Paths.RegisterOK = "/ok"
-
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
 	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Responder = harness.responder
@@ -145,7 +143,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 		if resp.Code != http.StatusTemporaryRedirect {
 			t.Error("code was wrong:", resp.Code)
 		}
-		if h.redirector.Options.RedirectPath != "/ok" {
+		if h.redirector.Options.RedirectPath != "/login" {
 			t.Error("redirect path was wrong:", h.redirector.Options.RedirectPath)
 		}
 	})

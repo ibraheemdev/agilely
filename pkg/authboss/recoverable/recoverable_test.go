@@ -80,8 +80,6 @@ func testSetup() *testHarness {
 	harness.session = authboss_test.NewClientRW()
 	harness.storer = authboss_test.NewServerStorer()
 
-	harness.ab.Paths.RecoverOK = "/recover/ok"
-
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
 	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Mailer = harness.mailer
@@ -142,7 +140,7 @@ func TestStartPostSuccess(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Error("code was wrong:", w.Code)
 	}
-	if h.redirector.Options.RedirectPath != h.ab.Config.Paths.RecoverOK {
+	if h.redirector.Options.RedirectPath != "/" {
 		t.Error("page was wrong:", h.responder.Page)
 	}
 	if len(h.redirector.Options.Success) == 0 {
@@ -180,7 +178,7 @@ func TestStartPostFailure(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Error("code was wrong:", w.Code)
 	}
-	if h.redirector.Options.RedirectPath != h.ab.Config.Paths.RecoverOK {
+	if h.redirector.Options.RedirectPath != "/" {
 		t.Error("page was wrong:", h.responder.Page)
 	}
 	if len(h.redirector.Options.Success) == 0 {
@@ -245,7 +243,7 @@ func TestEndPostSuccess(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Error("code was wrong:", w.Code)
 	}
-	if p := h.redirector.Options.RedirectPath; p != h.ab.Paths.RecoverOK {
+	if p := h.redirector.Options.RedirectPath; p != "/" {
 		t.Error("path was wrong:", p)
 	}
 	if len(h.session.ClientValues[authboss.SessionKey]) != 0 {
@@ -286,7 +284,7 @@ func TestEndPostSuccessLogin(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Error("code was wrong:", w.Code)
 	}
-	if p := h.redirector.Options.RedirectPath; p != h.ab.Paths.RecoverOK {
+	if p := h.redirector.Options.RedirectPath; p != "/" {
 		t.Error("path was wrong:", p)
 	}
 	if len(h.session.ClientValues[authboss.SessionKey]) == 0 {

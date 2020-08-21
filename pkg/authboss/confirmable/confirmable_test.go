@@ -66,9 +66,6 @@ func testSetup() *testHarness {
 	harness.session = authboss_test.NewClientRW()
 	harness.storer = authboss_test.NewServerStorer()
 
-	harness.ab.Paths.ConfirmOK = "/confirm/ok"
-	harness.ab.Paths.ConfirmNotOK = "/confirm/not/ok"
-
 	harness.ab.Config.Core.BodyReader = harness.bodyReader
 	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Mailer = harness.mailer
@@ -132,7 +129,7 @@ func TestPreventDisallow(t *testing.T) {
 		t.Error("redirect did not occur")
 	}
 
-	if p := harness.redirector.Options.RedirectPath; p != "/confirm/not/ok" {
+	if p := harness.redirector.Options.RedirectPath; p != "/login" {
 		t.Error("redirect path was wrong:", p)
 	}
 }
@@ -162,7 +159,7 @@ func TestStartConfirmationWeb(t *testing.T) {
 		t.Error("redirect did not occur")
 	}
 
-	if p := harness.redirector.Options.RedirectPath; p != "/confirm/not/ok" {
+	if p := harness.redirector.Options.RedirectPath; p != "/login" {
 		t.Error("redirect path was wrong:", p)
 	}
 
@@ -198,7 +195,7 @@ func TestGetSuccess(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Error("expected a redirect, got:", w.Code)
 	}
-	if p := harness.redirector.Options.RedirectPath; p != harness.ab.Paths.ConfirmOK {
+	if p := harness.redirector.Options.RedirectPath; p != "/login" {
 		t.Error("redir path was wrong:", p)
 	}
 
@@ -232,7 +229,7 @@ func TestGetValidationFailure(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Error("expected a redirect, got:", w.Code)
 	}
-	if p := harness.redirector.Options.RedirectPath; p != harness.ab.Paths.ConfirmNotOK {
+	if p := harness.redirector.Options.RedirectPath; p != "/login" {
 		t.Error("redir path was wrong:", p)
 	}
 	if reason := harness.redirector.Options.Failure; reason != "confirm token is invalid" {
@@ -259,7 +256,7 @@ func TestGetBase64DecodeFailure(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Error("expected a redirect, got:", w.Code)
 	}
-	if p := harness.redirector.Options.RedirectPath; p != harness.ab.Paths.ConfirmNotOK {
+	if p := harness.redirector.Options.RedirectPath; p != "/login" {
 		t.Error("redir path was wrong:", p)
 	}
 	if reason := harness.redirector.Options.Failure; reason != "confirm token is invalid" {
@@ -291,7 +288,7 @@ func TestGetUserNotFoundFailure(t *testing.T) {
 	if w.Code != http.StatusTemporaryRedirect {
 		t.Error("expected a redirect, got:", w.Code)
 	}
-	if p := harness.redirector.Options.RedirectPath; p != harness.ab.Paths.ConfirmNotOK {
+	if p := harness.redirector.Options.RedirectPath; p != "/login" {
 		t.Error("redir path was wrong:", p)
 	}
 	if reason := harness.redirector.Options.Failure; reason != "confirm token is invalid" {
@@ -328,7 +325,6 @@ func TestMiddlewareDisallow(t *testing.T) {
 
 	ab := authboss.New()
 	redirector := &authboss_test.Redirector{}
-	ab.Config.Paths.ConfirmNotOK = "/confirm/not/ok"
 	ab.Config.Core.Logger = authboss_test.Logger{}
 	ab.Config.Core.Redirector = redirector
 
@@ -353,7 +349,7 @@ func TestMiddlewareDisallow(t *testing.T) {
 	if redirector.Options.Code != http.StatusTemporaryRedirect {
 		t.Error("expected a redirect, but got:", redirector.Options.Code)
 	}
-	if p := redirector.Options.RedirectPath; p != "/confirm/not/ok" {
+	if p := redirector.Options.RedirectPath; p != "/login" {
 		t.Error("redirect path wrong:", p)
 	}
 }

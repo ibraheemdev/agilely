@@ -69,8 +69,6 @@ func testSetup() *testHarness {
 	harness.cookies = authboss_test.NewClientRW()
 	harness.storer = authboss_test.NewServerStorer()
 
-	harness.ab.Paths.LogoutOK = "/logout/ok"
-
 	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Storage.SessionState = harness.session
@@ -114,7 +112,7 @@ func TestLogoutLogout(t *testing.T) {
 	if resp.Code != http.StatusTemporaryRedirect {
 		t.Error("response code wrong:", resp.Code)
 	}
-	if h.redirector.Options.RedirectPath != "/logout/ok" {
+	if h.redirector.Options.RedirectPath != "/" {
 		t.Error("redirect path was wrong:", h.redirector.Options.RedirectPath)
 	}
 

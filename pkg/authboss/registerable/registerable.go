@@ -136,7 +136,7 @@ func (r *Register) Post(w http.ResponseWriter, req *http.Request) error {
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		Success:      "Account successfully created, you are now logged in",
-		RedirectPath: r.Config.Paths.RegisterOK,
+		RedirectPath: "/login",
 	}
 	return r.Config.Core.Redirector.Redirect(w, req, ro)
 }

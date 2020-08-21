@@ -99,7 +99,7 @@ func (r *Recover) StartPost(w http.ResponseWriter, req *http.Request) error {
 		logger.Infof("user %s was attempted to be recovered, user does not exist, faking successful response", recoverVals.GetPID())
 		ro := authboss.RedirectOptions{
 			Code:         http.StatusTemporaryRedirect,
-			RedirectPath: r.Authboss.Config.Paths.RecoverOK,
+			RedirectPath: "/",
 			Success:      recoverInitiateSuccessFlash,
 		}
 		return r.Authboss.Core.Redirector.Redirect(w, req, ro)
@@ -125,7 +125,7 @@ func (r *Recover) StartPost(w http.ResponseWriter, req *http.Request) error {
 	logger.Infof("user %s password recovery initiated", ru.GetPID())
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
-		RedirectPath: r.Authboss.Config.Paths.RecoverOK,
+		RedirectPath: "/",
 		Success:      recoverInitiateSuccessFlash,
 	}
 	return r.Authboss.Core.Redirector.Redirect(w, req, ro)
@@ -262,7 +262,7 @@ func (r *Recover) EndPost(w http.ResponseWriter, req *http.Request) error {
 
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
-		RedirectPath: r.Authboss.Config.Paths.RecoverOK,
+		RedirectPath: "/",
 		Success:      successMsg,
 	}
 	return r.Authboss.Config.Core.Redirector.Redirect(w, req, ro)

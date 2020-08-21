@@ -56,7 +56,7 @@ func (l *Logout) Logout(w http.ResponseWriter, r *http.Request) error {
 
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
-		RedirectPath: l.Authboss.Paths.LogoutOK,
+		RedirectPath: "/",
 		Success:      "You have been logged out",
 	}
 	return l.Authboss.Core.Redirector.Redirect(w, r, ro)

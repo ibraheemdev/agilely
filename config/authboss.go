@@ -49,20 +49,7 @@ func SetupAuthboss(r *httprouter.Router) {
 	ab.Config.Storage.SessionStateWhitelistKeys = []string{}
 
 	ab.Config.Paths.Mount = "/"
-	ab.Config.Paths.NotAuthorized = "/"
-	ab.Config.Paths.AuthLoginOK = "/"
-	ab.Config.Paths.ConfirmOK = "/"
-	ab.Config.Paths.ConfirmNotOK = "/auth/login"
-	ab.Config.Paths.LockNotOK = "/auth/login"
-	ab.Config.Paths.LogoutOK = "/"
-	ab.Config.Paths.LogoutOK = "/"
-	ab.Config.Paths.OAuth2LoginOK = "/"
-	ab.Config.Paths.OAuth2LoginNotOK = "/"
-	ab.Config.Paths.OAuth2LoginNotOK = "/"
-	ab.Config.Paths.RecoverOK = "/"
-	ab.Config.Paths.RegisterOK = "/"
 	ab.Config.Paths.RootURL = "http://localhost:8080"
-	ab.Config.Paths.TwoFactorEmailAuthNotOK = "/"
 
 	ab.Config.Modules.BCryptCost = bcrypt.DefaultCost
 	ab.Config.Modules.ExpireAfter = time.Hour

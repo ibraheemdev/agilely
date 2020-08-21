@@ -12,50 +12,10 @@ type Config struct {
 		// Mount is the path to mount authboss's routes at (eg /auth).
 		Mount string
 
-		// NotAuthorized is the default URL to kick users back to when
-		// they attempt an action that requires them to be logged in and
-		// they're not auth'd
-		NotAuthorized string
-
-		// AuthLoginOK is the redirect path after a successful authentication.
-		AuthLoginOK string
-
-		// ConfirmOK once a user has confirmed their account
-		// this says where they should go
-		ConfirmOK string
-		// ConfirmNotOK is used by the middleware, when a user is still supposed
-		// to confirm their account, this is where they should be redirected to.
-		ConfirmNotOK string
-
-		// LockNotOK is a path to go to when the user gets locked out
-		LockNotOK string
-
-		// LogoutOK is the redirect path after a log out.
-		LogoutOK string
-
-		// OAuth2LoginOK is the redirect path after a successful oauth2 login
-		OAuth2LoginOK string
-		// OAuth2LoginNotOK is the redirect path after
-		// an unsuccessful oauth2 login
-		OAuth2LoginNotOK string
-
-		// RecoverOK is the redirect path after a successful recovery of a
-		// password.
-		RecoverOK string
-
-		// RegisterOK is the redirect path after a successful registration.
-		RegisterOK string
-
 		// RootURL is the scheme+host+port of the web application
 		// (eg https://www.happiness.com:8080) for url generation.
 		// No trailing slash.
 		RootURL string
-
-		// TwoFactorEmailAuthNotOK is where a user is redirected when
-		// the user attempts to add 2fa to their account without verifying
-		// their e-mail OR when they've completed the first step towards
-		// verification and need to check their e-mail to proceed.
-		TwoFactorEmailAuthNotOK string
 	}
 
 	Modules struct {
@@ -186,18 +146,7 @@ type Config struct {
 // Defaults sets the configuration's default values.
 func (c *Config) Defaults() {
 	c.Paths.Mount = "/auth"
-	c.Paths.NotAuthorized = "/"
-	c.Paths.AuthLoginOK = "/"
-	c.Paths.ConfirmOK = "/"
-	c.Paths.ConfirmNotOK = "/"
-	c.Paths.LockNotOK = "/"
-	c.Paths.LogoutOK = "/"
-	c.Paths.OAuth2LoginOK = "/"
-	c.Paths.OAuth2LoginNotOK = "/"
-	c.Paths.RecoverOK = "/"
-	c.Paths.RegisterOK = "/"
 	c.Paths.RootURL = "http://localhost:8080"
-	c.Paths.TwoFactorEmailAuthNotOK = "/"
 
 	c.Modules.BCryptCost = bcrypt.DefaultCost
 	c.Modules.ExpireAfter = time.Hour

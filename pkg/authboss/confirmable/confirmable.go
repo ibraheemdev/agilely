@@ -85,7 +85,7 @@ func (c *Confirm) PreventAuth(w http.ResponseWriter, r *http.Request, handled bo
 	logger.Infof("user %s was not confirmed, preventing auth", user.GetPID())
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
-		RedirectPath: c.Authboss.Config.Paths.ConfirmNotOK,
+		RedirectPath: "/login",
 		Failure:      "Your account has not been confirmed, please check your e-mail.",
 	}
 	return true, c.Authboss.Config.Core.Redirector.Redirect(w, r, ro)
@@ -106,7 +106,7 @@ func (c *Confirm) StartConfirmationWeb(w http.ResponseWriter, r *http.Request, h
 
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
-		RedirectPath: c.Authboss.Config.Paths.ConfirmNotOK,
+		RedirectPath: "/login",
 		Success:      "Please verify your account, an e-mail has been sent to you.",
 	}
 	return true, c.Authboss.Config.Core.Redirector.Redirect(w, r, ro)
@@ -225,7 +225,7 @@ func (c *Confirm) Get(w http.ResponseWriter, r *http.Request) error {
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		Success:      "You have successfully confirmed your account.",
-		RedirectPath: c.Authboss.Config.Paths.ConfirmOK,
+		RedirectPath: "/login",
 	}
 	return c.Authboss.Config.Core.Redirector.Redirect(w, r, ro)
 }
@@ -245,7 +245,7 @@ func (c *Confirm) invalidToken(w http.ResponseWriter, r *http.Request) error {
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		Failure:      "confirm token is invalid",
-		RedirectPath: c.Authboss.Config.Paths.ConfirmNotOK,
+		RedirectPath: "/login",
 	}
 	return c.Authboss.Config.Core.Redirector.Redirect(w, r, ro)
 }
@@ -273,7 +273,7 @@ func Middleware(ab *authboss.Authboss) func(http.Handler) http.Handler {
 			ro := authboss.RedirectOptions{
 				Code:         http.StatusTemporaryRedirect,
 				Failure:      "Your account has not been confirmed, please check your e-mail.",
-				RedirectPath: ab.Config.Paths.ConfirmNotOK,
+				RedirectPath: "/login",
 			}
 			if err := ab.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
 				logger.Errorf("error redirecting in confirm.Middleware: #%v", err)

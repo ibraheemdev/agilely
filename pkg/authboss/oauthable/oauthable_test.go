@@ -101,9 +101,6 @@ func testSetup() *testHarness {
 
 	harness.ab.Modules.OAuth2Providers = testProviders
 
-	harness.ab.Paths.OAuth2LoginOK = "/auth/oauth2/ok"
-	harness.ab.Paths.OAuth2LoginNotOK = "/auth/oauth2/not/ok"
-
 	harness.ab.Config.Core.Logger = authboss_test.Logger{}
 	harness.ab.Config.Core.Redirector = harness.redirector
 	harness.ab.Config.Storage.SessionState = harness.session
@@ -196,7 +193,7 @@ func TestEnd(t *testing.T) {
 	if opts.Code != http.StatusTemporaryRedirect {
 		t.Error("it should have redirected")
 	}
-	if opts.RedirectPath != "/auth/oauth2/ok" {
+	if opts.RedirectPath != "/" {
 		t.Error("redir path was wrong:", opts.RedirectPath)
 	}
 	if s := h.session.ClientValues[authboss.SessionKey]; s != "oauth2;;google;;id" {
@@ -265,7 +262,7 @@ func TestEndErrors(t *testing.T) {
 	if opts.Code != http.StatusTemporaryRedirect {
 		t.Error("code was wrong:", opts.Code)
 	}
-	if opts.RedirectPath != "/auth/oauth2/not/ok" {
+	if opts.RedirectPath != "/" {
 		t.Error("path was wrong:", opts.RedirectPath)
 	}
 }

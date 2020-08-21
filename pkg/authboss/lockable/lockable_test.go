@@ -47,7 +47,6 @@ func testSetup() *testHarness {
 	harness.session = authboss_test.NewClientRW()
 	harness.storer = authboss_test.NewServerStorer()
 
-	harness.ab.Paths.LockNotOK = "/lock/not/ok"
 	harness.ab.Modules.LockAfter = 3
 	harness.ab.Modules.LockDuration = time.Hour
 	harness.ab.Modules.LockWindow = time.Minute
@@ -118,7 +117,7 @@ func TestBeforeAuthDisallow(t *testing.T) {
 	}
 
 	opts := harness.redirector.Options
-	if opts.RedirectPath != harness.ab.Paths.LockNotOK {
+	if opts.RedirectPath != "/login" {
 		t.Error("redir path was wrong:", opts.RedirectPath)
 	}
 
@@ -221,7 +220,7 @@ func TestAfterAuthFailure(t *testing.T) {
 	}
 
 	opts := harness.redirector.Options
-	if opts.RedirectPath != harness.ab.Paths.LockNotOK {
+	if opts.RedirectPath != "/login" {
 		t.Error("redir path was wrong:", opts.RedirectPath)
 	}
 
@@ -306,7 +305,6 @@ func TestMiddlewareDisallow(t *testing.T) {
 
 	ab := authboss.New()
 	redirector := &authboss_test.Redirector{}
-	ab.Config.Paths.LockNotOK = "/lock/not/ok"
 	ab.Config.Core.Logger = authboss_test.Logger{}
 	ab.Config.Core.Redirector = redirector
 
@@ -331,7 +329,7 @@ func TestMiddlewareDisallow(t *testing.T) {
 	if redirector.Options.Code != http.StatusTemporaryRedirect {
 		t.Error("expected a redirect, but got:", redirector.Options.Code)
 	}
-	if p := redirector.Options.RedirectPath; p != "/lock/not/ok" {
+	if p := redirector.Options.RedirectPath; p != "/login" {
 		t.Error("redirect path wrong:", p)
 	}
 }

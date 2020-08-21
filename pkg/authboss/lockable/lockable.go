@@ -101,7 +101,7 @@ func (l *Lock) updateLockedState(w http.ResponseWriter, r *http.Request, wasCorr
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		Failure:      "Your account has been locked, please contact the administrator.",
-		RedirectPath: l.Authboss.Config.Paths.LockNotOK,
+		RedirectPath: "/login",
 	}
 	return true, l.Authboss.Config.Core.Redirector.Redirect(w, r, ro)
 }
@@ -160,7 +160,7 @@ func Middleware(ab *authboss.Authboss) func(http.Handler) http.Handler {
 			ro := authboss.RedirectOptions{
 				Code:         http.StatusTemporaryRedirect,
 				Failure:      "Your account has been locked, please contact the administrator.",
-				RedirectPath: ab.Config.Paths.LockNotOK,
+				RedirectPath: "/login",
 			}
 			if err := ab.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
 				logger.Errorf("error redirecting in lock.Middleware: #%v", err)

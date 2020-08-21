@@ -213,7 +213,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 
 		ro := authboss.RedirectOptions{
 			Code:         http.StatusTemporaryRedirect,
-			RedirectPath: o.Authboss.Config.Paths.OAuth2LoginNotOK,
+			RedirectPath: "/",
 			Failure:      fmt.Sprintf("%s login cancelled or failed", strings.Title(provider)),
 		}
 		return o.Authboss.Core.Redirector.Redirect(w, r, ro)
@@ -263,7 +263,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 
 	// Create a query string from all the pieces we've received
 	// as passthru from the original request.
-	redirect := o.Authboss.Config.Paths.OAuth2LoginOK
+	redirect := "/"
 	query := make(url.Values)
 	for k, v := range params {
 		switch k {
