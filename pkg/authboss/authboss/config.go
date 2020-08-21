@@ -52,11 +52,6 @@ type Config struct {
 		// RecoverTokenDuration controls how long a token sent via
 		// email for password recovery is valid for.
 		RecoverTokenDuration time.Duration
-		// RecoverLoginAfterRecovery says for the recovery module after a
-		// user has successfully recovered the password, are they simply
-		// logged in, or are they redirected to the login page with an
-		// "updated password" message.
-		RecoverLoginAfterRecovery bool
 
 		// OAuth2Providers lists all providers that can be used. See
 		// OAuthProvider documentation for more details.
@@ -148,7 +143,6 @@ func (c *Config) Defaults() {
 	c.Modules.LockAfter = 3
 	c.Modules.LockWindow = 5 * time.Minute
 	c.Modules.LockDuration = 12 * time.Hour
-	c.Modules.RecoverLoginAfterRecovery = false
 	c.Modules.RecoverTokenDuration = 24 * time.Hour
 	c.Modules.RegisterPreserveFields = []string{"email"}
 }

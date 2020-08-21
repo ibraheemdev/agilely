@@ -254,16 +254,13 @@ func (r *Recover) EndPost(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	successMsg := "Successfully updated password"
-	if r.Authboss.Config.Modules.RecoverLoginAfterRecovery {
-		authboss.PutSession(w, authboss.SessionKey, user.GetPID())
-		successMsg += " and logged in"
-	}
+	// login user
+	// authboss.PutSession(w, authboss.SessionKey, user.GetPID())
 
 	ro := authboss.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		RedirectPath: "/",
-		Success:      successMsg,
+		Success:      "Successfully updated password",
 	}
 	return r.Authboss.Config.Core.Redirector.Redirect(w, req, ro)
 }

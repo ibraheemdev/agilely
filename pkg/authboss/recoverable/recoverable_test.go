@@ -262,7 +262,6 @@ func TestEndPostSuccessLogin(t *testing.T) {
 
 	h := testSetup()
 
-	h.ab.Config.Modules.RecoverLoginAfterRecovery = true
 	h.bodyReader.Return = &authboss_test.Values{
 		Token: testToken,
 	}
@@ -287,11 +286,11 @@ func TestEndPostSuccessLogin(t *testing.T) {
 	if p := h.redirector.Options.RedirectPath; p != "/" {
 		t.Error("path was wrong:", p)
 	}
-	if len(h.session.ClientValues[authboss.SessionKey]) == 0 {
-		t.Error("it should have logged in the user")
+	if len(h.session.ClientValues[authboss.SessionKey]) != 0 {
+		t.Error("it should not have logged in the user")
 	}
-	if !strings.Contains(h.redirector.Options.Success, "logged in") {
-		t.Error("should talk about logging in")
+	if h.redirector.Options.Success != "Successfully updated password" {
+		t.Errorf("wrong success message: %s", h.redirector.Options.Success)
 	}
 }
 

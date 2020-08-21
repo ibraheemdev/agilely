@@ -58,7 +58,6 @@ func SetupAuthboss(r *httprouter.Router) {
 	ab.Config.Modules.LockDuration = 12 * time.Hour
 	ab.Config.Modules.RegisterPreserveFields = []string{"email"}
 	ab.Config.Modules.RecoverTokenDuration = 24 * time.Hour
-	ab.Config.Modules.RecoverLoginAfterRecovery = false
 	ab.Config.Modules.OAuth2Providers = map[string]authboss.OAuth2Provider{}
 
 	ab.Config.Mail.RootURL = ""
