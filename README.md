@@ -38,5 +38,5 @@ Yes. Don't believe us? Try it out for yourself!
 
 ## License
 
-Agilely is under the GNU General Public License v3.0
+Agilely is available under the GNU General Public License v3.0
 See [COPYING](https://github.com/redline-gh/agilely/blob/master/COPYING.md) for the full text
