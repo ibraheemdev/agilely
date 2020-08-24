@@ -21,6 +21,6 @@ func main() {
 	client := config.ConnectToDatabase()
 	defer config.DisconnectFromDatabase(client)
 	r := httprouter.New()
-	config.SetupAuthboss(r)
+	config.SetupEngine(r)
 	routes.ListenAndServe(r)
 }

@@ -43,12 +43,12 @@ func TestSMTPMailer(t *testing.T) {
 	mail := Email{
 		From:    creds.Email,
 		To:      []string{creds.Email},
-		Subject: "Authboss Test SMTP Mailer",
+		Subject: "Engine Test SMTP Mailer",
 	}
 
 	txtOnly := mail
 	txtOnly.Subject += ": Text Content"
-	txtOnly.TextBody = "Authboss\nSMTP\nTest\nWith\nNewlines"
+	txtOnly.TextBody = "Engine\nSMTP\nTest\nWith\nNewlines"
 
 	if err = mailer.Send(context.Background(), txtOnly); err != nil {
 		t.Error(err)
@@ -56,7 +56,7 @@ func TestSMTPMailer(t *testing.T) {
 
 	htmlOnly := mail
 	htmlOnly.Subject += ": HTML Content"
-	htmlOnly.HTMLBody = "Authboss<br>Test<br>\nWith<br>Newlines\nand<br>breaks"
+	htmlOnly.HTMLBody = "Engine<br>Test<br>\nWith<br>Newlines\nand<br>breaks"
 
 	if err = mailer.Send(context.Background(), htmlOnly); err != nil {
 		t.Error(err)

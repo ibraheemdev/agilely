@@ -8,7 +8,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/internal/app/engine"
 )
 
 var mainTmpl = `{{define "main" }} {{ template "base" . }} {{ end }}`
@@ -40,7 +40,7 @@ func NewHTMLRenderer(mountPath, templatesDir, layoutsDir string) *HTMLRenderer {
 }
 
 // Render a page
-func (r *HTMLRenderer) Render(ctx context.Context, name string, data authboss.HTMLData) (output []byte, contentType string, err error) {
+func (r *HTMLRenderer) Render(ctx context.Context, name string, data engine.HTMLData) (output []byte, contentType string, err error) {
 	tmpl, ok := r.templates[name]
 	if !ok {
 		return nil, "", fmt.Errorf("the template %s does not exist", name)

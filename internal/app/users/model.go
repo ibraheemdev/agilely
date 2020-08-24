@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ibraheemdev/agilely/pkg/authboss/authboss"
+	"github.com/ibraheemdev/agilely/internal/app/engine"
 )
 
 // InMemDB : A generic in memory database
@@ -67,21 +67,21 @@ func init() {
 	// albiet a good practice
 	assertUser := new(User)
 
-	var _ authboss.User = assertUser
-	var _ authboss.AuthableUser = assertUser
-	var _ authboss.ConfirmableUser = assertUser
-	var _ authboss.LockableUser = assertUser
-	var _ authboss.RecoverableUser = assertUser
-	var _ authboss.ArbitraryUser = assertUser
-	var _ authboss.OAuth2User = assertUser
+	var _ engine.User = assertUser
+	var _ engine.AuthableUser = assertUser
+	var _ engine.ConfirmableUser = assertUser
+	var _ engine.LockableUser = assertUser
+	var _ engine.RecoverableUser = assertUser
+	var _ engine.ArbitraryUser = assertUser
+	var _ engine.OAuth2User = assertUser
 
-	var _ authboss.CreatingServerStorer = DB
-	var _ authboss.ConfirmingServerStorer = DB
-	var _ authboss.RecoveringServerStorer = DB
-	var _ authboss.RememberingServerStorer = DB
+	var _ engine.CreatingServerStorer = DB
+	var _ engine.ConfirmingServerStorer = DB
+	var _ engine.RecoveringServerStorer = DB
+	var _ engine.RememberingServerStorer = DB
 }
 
-// ************** Authboss User **************
+// ************** Engine User **************
 
 // GetPID from user
 func (u User) GetPID() string {
@@ -289,40 +289,40 @@ func (u *User) PutOAuth2Expiry(expiry time.Time) {
 // ************** CreatingServerStorer **************
 
 // Create and save the user
-func (db *InMemDB) Create(_ context.Context, u authboss.User) error {
+func (db *InMemDB) Create(_ context.Context, u engine.User) error {
 	user := u.(*User)
 	db.Users[user.ID] = *user
 	return nil
 }
 
 // New user creation; the user not saved
-func (db *InMemDB) New(_ context.Context) authboss.User {
+func (db *InMemDB) New(_ context.Context) engine.User {
 	return &User{}
 }
 
 // Save the user
-func (db *InMemDB) Save(_ context.Context, u authboss.User) error {
+func (db *InMemDB) Save(_ context.Context, u engine.User) error {
 	user := u.(*User)
 	db.Users[user.ID] = *user
 	return nil
 }
 
 // Load the user
-func (db *InMemDB) Load(_ context.Context, id string) (authboss.User, error) {
+func (db *InMemDB) Load(_ context.Context, id string) (engine.User, error) {
 	// Check to see if our key is actually an oauth2 id
-	provider, uid, err := authboss.ParseOAuth2PID(id)
+	provider, uid, err := engine.ParseOAuth2PID(id)
 	if err == nil {
 		for _, u := range db.Users {
 			if u.OAuth2Provider == provider && u.OAuth2UID == uid {
 				return &u, nil
 			}
 		}
-		return nil, authboss.ErrUserNotFound
+		return nil, engine.ErrUserNotFound
 	}
 
 	u, ok := db.Users[id]
 	if !ok {
-		return nil, authboss.ErrUserNotFound
+		return nil, engine.ErrUserNotFound
 	}
 	return &u, nil
 }
@@ -330,27 +330,27 @@ func (db *InMemDB) Load(_ context.Context, id string) (authboss.User, error) {
 // ************** ConfirmingServerStorer **************
 
 // LoadByConfirmSelector looks a user up by confirmation token
-func (db *InMemDB) LoadByConfirmSelector(_ context.Context, selector string) (user authboss.ConfirmableUser, err error) {
+func (db *InMemDB) LoadByConfirmSelector(_ context.Context, selector string) (user engine.ConfirmableUser, err error) {
 	for _, v := range db.Users {
 		if v.ConfirmSelector == selector {
 			return &v, nil
 		}
 	}
 
-	return nil, authboss.ErrUserNotFound
+	return nil, engine.ErrUserNotFound
 }
 
 // ************** RecoveringServerStorer **************
 
 // LoadByRecoverSelector looks a user up by confirmation selector
-func (db *InMemDB) LoadByRecoverSelector(_ context.Context, selector string) (user authboss.RecoverableUser, err error) {
+func (db *InMemDB) LoadByRecoverSelector(_ context.Context, selector string) (user engine.RecoverableUser, err error) {
 	for _, v := range db.Users {
 		if v.RecoverSelector == selector {
 			return &v, nil
 		}
 	}
 
-	return nil, authboss.ErrUserNotFound
+	return nil, engine.ErrUserNotFound
 }
 
 // ************** RememberingServerStorer **************
@@ -382,5 +382,5 @@ func (db *InMemDB) UseRememberToken(_ context.Context, pid, token string) error 
 			return nil
 		}
 	}
-	return authboss.ErrTokenNotFound
+	return engine.ErrTokenNotFound
 }
