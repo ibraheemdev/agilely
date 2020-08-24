@@ -1,4 +1,4 @@
-package defaults
+package logger
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ type Logger struct {
 	Writer io.Writer
 }
 
-// NewLogger creates a new logger from an io.Writer
-func NewLogger(writer io.Writer) Logger {
+// New creates a new logger from an io.Writer
+func New(writer io.Writer) Logger {
 	return Logger{Writer: writer}
 }
 

@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/ibraheemdev/agilely/pkg/logger"
 )
 
 func TestErrorHandler(t *testing.T) {
@@ -14,7 +16,7 @@ func TestErrorHandler(t *testing.T) {
 
 	b := &bytes.Buffer{}
 
-	eh := ErrorHandler{LogWriter: NewLogger(b)}
+	eh := ErrorHandler{LogWriter: logger.New(b)}
 
 	handler := eh.Wrap(func(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("error occurred")

@@ -1,4 +1,4 @@
-package defaults
+package logger
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ func TestLogger(t *testing.T) {
 	t.Parallel()
 
 	b := &bytes.Buffer{}
-	logger := NewLogger(b)
+	logger := New(b)
 
 	logger.Info("hello")
 	logger.Error("world")

@@ -9,6 +9,7 @@ import (
 	"github.com/ibraheemdev/agilely/internal/app/engine/defaults"
 	"github.com/ibraheemdev/agilely/internal/app/users"
 	"github.com/ibraheemdev/agilely/pkg/client_state"
+	"github.com/ibraheemdev/agilely/pkg/logger"
 	"github.com/ibraheemdev/agilely/pkg/mailer"
 	"github.com/ibraheemdev/agilely/pkg/renderer"
 	"github.com/ibraheemdev/agilely/pkg/router"
@@ -25,14 +26,14 @@ func SetupEngine(r *httprouter.Router) {
 	rt.Use(alice.New(ab.LoadClientStateMiddleware, users.RememberMiddleware(ab)))
 	ab.Config.Core.Router = rt
 
-	ab.Config.Core.ErrorHandler = defaults.NewErrorHandler(defaults.NewLogger(os.Stdout))
+	ab.Config.Core.ErrorHandler = defaults.NewErrorHandler(logger.New(os.Stdout))
 	ab.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/*.tpl", "web/templates/layouts/*.tpl")
 	ab.Config.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
 	ab.Config.Core.Responder = defaults.NewResponder(ab.Config.Core.ViewRenderer)
 	ab.Config.Core.Redirector = defaults.NewRedirector(ab.Config.Core.ViewRenderer, engine.FormValueRedirect)
 	ab.Config.Core.BodyReader = defaults.NewHTTPBodyReader(false, false)
 	ab.Config.Core.Mailer = mailer.NewLogMailer(os.Stdout)
-	ab.Config.Core.Logger = defaults.NewLogger(os.Stdout)
+	ab.Config.Core.Logger = logger.New(os.Stdout)
 
 	ab.Config.Storage.Server = users.DB
 	ab.Config.Storage.SessionState = clientstate.NewSessionStorer("agilely_session", []byte("TODO"), nil)
