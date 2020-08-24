@@ -12,6 +12,7 @@ import (
 	"github.com/ibraheemdev/agilely/pkg/logger"
 	"github.com/ibraheemdev/agilely/pkg/mailer"
 	"github.com/ibraheemdev/agilely/pkg/renderer"
+	"github.com/ibraheemdev/agilely/pkg/responder"
 	"github.com/ibraheemdev/agilely/pkg/router"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
@@ -29,8 +30,8 @@ func SetupEngine(r *httprouter.Router) {
 	ab.Config.Core.ErrorHandler = defaults.NewErrorHandler(logger.New(os.Stdout))
 	ab.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/*.tpl", "web/templates/layouts/*.tpl")
 	ab.Config.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
-	ab.Config.Core.Responder = defaults.NewResponder(ab.Config.Core.ViewRenderer)
-	ab.Config.Core.Redirector = defaults.NewRedirector(ab.Config.Core.ViewRenderer, engine.FormValueRedirect)
+	ab.Config.Core.Responder = responder.New(ab.Config.Core.ViewRenderer)
+	ab.Config.Core.Redirector = responder.NewRedirector(ab.Config.Core.ViewRenderer, engine.FormValueRedirect)
 	ab.Config.Core.BodyReader = defaults.NewHTTPBodyReader(false, false)
 	ab.Config.Core.Mailer = mailer.NewLogMailer(os.Stdout)
 	ab.Config.Core.Logger = logger.New(os.Stdout)

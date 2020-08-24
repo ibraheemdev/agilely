@@ -1,4 +1,4 @@
-package defaults
+package responder
 
 import (
 	"net/http"
@@ -12,8 +12,8 @@ type Responder struct {
 	Renderer engine.Renderer
 }
 
-// NewResponder constructor
-func NewResponder(renderer engine.Renderer) *Responder {
+// New Responder constructor
+func New(renderer engine.Renderer) *Responder {
 	return &Responder{Renderer: renderer}
 }
 
