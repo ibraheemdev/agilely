@@ -8,6 +8,7 @@ import (
 	"github.com/ibraheemdev/agilely/internal/app/engine"
 	"github.com/ibraheemdev/agilely/internal/app/engine/defaults"
 	"github.com/ibraheemdev/agilely/internal/app/users"
+	"github.com/ibraheemdev/agilely/pkg/client_state"
 	"github.com/ibraheemdev/agilely/pkg/mailer"
 	"github.com/ibraheemdev/agilely/pkg/renderer"
 	"github.com/ibraheemdev/agilely/pkg/router"
@@ -34,8 +35,8 @@ func SetupEngine(r *httprouter.Router) {
 	ab.Config.Core.Logger = defaults.NewLogger(os.Stdout)
 
 	ab.Config.Storage.Server = users.DB
-	ab.Config.Storage.SessionState = defaults.NewSessionStorer("agilely_session", []byte("TODO"), nil)
-	ab.Config.Storage.CookieState = defaults.NewCookieStorer([]byte("TODO"), nil)
+	ab.Config.Storage.SessionState = clientstate.NewSessionStorer("agilely_session", []byte("TODO"), nil)
+	ab.Config.Storage.CookieState = clientstate.NewCookieStorer([]byte("TODO"), nil)
 	ab.Config.Storage.SessionStateWhitelistKeys = []string{}
 
 	ab.Config.Paths.Mount = "/"

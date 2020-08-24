@@ -1,4 +1,4 @@
-package defaults
+package clientstate
 
 import (
 	"crypto/rand"
