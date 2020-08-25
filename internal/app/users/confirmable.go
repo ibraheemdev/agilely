@@ -37,7 +37,7 @@ const (
 )
 
 // InitConfirm module
-func (u *Users) InitConfirm(e *engine.Engine) (err error) {
+func (u *Users) InitConfirm() (err error) {
 	if err = u.Engine.Config.Core.MailRenderer.Load(EmailConfirmHTML, EmailConfirmTxt); err != nil {
 		return err
 	}

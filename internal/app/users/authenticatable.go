@@ -15,7 +15,7 @@ const (
 )
 
 // InitAuth :
-func (u *Users) InitAuth(e *engine.Engine) (err error) {
+func (u *Users) InitAuth() (err error) {
 	if err = u.Engine.Config.Core.ViewRenderer.Load(PageLogin); err != nil {
 		return err
 	}

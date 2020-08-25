@@ -21,7 +21,7 @@ func (u *Users) EnsureNotLocked(w http.ResponseWriter, r *http.Request, handled 
 }
 
 // InitLock : Init the lock module
-func (u *Users) InitLock(e *engine.Engine) error {
+func (u *Users) InitLock() error {
 
 	u.Events.Before(engine.EventAuth, u.ResetLoginAttempts)
 	u.Events.Before(engine.EventOAuth2, u.ResetLoginAttempts)
