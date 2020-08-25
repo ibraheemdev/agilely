@@ -1,4 +1,4 @@
-package oauthable
+package oauth
 
 import (
 	"context"

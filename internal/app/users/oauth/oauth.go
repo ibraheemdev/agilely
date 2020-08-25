@@ -1,5 +1,5 @@
-// Package oauthable allows users to be created and authenticated
-// via oauthable services like facebook, google etc. Currently
+// Package oauth allows users to be created and authenticated
+// via oauth services like facebook, google etc. Currently
 // only the web server flow is supported.
 //
 // The general flow looks like this:
@@ -33,7 +33,7 @@
 // the user, but we have some basic ones included in this package too.
 // The creation of users from the FindUserDetail's map[string]string return
 // is handled as part of the implementation of the OAuth2ServerStorer.
-package oauthable
+package oauth
 
 import (
 	"context"
