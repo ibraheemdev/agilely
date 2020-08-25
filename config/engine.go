@@ -9,6 +9,7 @@ import (
 	"github.com/ibraheemdev/agilely/internal/app/engine/defaults"
 	"github.com/ibraheemdev/agilely/internal/app/users"
 	"github.com/ibraheemdev/agilely/pkg/client_state"
+	"github.com/ibraheemdev/agilely/pkg/error_handler"
 	"github.com/ibraheemdev/agilely/pkg/logger"
 	"github.com/ibraheemdev/agilely/pkg/mailer"
 	"github.com/ibraheemdev/agilely/pkg/renderer"
@@ -27,7 +28,7 @@ func SetupEngine(r *httprouter.Router) {
 	rt.Use(alice.New(e.LoadClientStateMiddleware, users.RememberMiddleware(e)))
 	e.Config.Core.Router = rt
 
-	e.Config.Core.ErrorHandler = defaults.NewErrorHandler(logger.New(os.Stdout))
+	e.Config.Core.ErrorHandler = errorhandler.New(logger.New(os.Stdout))
 	e.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/*.tpl", "web/templates/layouts/*.tpl")
 	e.Config.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
 	e.Config.Core.Responder = responder.New(e.Config.Core.ViewRenderer)

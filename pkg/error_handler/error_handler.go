@@ -1,4 +1,4 @@
-package defaults
+package errorhandler
 
 import (
 	"fmt"
@@ -16,8 +16,8 @@ type ErrorHandler struct {
 	LogWriter engine.Logger
 }
 
-// NewErrorHandler constructor
-func NewErrorHandler(logger engine.Logger) ErrorHandler {
+// New : ErrorHandler constructor
+func New(logger engine.Logger) ErrorHandler {
 	return ErrorHandler{LogWriter: logger}
 }
 
