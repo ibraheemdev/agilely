@@ -1,14 +1,15 @@
 package polls
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/ibraheemdev/agilely/pkg/base"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -41,7 +42,7 @@ func Show() httprouter.Handle {
 			return
 		}
 		poll := new(Poll)
-		ctx, cancel := base.QueryContext()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		err = poll.Collection().FindOne(ctx, bson.D{{"_id", id}}).Decode(&poll)
 		if err != nil {
