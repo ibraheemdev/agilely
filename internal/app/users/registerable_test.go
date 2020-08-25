@@ -25,7 +25,7 @@ func TestRegisterInit(t *testing.T) {
 	e.Config.Core.ErrorHandler = errHandler
 	e.Config.Storage.Server = &test.ServerStorer{}
 
-	u := &Users{}
+	u := &Users{e}
 	if err := u.InitRegister(); err != nil {
 		t.Fatal(err)
 	}

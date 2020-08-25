@@ -21,7 +21,7 @@ func TestEngineInit(t *testing.T) {
 	e.Config.Core.ViewRenderer = renderer
 	e.Config.Core.ErrorHandler = errHandler
 
-	u := &Users{}
+	u := &Users{e}
 	if err := u.Init(e); err != nil {
 		t.Fatal(err)
 	}

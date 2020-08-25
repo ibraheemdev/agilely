@@ -14,14 +14,14 @@ import (
 func TestLogout(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 
 	router := &test.Router{}
 	errHandler := &test.ErrorHandler{}
-	ab.Config.Core.Router = router
-	ab.Config.Core.ErrorHandler = errHandler
+	e.Config.Core.Router = router
+	e.Config.Core.ErrorHandler = errHandler
 
-	u := &Users{}
+	u := &Users{e}
 	if err := u.InitLogout(); err != nil {
 		t.Fatal(err)
 	}
@@ -34,13 +34,13 @@ func TestLogout(t *testing.T) {
 func TestLogoutRoutes(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 	router := &test.Router{}
 	errHandler := &test.ErrorHandler{}
-	ab.Config.Core.Router = router
-	ab.Config.Core.ErrorHandler = errHandler
+	e.Config.Core.Router = router
+	e.Config.Core.ErrorHandler = errHandler
 
-	u := &Users{}
+	u := &Users{e}
 
 	if err := u.InitLogout(); err != nil {
 		t.Error("should have failed to register the route")
