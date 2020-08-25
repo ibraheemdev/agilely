@@ -21,8 +21,8 @@ func TestLogout(t *testing.T) {
 	ab.Config.Core.Router = router
 	ab.Config.Core.ErrorHandler = errHandler
 
-	l := &Logout{}
-	if err := l.Init(ab); err != nil {
+	u := &Users{}
+	if err := u.InitLogout(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -40,9 +40,9 @@ func TestLogoutRoutes(t *testing.T) {
 	ab.Config.Core.Router = router
 	ab.Config.Core.ErrorHandler = errHandler
 
-	l := &Logout{}
+	u := &Users{}
 
-	if err := l.Init(ab); err != nil {
+	if err := u.InitLogout(); err != nil {
 		t.Error("should have failed to register the route")
 	}
 	if err := router.HasDeletes("/logout"); err != nil {
@@ -51,8 +51,8 @@ func TestLogoutRoutes(t *testing.T) {
 }
 
 type testLogoutHarness struct {
-	logout *Logout
-	ab     *engine.Engine
+	users *Users
+	ab    *engine.Engine
 
 	redirector *test.Redirector
 	session    *test.ClientStateRW
@@ -75,7 +75,7 @@ func testLogoutSetup() *testLogoutHarness {
 	harness.ab.Config.Storage.CookieState = harness.cookies
 	harness.ab.Config.Storage.Server = harness.storer
 
-	harness.logout = &Logout{harness.ab}
+	harness.users = &Users{harness.ab}
 
 	return harness
 }
@@ -105,7 +105,7 @@ func TestLogoutLogout(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := h.logout.Logout(w, r); err != nil {
+	if err := h.users.Logout(w, r); err != nil {
 		t.Fatal(err)
 	}
 

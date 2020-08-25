@@ -6,29 +6,19 @@ import (
 	"github.com/ibraheemdev/agilely/internal/app/engine"
 )
 
-func init() {
-	engine.RegisterModule("logout", &Logout{})
-}
+// InitLogout the module
+func (u *Users) InitLogout() error {
 
-// Logout module
-type Logout struct {
-	*engine.Engine
-}
-
-// Init the module
-func (l *Logout) Init(ab *engine.Engine) error {
-	l.Engine = ab
-
-	l.Engine.Config.Core.Router.DELETE("/logout", l.Engine.Core.ErrorHandler.Wrap(l.Logout))
+	u.Engine.Config.Core.Router.DELETE("/logout", u.Engine.Core.ErrorHandler.Wrap(u.Logout))
 
 	return nil
 }
 
 // Logout the user
-func (l *Logout) Logout(w http.ResponseWriter, r *http.Request) error {
-	logger := l.RequestLogger(r)
+func (u *Users) Logout(w http.ResponseWriter, r *http.Request) error {
+	logger := u.RequestLogger(r)
 
-	user, err := l.CurrentUser(r)
+	user, err := u.CurrentUser(r)
 	if err == nil && user != nil {
 		logger.Infof("user %s logged out", user.GetPID())
 	} else {
@@ -36,17 +26,17 @@ func (l *Logout) Logout(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var handled bool
-	handled, err = l.Events.FireBefore(engine.EventLogout, w, r)
+	handled, err = u.Events.FireBefore(engine.EventLogout, w, r)
 	if err != nil {
 		return err
 	} else if handled {
 		return nil
 	}
 
-	engine.DelAllSession(w, l.Config.Storage.SessionStateWhitelistKeys)
+	engine.DelAllSession(w, u.Config.Storage.SessionStateWhitelistKeys)
 	engine.DelKnownCookie(w)
 
-	handled, err = l.Engine.Events.FireAfter(engine.EventLogout, w, r)
+	handled, err = u.Engine.Events.FireAfter(engine.EventLogout, w, r)
 	if err != nil {
 		return err
 	} else if handled {
@@ -58,5 +48,5 @@ func (l *Logout) Logout(w http.ResponseWriter, r *http.Request) error {
 		RedirectPath: "/",
 		Success:      "You have been logged out",
 	}
-	return l.Engine.Core.Redirector.Redirect(w, r, ro)
+	return u.Engine.Core.Redirector.Redirect(w, r, ro)
 }
