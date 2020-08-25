@@ -14,8 +14,8 @@ import (
 )
 
 type testRememberHarness struct {
-	remember *Remember
-	ab       *engine.Engine
+	users *Users
+	ab    *engine.Engine
 
 	session *test.ClientStateRW
 	cookies *test.ClientStateRW
@@ -35,7 +35,7 @@ func testRememberSetup() *testRememberHarness {
 	harness.ab.Config.Storage.CookieState = harness.cookies
 	harness.ab.Config.Storage.Server = harness.storer
 
-	harness.remember = &Remember{harness.ab}
+	harness.users = &Users{harness.ab}
 
 	return harness
 }
@@ -53,7 +53,7 @@ func TestRememberAfterAuth(t *testing.T) {
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)
 
-	if handled, err := h.remember.RememberAfterAuth(w, r, false); err != nil {
+	if handled, err := h.users.CreateRememberToken(w, r, false); err != nil {
 		t.Fatal(err)
 	} else if handled {
 		t.Error("should never be handled")
@@ -80,7 +80,7 @@ func TestRememberAfterAuthSkip(t *testing.T) {
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)
 
-	if handled, err := h.remember.RememberAfterAuth(w, r, false); err != nil {
+	if handled, err := h.users.CreateRememberToken(w, r, false); err != nil {
 		t.Fatal(err)
 	} else if handled {
 		t.Error("should never be handled")
@@ -92,7 +92,7 @@ func TestRememberAfterAuthSkip(t *testing.T) {
 
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyValues, test.Values{Remember: false}))
 
-	if handled, err := h.remember.RememberAfterAuth(w, r, false); err != nil {
+	if handled, err := h.users.CreateRememberToken(w, r, false); err != nil {
 		t.Fatal(err)
 	} else if handled {
 		t.Error("should never be handled")
@@ -280,7 +280,7 @@ func TestAuthenticateBadTokens(t *testing.T) {
 	})
 }
 
-func TestAfterPasswordReset(t *testing.T) {
+func TestResetAllTokens(t *testing.T) {
 	t.Parallel()
 
 	h := testRememberSetup()
@@ -298,7 +298,7 @@ func TestAfterPasswordReset(t *testing.T) {
 	rec := httptest.NewRecorder()
 	w := h.ab.NewResponse(rec)
 
-	if handled, err := h.remember.AfterPasswordReset(w, r, false); err != nil {
+	if handled, err := h.users.ResetAllTokens(w, r, false); err != nil {
 		t.Error(err)
 	} else if handled {
 		t.Error("it should never be handled")

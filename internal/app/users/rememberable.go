@@ -17,28 +17,18 @@ const (
 	nNonceSize = 32
 )
 
-func init() {
-	engine.RegisterModule("remember", &Remember{})
-}
+// InitRemember :
+func (u *Users) InitRemember() error {
 
-// Remember module
-type Remember struct {
-	*engine.Engine
-}
-
-// Init module
-func (r *Remember) Init(ab *engine.Engine) error {
-	r.Engine = ab
-
-	r.Events.After(engine.EventAuth, r.RememberAfterAuth)
-	r.Events.After(engine.EventOAuth2, r.RememberAfterAuth)
-	r.Events.After(engine.EventPasswordReset, r.AfterPasswordReset)
+	u.Events.After(engine.EventAuth, u.CreateRememberToken)
+	u.Events.After(engine.EventOAuth2, u.CreateRememberToken)
+	u.Events.After(engine.EventPasswordReset, u.ResetAllTokens)
 
 	return nil
 }
 
-// RememberAfterAuth creates a remember token and saves it in the user's cookies.
-func (r *Remember) RememberAfterAuth(w http.ResponseWriter, req *http.Request, handled bool) (bool, error) {
+// CreateRememberToken creates a remember token and saves it in the user's cookies.
+func (u *Users) CreateRememberToken(w http.ResponseWriter, req *http.Request, handled bool) (bool, error) {
 	rmIntf := req.Context().Value(engine.CTXKeyValues)
 	if rmIntf == nil {
 		return false, nil
@@ -46,13 +36,13 @@ func (r *Remember) RememberAfterAuth(w http.ResponseWriter, req *http.Request, h
 		return false, nil
 	}
 
-	user := r.Engine.CurrentUserP(req)
+	user := u.Engine.CurrentUserP(req)
 	hash, token, err := GenerateToken(user.GetPID())
 	if err != nil {
 		return false, err
 	}
 
-	storer := engine.EnsureCanRemember(r.Engine.Config.Storage.Server)
+	storer := engine.EnsureCanRemember(u.Engine.Config.Storage.Server)
 	if err = storer.AddRememberToken(req.Context(), user.GetPID(), hash); err != nil {
 		return false, err
 	}
@@ -143,16 +133,16 @@ func Authenticate(ab *engine.Engine, w http.ResponseWriter, req **http.Request) 
 	return nil
 }
 
-// AfterPasswordReset is called after the password has been reset, since
+// ResetAllTokens is called after the password has been reset, since
 // it should invalidate all tokens associated to that user.
-func (r *Remember) AfterPasswordReset(w http.ResponseWriter, req *http.Request, handled bool) (bool, error) {
-	user, err := r.Engine.CurrentUser(req)
+func (u *Users) ResetAllTokens(w http.ResponseWriter, req *http.Request, handled bool) (bool, error) {
+	user, err := u.Engine.CurrentUser(req)
 	if err != nil {
 		return false, err
 	}
 
-	logger := r.Engine.RequestLogger(req)
-	storer := engine.EnsureCanRemember(r.Engine.Config.Storage.Server)
+	logger := u.Engine.RequestLogger(req)
+	storer := engine.EnsureCanRemember(u.Engine.Config.Storage.Server)
 
 	pid := user.GetPID()
 	engine.DelCookie(w, engine.CookieRemember)
