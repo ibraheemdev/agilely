@@ -14,8 +14,8 @@ const (
 	PageLogin = "login.html.tpl"
 )
 
-// Init module
-func (u *Users) Init(e *engine.Engine) (err error) {
+// InitAuth :
+func (u *Users) InitAuth(e *engine.Engine) (err error) {
 	if err = u.Engine.Config.Core.ViewRenderer.Load(PageLogin); err != nil {
 		return err
 	}

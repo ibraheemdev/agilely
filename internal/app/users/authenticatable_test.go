@@ -22,7 +22,7 @@ func TestEngineInit(t *testing.T) {
 	e.Config.Core.ErrorHandler = errHandler
 
 	u := NewController(e)
-	if err := u.Init(e); err != nil {
+	if err := u.InitAuth(e); err != nil {
 		t.Fatal(err)
 	}
 
