@@ -7,16 +7,6 @@ import (
 	"testing"
 )
 
-func TestEngineInit(t *testing.T) {
-	t.Parallel()
-
-	e := New()
-	err := e.Init()
-	if err != nil {
-		t.Error("Unexpected error:", err)
-	}
-}
-
 func TestEngineUpdatePassword(t *testing.T) {
 	t.Parallel()
 

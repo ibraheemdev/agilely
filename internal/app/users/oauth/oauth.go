@@ -70,10 +70,6 @@ type OAuth2 struct {
 	*engine.Engine
 }
 
-func init() {
-	engine.RegisterModule("oauth2", &OAuth2{})
-}
-
 // Init module
 func (o *OAuth2) Init(e *engine.Engine) error {
 	o.Engine = e

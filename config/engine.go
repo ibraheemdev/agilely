@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"time"
 
@@ -58,8 +57,4 @@ func SetupEngine(r *httprouter.Router) {
 	e.Config.Mail.From = "agilely@agilely.com"
 	e.Config.Mail.FromName = "agilely"
 	e.Config.Mail.SubjectPrefix = ""
-
-	if err := e.Init(); err != nil {
-		log.Fatal(err)
-	}
 }

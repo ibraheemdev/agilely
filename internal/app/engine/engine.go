@@ -20,8 +20,6 @@ import (
 type Engine struct {
 	Config
 	Events *Events
-
-	loadedModules map[string]Moduler
 }
 
 // New makes a new instance of engine with a default
@@ -29,26 +27,10 @@ type Engine struct {
 func New() *Engine {
 	e := &Engine{}
 
-	e.loadedModules = make(map[string]Moduler)
 	e.Events = NewEvents()
 
 	e.Config.Defaults()
 	return e
-}
-
-// Init engine, modules, renderers
-func (a *Engine) Init(modulesToLoad ...string) error {
-	if len(modulesToLoad) == 0 {
-		modulesToLoad = RegisteredModules()
-	}
-
-	for _, name := range modulesToLoad {
-		if err := a.loadModule(name); err != nil {
-			return fmt.Errorf("module %s failed to load: %+v", name, err)
-		}
-	}
-
-	return nil
 }
 
 // UpdatePassword updates the password field of a user using the same semantics
