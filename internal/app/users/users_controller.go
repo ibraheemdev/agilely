@@ -60,11 +60,11 @@ func (u *Users) Init() (err error) {
 
 	u.Events.After(engine.EventAuth, u.ResetLoginAttempts)
 	u.Events.After(engine.EventAuth, u.CreateRememberToken)
-	u.Events.After(engine.EventOAuth2, u.CreateRememberToken)
 	u.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		refreshExpiry(w)
 		return false, nil
 	})
+	u.Events.After(engine.EventOAuth2, u.CreateRememberToken)
 
 	u.Events.After(engine.EventAuthFail, u.UpdateLockAttempts)
 
