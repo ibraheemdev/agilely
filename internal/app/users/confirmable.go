@@ -36,27 +36,16 @@ const (
 	confirmTokenSplit = confirmTokenSize / 2
 )
 
-func init() {
-	engine.RegisterModule("confirm", &Confirm{})
-}
-
-// Confirm module
-type Confirm struct {
-	*engine.Engine
-}
-
-// Init module
-func (c *Confirm) Init(ab *engine.Engine) (err error) {
-	c.Engine = ab
-
-	if err = c.Engine.Config.Core.MailRenderer.Load(EmailConfirmHTML, EmailConfirmTxt); err != nil {
+// InitConfirm module
+func (u *Users) InitConfirm(e *engine.Engine) (err error) {
+	if err = u.Engine.Config.Core.MailRenderer.Load(EmailConfirmHTML, EmailConfirmTxt); err != nil {
 		return err
 	}
 
-	c.Engine.Config.Core.Router.GET("/confirm", c.Engine.Config.Core.ErrorHandler.Wrap(c.Get))
+	u.Engine.Config.Core.Router.GET("/confirm", u.Engine.Config.Core.ErrorHandler.Wrap(u.GetConfirm))
 
-	c.Events.Before(engine.EventAuth, c.PreventAuth)
-	c.Events.After(engine.EventRegister, c.StartConfirmationWeb)
+	u.Events.Before(engine.EventAuth, u.PreventAuth)
+	u.Events.After(engine.EventRegister, u.StartConfirmationWeb)
 
 	return nil
 }
@@ -64,10 +53,10 @@ func (c *Confirm) Init(ab *engine.Engine) (err error) {
 // PreventAuth stops the EventAuth from succeeding when a user is not confirmed
 // This relies on the fact that the context holds the user at this point in time
 // loaded by the auth module (or something else).
-func (c *Confirm) PreventAuth(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
-	logger := c.Engine.RequestLogger(r)
+func (u *Users) PreventAuth(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	logger := u.Engine.RequestLogger(r)
 
-	user, err := c.Engine.CurrentUser(r)
+	user, err := u.Engine.CurrentUser(r)
 	if err != nil {
 		return false, err
 	}
@@ -84,19 +73,19 @@ func (c *Confirm) PreventAuth(w http.ResponseWriter, r *http.Request, handled bo
 		RedirectPath: "/login",
 		Failure:      "Your account has not been confirmed, please check your e-mail.",
 	}
-	return true, c.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return true, u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
 }
 
 // StartConfirmationWeb hijacks a request and forces a user to be confirmed
 // first it's assumed that the current user is loaded into the request context.
-func (c *Confirm) StartConfirmationWeb(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
-	user, err := c.Engine.CurrentUser(r)
+func (u *Users) StartConfirmationWeb(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	user, err := u.Engine.CurrentUser(r)
 	if err != nil {
 		return false, err
 	}
 
 	cuser := engine.MustBeConfirmable(user)
-	if err = c.StartConfirmation(r.Context(), cuser, true); err != nil {
+	if err = u.StartConfirmation(r.Context(), cuser, true); err != nil {
 		return false, err
 	}
 
@@ -105,13 +94,13 @@ func (c *Confirm) StartConfirmationWeb(w http.ResponseWriter, r *http.Request, h
 		RedirectPath: "/login",
 		Success:      "Please verify your account, an e-mail has been sent to you.",
 	}
-	return true, c.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return true, u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
 }
 
 // StartConfirmation begins confirmation on a user by setting them to require
 // confirmation via a created token, and optionally sending them an e-mail.
-func (c *Confirm) StartConfirmation(ctx context.Context, user engine.ConfirmableUser, sendEmail bool) error {
-	logger := c.Engine.Logger(ctx)
+func (u *Users) StartConfirmation(ctx context.Context, user engine.ConfirmableUser, sendEmail bool) error {
+	logger := u.Engine.Logger(ctx)
 
 	selector, verifier, token, err := GenerateConfirmCreds()
 	if err != nil {
@@ -123,52 +112,52 @@ func (c *Confirm) StartConfirmation(ctx context.Context, user engine.Confirmable
 	user.PutConfirmVerifier(verifier)
 
 	logger.Infof("generated new confirm token for user: %s", user.GetPID())
-	if err := c.Engine.Config.Storage.Server.Save(ctx, user); err != nil {
+	if err := u.Engine.Config.Storage.Server.Save(ctx, user); err != nil {
 		return fmt.Errorf("%w failed to save user during StartConfirmation, user data may be in weird state", err)
 	}
 
-	go c.SendConfirmEmail(ctx, user.GetEmail(), token)
+	go u.SendConfirmEmail(ctx, user.GetEmail(), token)
 
 	return nil
 }
 
 // SendConfirmEmail sends a confirmation e-mail to a user
-func (c *Confirm) SendConfirmEmail(ctx context.Context, to, token string) {
-	logger := c.Engine.Logger(ctx)
+func (u *Users) SendConfirmEmail(ctx context.Context, to, token string) {
+	logger := u.Engine.Logger(ctx)
 
-	mailURL := c.mailURL(token)
+	mailConfirmURL := u.mailConfirmURL(token)
 
 	email := mailer.Email{
 		To:       []string{to},
-		From:     c.Config.Mail.From,
-		FromName: c.Config.Mail.FromName,
-		Subject:  c.Config.Mail.SubjectPrefix + "Confirm New Account",
+		From:     u.Config.Mail.From,
+		FromName: u.Config.Mail.FromName,
+		Subject:  u.Config.Mail.SubjectPrefix + "Confirm New Account",
 	}
 
 	logger.Infof("sending confirm e-mail to: %s", to)
 
 	ro := engine.EmailResponseOptions{
-		Data:         engine.NewHTMLData(DataConfirmURL, mailURL),
+		Data:         engine.NewHTMLData(DataConfirmURL, mailConfirmURL),
 		HTMLTemplate: EmailConfirmHTML,
 		TextTemplate: EmailConfirmTxt,
 	}
-	if err := c.Engine.Email(ctx, email, ro); err != nil {
+	if err := u.Engine.Email(ctx, email, ro); err != nil {
 		logger.Errorf("failed to send confirm e-mail to %s: %+v", to, err)
 	}
 }
 
-// Get is a request that confirms a user with a valid token
-func (c *Confirm) Get(w http.ResponseWriter, r *http.Request) error {
-	logger := c.RequestLogger(r)
+// GetConfirm is a request that confirms a user with a valid token
+func (u *Users) GetConfirm(w http.ResponseWriter, r *http.Request) error {
+	logger := u.RequestLogger(r)
 
-	validator, err := c.Engine.Config.Core.BodyReader.Read(PageConfirm, r)
+	validator, err := u.Engine.Config.Core.BodyReader.Read(PageConfirm, r)
 	if err != nil {
 		return err
 	}
 
 	if errs := validator.Validate(); errs != nil {
 		logger.Infof("validation failed in Confirm.Get, this typically means a bad token: %+v", errs)
-		return c.invalidToken(w, r)
+		return u.invalidConfirmToken(w, r)
 	}
 
 	values := engine.MustHaveConfirmValues(validator)
@@ -176,23 +165,23 @@ func (c *Confirm) Get(w http.ResponseWriter, r *http.Request) error {
 	rawToken, err := base64.URLEncoding.DecodeString(values.GetToken())
 	if err != nil {
 		logger.Infof("error decoding token in Confirm.Get, this typically means a bad token: %s %+v", values.GetToken(), err)
-		return c.invalidToken(w, r)
+		return u.invalidConfirmToken(w, r)
 	}
 
 	if len(rawToken) != confirmTokenSize {
 		logger.Infof("invalid confirm token submitted, size was wrong: %d", len(rawToken))
-		return c.invalidToken(w, r)
+		return u.invalidConfirmToken(w, r)
 	}
 
 	selectorBytes := sha512.Sum512(rawToken[:confirmTokenSplit])
 	verifierBytes := sha512.Sum512(rawToken[confirmTokenSplit:])
 	selector := base64.StdEncoding.EncodeToString(selectorBytes[:])
 
-	storer := engine.EnsureCanConfirm(c.Engine.Config.Storage.Server)
+	storer := engine.EnsureCanConfirm(u.Engine.Config.Storage.Server)
 	user, err := storer.LoadByConfirmSelector(r.Context(), selector)
 	if err == engine.ErrUserNotFound {
 		logger.Infof("confirm selector was not found in database: %s", selector)
-		return c.invalidToken(w, r)
+		return u.invalidConfirmToken(w, r)
 	} else if err != nil {
 		return err
 	}
@@ -200,13 +189,13 @@ func (c *Confirm) Get(w http.ResponseWriter, r *http.Request) error {
 	dbVerifierBytes, err := base64.StdEncoding.DecodeString(user.GetConfirmVerifier())
 	if err != nil {
 		logger.Infof("invalid confirm verifier stored in database: %s", user.GetConfirmVerifier())
-		return c.invalidToken(w, r)
+		return u.invalidConfirmToken(w, r)
 	}
 
 	if subtle.ConstantTimeEq(int32(len(verifierBytes)), int32(len(dbVerifierBytes))) != 1 ||
 		subtle.ConstantTimeCompare(verifierBytes[:], dbVerifierBytes) != 1 {
 		logger.Info("stored confirm verifier does not match provided one")
-		return c.invalidToken(w, r)
+		return u.invalidConfirmToken(w, r)
 	}
 
 	user.PutConfirmSelector("")
@@ -214,7 +203,7 @@ func (c *Confirm) Get(w http.ResponseWriter, r *http.Request) error {
 	user.PutConfirmed(true)
 
 	logger.Infof("user %s confirmed their account", user.GetPID())
-	if err = c.Engine.Config.Storage.Server.Save(r.Context(), user); err != nil {
+	if err = u.Engine.Config.Storage.Server.Save(r.Context(), user); err != nil {
 		return err
 	}
 
@@ -223,27 +212,27 @@ func (c *Confirm) Get(w http.ResponseWriter, r *http.Request) error {
 		Success:      "You have successfully confirmed your account.",
 		RedirectPath: "/login",
 	}
-	return c.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
 }
 
-func (c *Confirm) mailURL(token string) string {
+func (u *Users) mailConfirmURL(token string) string {
 	query := url.Values{FormValueConfirm: []string{token}}
 
-	if len(c.Config.Mail.RootURL) != 0 {
-		return fmt.Sprintf("%s?%s", c.Config.Mail.RootURL+"/confirm", query.Encode())
+	if len(u.Config.Mail.RootURL) != 0 {
+		return fmt.Sprintf("%s?%s", u.Config.Mail.RootURL+"/confirm", query.Encode())
 	}
 
-	p := path.Join(c.Config.Paths.Mount, "confirm")
-	return fmt.Sprintf("%s%s?%s", c.Config.Paths.RootURL, p, query.Encode())
+	p := path.Join(u.Config.Paths.Mount, "confirm")
+	return fmt.Sprintf("%s%s?%s", u.Config.Paths.RootURL, p, query.Encode())
 }
 
-func (c *Confirm) invalidToken(w http.ResponseWriter, r *http.Request) error {
+func (u *Users) invalidConfirmToken(w http.ResponseWriter, r *http.Request) error {
 	ro := engine.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		Failure:      "confirm token is invalid",
 		RedirectPath: "/login",
 	}
-	return c.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
 }
 
 // Middleware ensures that a user is confirmed, or else it will intercept the

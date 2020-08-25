@@ -16,8 +16,8 @@ import (
 )
 
 type testConfirmHarness struct {
-	confirm *Confirm
-	ab      *engine.Engine
+	users *Users
+	ab    *engine.Engine
 
 	bodyReader *test.BodyReader
 	mailer     *test.Emailer
@@ -49,7 +49,7 @@ func testConfirmSetup() *testConfirmHarness {
 	harness.ab.Config.Storage.SessionState = harness.session
 	harness.ab.Config.Storage.Server = harness.storer
 
-	harness.confirm = &Confirm{harness.ab}
+	harness.users = &Users{harness.ab}
 
 	return harness
 }
@@ -67,7 +67,7 @@ func TestPreventAuthAllow(t *testing.T) {
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
-	handled, err := harness.confirm.PreventAuth(w, r, false)
+	handled, err := harness.users.PreventAuth(w, r, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -90,7 +90,7 @@ func TestPreventDisallow(t *testing.T) {
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
-	handled, err := harness.confirm.PreventAuth(w, r, false)
+	handled, err := harness.users.PreventAuth(w, r, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -120,7 +120,7 @@ func TestStartConfirmationWeb(t *testing.T) {
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
-	handled, err := harness.confirm.StartConfirmationWeb(w, r, false)
+	handled, err := harness.users.StartConfirmationWeb(w, r, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -162,7 +162,7 @@ func TestGetSuccess(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := harness.confirm.Get(w, r); err != nil {
+	if err := harness.users.GetConfirm(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -196,7 +196,7 @@ func TestGetValidationFailure(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := harness.confirm.Get(w, r); err != nil {
+	if err := harness.users.GetConfirm(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -223,7 +223,7 @@ func TestGetBase64DecodeFailure(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := harness.confirm.Get(w, r); err != nil {
+	if err := harness.users.GetConfirm(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -255,7 +255,7 @@ func TestGetUserNotFoundFailure(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := harness.confirm.Get(w, r); err != nil {
+	if err := harness.users.GetConfirm(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -336,14 +336,14 @@ func TestMailURL(t *testing.T) {
 	h.ab.Config.Paths.Mount = "/v1/auth"
 
 	want := "https://api.test.com:6343/v1/auth/confirm?cnf=abc"
-	if got := h.confirm.mailURL("abc"); got != want {
+	if got := h.users.mailConfirmURL("abc"); got != want {
 		t.Error("want:", want, "got:", got)
 	}
 
 	h.ab.Config.Mail.RootURL = "https://test.com:3333/testauth"
 
 	want = "https://test.com:3333/testauth/confirm?cnf=abc"
-	if got := h.confirm.mailURL("abc"); got != want {
+	if got := h.users.mailConfirmURL("abc"); got != want {
 		t.Error("want:", want, "got:", got)
 	}
 }
