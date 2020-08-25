@@ -9,20 +9,20 @@ import (
 	"github.com/ibraheemdev/agilely/test"
 )
 
-func TestAuthInit(t *testing.T) {
+func TestEngineInit(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 
 	router := &test.Router{}
 	renderer := &test.Renderer{}
 	errHandler := &test.ErrorHandler{}
-	ab.Config.Core.Router = router
-	ab.Config.Core.ViewRenderer = renderer
-	ab.Config.Core.ErrorHandler = errHandler
+	e.Config.Core.Router = router
+	e.Config.Core.ViewRenderer = renderer
+	e.Config.Core.ErrorHandler = errHandler
 
-	a := &Auth{}
-	if err := a.Init(ab); err != nil {
+	u := &Users{}
+	if err := u.Init(e); err != nil {
 		t.Fatal(err)
 	}
 
@@ -45,7 +45,7 @@ func TestAuthGet(t *testing.T) {
 	responder := &test.Responder{}
 	ab.Config.Core.Responder = responder
 
-	a := &Auth{ab}
+	a := &Users{ab}
 
 	r := test.Request("GET")
 	r.URL.RawQuery = "redir=/redirectpage"
@@ -67,8 +67,8 @@ func TestAuthGet(t *testing.T) {
 }
 
 type testHarness struct {
-	auth *Auth
-	ab   *engine.Engine
+	users *Users
+	ab    *engine.Engine
 
 	bodyReader *test.BodyReader
 	responder  *test.Responder
@@ -94,7 +94,7 @@ func testSetup() *testHarness {
 	harness.ab.Config.Storage.SessionState = harness.session
 	harness.ab.Config.Storage.Server = harness.storer
 
-	harness.auth = &Auth{harness.ab}
+	harness.users = &Users{harness.ab}
 
 	return harness
 }
@@ -137,7 +137,7 @@ func TestAuthPostSuccess(t *testing.T) {
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
-		if err := h.auth.LoginPost(w, r); err != nil {
+		if err := h.users.LoginPost(w, r); err != nil {
 			t.Error(err)
 		}
 
@@ -184,7 +184,7 @@ func TestAuthPostSuccess(t *testing.T) {
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
-		if err := h.auth.LoginPost(w, r); err != nil {
+		if err := h.users.LoginPost(w, r); err != nil {
 			t.Error(err)
 		}
 
@@ -218,7 +218,7 @@ func TestAuthPostSuccess(t *testing.T) {
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
-		if err := h.auth.LoginPost(w, r); err != nil {
+		if err := h.users.LoginPost(w, r); err != nil {
 			t.Error(err)
 		}
 
@@ -268,7 +268,7 @@ func TestAuthPostBadPassword(t *testing.T) {
 			return false, nil
 		})
 
-		if err := h.auth.LoginPost(w, r); err != nil {
+		if err := h.users.LoginPost(w, r); err != nil {
 			t.Error(err)
 		}
 
@@ -304,7 +304,7 @@ func TestAuthPostBadPassword(t *testing.T) {
 			return true, nil
 		})
 
-		if err := h.auth.LoginPost(w, r); err != nil {
+		if err := h.users.LoginPost(w, r); err != nil {
 			t.Error(err)
 		}
 
@@ -345,7 +345,7 @@ func TestAuthPostUserNotFound(t *testing.T) {
 		return false, nil
 	})
 
-	if err := harness.auth.LoginPost(w, r); err != nil {
+	if err := harness.users.LoginPost(w, r); err != nil {
 		t.Error(err)
 	}
 
