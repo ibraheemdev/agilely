@@ -39,47 +39,36 @@ const (
 	recoverTokenSplit = recoverTokenSize / 2
 )
 
-func init() {
-	m := &Recover{}
-	engine.RegisterModule("recover", m)
-}
+// InitRecover module
+func (u *Users) InitRecover() (err error) {
 
-// Recover module
-type Recover struct {
-	*engine.Engine
-}
-
-// Init module
-func (r *Recover) Init(ab *engine.Engine) (err error) {
-	r.Engine = ab
-
-	if err := r.Engine.Config.Core.ViewRenderer.Load(PageRecoverStart, PageRecoverEnd); err != nil {
+	if err := u.Engine.Config.Core.ViewRenderer.Load(PageRecoverStart, PageRecoverEnd); err != nil {
 		return err
 	}
 
-	if err := r.Engine.Config.Core.MailRenderer.Load(EmailRecoverHTML, EmailRecoverTxt); err != nil {
+	if err := u.Engine.Config.Core.MailRenderer.Load(EmailRecoverHTML, EmailRecoverTxt); err != nil {
 		return err
 	}
 
-	r.Engine.Config.Core.Router.GET("/recover", r.Core.ErrorHandler.Wrap(r.StartGet))
-	r.Engine.Config.Core.Router.POST("/recover", r.Core.ErrorHandler.Wrap(r.StartPost))
-	r.Engine.Config.Core.Router.GET("/recover/end", r.Core.ErrorHandler.Wrap(r.EndGet))
-	r.Engine.Config.Core.Router.POST("/recover/end", r.Core.ErrorHandler.Wrap(r.EndPost))
+	u.Engine.Config.Core.Router.GET("/recover", u.Core.ErrorHandler.Wrap(u.StartGetRecover))
+	u.Engine.Config.Core.Router.POST("/recover", u.Core.ErrorHandler.Wrap(u.StartPostRecover))
+	u.Engine.Config.Core.Router.GET("/recover/end", u.Core.ErrorHandler.Wrap(u.EndGetRecover))
+	u.Engine.Config.Core.Router.POST("/recover/end", u.Core.ErrorHandler.Wrap(u.EndPostRecover))
 
 	return nil
 }
 
-// StartGet starts the recover procedure by rendering a form for the user.
-func (r *Recover) StartGet(w http.ResponseWriter, req *http.Request) error {
-	return r.Engine.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverStart, nil)
+// StartGetRecover starts the recover procedure by rendering a form for the user.
+func (u *Users) StartGetRecover(w http.ResponseWriter, req *http.Request) error {
+	return u.Engine.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverStart, nil)
 }
 
-// StartPost starts the recover procedure using values provided from the user
+// StartPostRecover starts the recover procedure using values provided from the user
 // usually from the StartGet's form.
-func (r *Recover) StartPost(w http.ResponseWriter, req *http.Request) error {
-	logger := r.RequestLogger(req)
+func (u *Users) StartPostRecover(w http.ResponseWriter, req *http.Request) error {
+	logger := u.RequestLogger(req)
 
-	validatable, err := r.Engine.Core.BodyReader.Read(PageRecoverStart, req)
+	validatable, err := u.Engine.Core.BodyReader.Read(PageRecoverStart, req)
 	if err != nil {
 		return err
 	}
@@ -87,12 +76,12 @@ func (r *Recover) StartPost(w http.ResponseWriter, req *http.Request) error {
 	if errs := validatable.Validate(); errs != nil {
 		logger.Info("recover validation failed")
 		data := engine.HTMLData{engine.DataValidation: engine.ErrorMap(errs)}
-		return r.Engine.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverStart, data)
+		return u.Engine.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverStart, data)
 	}
 
 	recoverVals := engine.MustHaveRecoverStartValues(validatable)
 
-	user, err := r.Engine.Storage.Server.Load(req.Context(), recoverVals.GetPID())
+	user, err := u.Engine.Storage.Server.Load(req.Context(), recoverVals.GetPID())
 	if err == engine.ErrUserNotFound {
 		logger.Infof("user %s was attempted to be recovered, user does not exist, faking successful response", recoverVals.GetPID())
 		ro := engine.RedirectOptions{
@@ -100,7 +89,7 @@ func (r *Recover) StartPost(w http.ResponseWriter, req *http.Request) error {
 			RedirectPath: "/",
 			Success:      recoverInitiateSuccessFlash,
 		}
-		return r.Engine.Core.Redirector.Redirect(w, req, ro)
+		return u.Engine.Core.Redirector.Redirect(w, req, ro)
 	}
 
 	ru := engine.MustBeRecoverable(user)
@@ -112,13 +101,13 @@ func (r *Recover) StartPost(w http.ResponseWriter, req *http.Request) error {
 
 	ru.PutRecoverSelector(selector)
 	ru.PutRecoverVerifier(verifier)
-	ru.PutRecoverExpiry(time.Now().UTC().Add(r.Config.Modules.RecoverTokenDuration))
+	ru.PutRecoverExpiry(time.Now().UTC().Add(u.Config.Modules.RecoverTokenDuration))
 
-	if err := r.Engine.Storage.Server.Save(req.Context(), ru); err != nil {
+	if err := u.Engine.Storage.Server.Save(req.Context(), ru); err != nil {
 		return err
 	}
 
-	go r.SendRecoverEmail(req.Context(), ru.GetEmail(), token)
+	go u.SendRecoverEmail(req.Context(), ru.GetEmail(), token)
 
 	logger.Infof("user %s password recovery initiated", ru.GetPID())
 	ro := engine.RedirectOptions{
@@ -126,41 +115,41 @@ func (r *Recover) StartPost(w http.ResponseWriter, req *http.Request) error {
 		RedirectPath: "/",
 		Success:      recoverInitiateSuccessFlash,
 	}
-	return r.Engine.Core.Redirector.Redirect(w, req, ro)
+	return u.Engine.Core.Redirector.Redirect(w, req, ro)
 }
 
 // SendRecoverEmail to a specific e-mail address passing along the encodedToken
 // in an escaped URL to the templates.
-func (r *Recover) SendRecoverEmail(ctx context.Context, to, encodedToken string) {
-	logger := r.Engine.Logger(ctx)
+func (u *Users) SendRecoverEmail(ctx context.Context, to, encodedToken string) {
+	logger := u.Engine.Logger(ctx)
 
-	mailURL := r.mailURL(encodedToken)
+	mailRecoverURL := u.mailRecoverURL(encodedToken)
 
 	email := mailer.Email{
 		To:       []string{to},
-		From:     r.Engine.Config.Mail.From,
-		FromName: r.Engine.Config.Mail.FromName,
-		Subject:  r.Engine.Config.Mail.SubjectPrefix + "Password Reset",
+		From:     u.Engine.Config.Mail.From,
+		FromName: u.Engine.Config.Mail.FromName,
+		Subject:  u.Engine.Config.Mail.SubjectPrefix + "Password Reset",
 	}
 
 	ro := engine.EmailResponseOptions{
 		HTMLTemplate: EmailRecoverHTML,
 		TextTemplate: EmailRecoverTxt,
 		Data: engine.HTMLData{
-			DataRecoverURL: mailURL,
+			DataRecoverURL: mailRecoverURL,
 		},
 	}
 
 	logger.Infof("sending recover e-mail to: %s", to)
-	if err := r.Engine.Email(ctx, email, ro); err != nil {
+	if err := u.Engine.Email(ctx, email, ro); err != nil {
 		logger.Errorf("failed to recover send e-mail to %s: %+v", to, err)
 	}
 }
 
-// EndGet shows a password recovery form, and it should have the token that
+// EndGetRecover shows a password recovery form, and it should have the token that
 // the user brought in the query parameters in it on submission.
-func (r *Recover) EndGet(w http.ResponseWriter, req *http.Request) error {
-	validatable, err := r.Engine.Core.BodyReader.Read(PageRecoverMiddle, req)
+func (u *Users) EndGetRecover(w http.ResponseWriter, req *http.Request) error {
+	validatable, err := u.Engine.Core.BodyReader.Read(PageRecoverMiddle, req)
 	if err != nil {
 		return err
 	}
@@ -172,14 +161,14 @@ func (r *Recover) EndGet(w http.ResponseWriter, req *http.Request) error {
 		DataRecoverToken: token,
 	}
 
-	return r.Engine.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverEnd, data)
+	return u.Engine.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverEnd, data)
 }
 
-// EndPost retrieves the token
-func (r *Recover) EndPost(w http.ResponseWriter, req *http.Request) error {
-	logger := r.RequestLogger(req)
+// EndPostRecover retrieves the token
+func (u *Users) EndPostRecover(w http.ResponseWriter, req *http.Request) error {
+	logger := u.RequestLogger(req)
 
-	validatable, err := r.Engine.Core.BodyReader.Read(PageRecoverEnd, req)
+	validatable, err := u.Engine.Core.BodyReader.Read(PageRecoverEnd, req)
 	if err != nil {
 		return err
 	}
@@ -194,51 +183,51 @@ func (r *Recover) EndPost(w http.ResponseWriter, req *http.Request) error {
 			engine.DataValidation: engine.ErrorMap(errs),
 			DataRecoverToken:      token,
 		}
-		return r.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverEnd, data)
+		return u.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverEnd, data)
 	}
 
 	rawToken, err := base64.URLEncoding.DecodeString(token)
 	if err != nil {
 		logger.Infof("invalid recover token submitted, base64 decode failed: %+v", err)
-		return r.invalidToken(PageRecoverEnd, w, req)
+		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	}
 
 	if len(rawToken) != recoverTokenSize {
 		logger.Infof("invalid recover token submitted, size was wrong: %d", len(rawToken))
-		return r.invalidToken(PageRecoverEnd, w, req)
+		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	}
 
 	selectorBytes := sha512.Sum512(rawToken[:recoverTokenSplit])
 	verifierBytes := sha512.Sum512(rawToken[recoverTokenSplit:])
 	selector := base64.StdEncoding.EncodeToString(selectorBytes[:])
 
-	storer := engine.EnsureCanRecover(r.Engine.Config.Storage.Server)
+	storer := engine.EnsureCanRecover(u.Engine.Config.Storage.Server)
 	user, err := storer.LoadByRecoverSelector(req.Context(), selector)
 	if err == engine.ErrUserNotFound {
 		logger.Info("invalid recover token submitted, user not found")
-		return r.invalidToken(PageRecoverEnd, w, req)
+		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	} else if err != nil {
 		return err
 	}
 
 	if time.Now().UTC().After(user.GetRecoverExpiry()) {
 		logger.Infof("invalid recover token submitted, already expired: %+v", err)
-		return r.invalidToken(PageRecoverEnd, w, req)
+		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	}
 
 	dbVerifierBytes, err := base64.StdEncoding.DecodeString(user.GetRecoverVerifier())
 	if err != nil {
 		logger.Infof("invalid recover verifier stored in database: %s", user.GetRecoverVerifier())
-		return r.invalidToken(PageRecoverEnd, w, req)
+		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	}
 
 	if subtle.ConstantTimeEq(int32(len(verifierBytes)), int32(len(dbVerifierBytes))) != 1 ||
 		subtle.ConstantTimeCompare(verifierBytes[:], dbVerifierBytes) != 1 {
 		logger.Info("stored recover verifier does not match provided one")
-		return r.invalidToken(PageRecoverEnd, w, req)
+		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	}
 
-	pass, err := bcrypt.GenerateFromPassword([]byte(password), r.Engine.Config.Modules.BCryptCost)
+	pass, err := bcrypt.GenerateFromPassword([]byte(password), u.Engine.Config.Modules.BCryptCost)
 	if err != nil {
 		return err
 	}
@@ -260,24 +249,24 @@ func (r *Recover) EndPost(w http.ResponseWriter, req *http.Request) error {
 		RedirectPath: "/",
 		Success:      "Successfully updated password",
 	}
-	return r.Engine.Config.Core.Redirector.Redirect(w, req, ro)
+	return u.Engine.Config.Core.Redirector.Redirect(w, req, ro)
 }
 
-func (r *Recover) invalidToken(page string, w http.ResponseWriter, req *http.Request) error {
+func (u *Users) invalidRecoverToken(page string, w http.ResponseWriter, req *http.Request) error {
 	errorsAll := []error{errors.New("recovery token is invalid")}
 	data := engine.HTMLData{engine.DataValidation: engine.ErrorMap(errorsAll)}
-	return r.Engine.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverEnd, data)
+	return u.Engine.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverEnd, data)
 }
 
-func (r *Recover) mailURL(token string) string {
+func (u *Users) mailRecoverURL(token string) string {
 	query := url.Values{FormValueToken: []string{token}}
 
-	if len(r.Config.Mail.RootURL) != 0 {
-		return fmt.Sprintf("%s?%s", r.Config.Mail.RootURL+"/recover/end", query.Encode())
+	if len(u.Config.Mail.RootURL) != 0 {
+		return fmt.Sprintf("%s?%s", u.Config.Mail.RootURL+"/recover/end", query.Encode())
 	}
 
-	p := path.Join(r.Config.Paths.Mount, "recover/end")
-	return fmt.Sprintf("%s%s?%s", r.Config.Paths.RootURL, p, query.Encode())
+	p := path.Join(u.Config.Paths.Mount, "recover/end")
+	return fmt.Sprintf("%s%s?%s", u.Config.Paths.RootURL, p, query.Encode())
 }
 
 // GenerateRecoverCreds generates pieces needed for user recovery

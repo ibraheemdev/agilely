@@ -22,8 +22,8 @@ const (
 )
 
 type testRecoverHarness struct {
-	recover *Recover
-	ab      *engine.Engine
+	users *Users
+	ab    *engine.Engine
 
 	bodyReader *test.BodyReader
 	mailer     *test.Emailer
@@ -55,7 +55,7 @@ func testRecoverSetup() *testRecoverHarness {
 	harness.ab.Config.Storage.SessionState = harness.session
 	harness.ab.Config.Storage.Server = harness.storer
 
-	harness.recover = &Recover{harness.ab}
+	harness.users = &Users{harness.ab}
 
 	return harness
 }
@@ -68,7 +68,7 @@ func TestStartGet(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.StartGet(w, r); err != nil {
+	if err := h.users.StartGetRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -99,7 +99,7 @@ func TestStartPostSuccess(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.StartPost(w, r); err != nil {
+	if err := h.users.StartPostRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -137,7 +137,7 @@ func TestStartPostFailure(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.StartPost(w, r); err != nil {
+	if err := h.users.StartPostRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -168,7 +168,7 @@ func TestEndGet(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.EndGet(w, r); err != nil {
+	if err := h.users.EndGetRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -202,7 +202,7 @@ func TestEndPostSuccess(t *testing.T) {
 	r := test.Request("POST")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.EndPost(w, r); err != nil {
+	if err := h.users.EndPostRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -242,7 +242,7 @@ func TestEndPostSuccessLogin(t *testing.T) {
 	r := test.Request("POST")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.EndPost(h.ab.NewResponse(w), r); err != nil {
+	if err := h.users.EndPostRecover(h.ab.NewResponse(w), r); err != nil {
 		t.Error(err)
 	}
 
@@ -279,7 +279,7 @@ func TestEndPostValidationFailure(t *testing.T) {
 	r := test.Request("POST")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.EndPost(w, r); err != nil {
+	if err := h.users.EndPostRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -311,7 +311,7 @@ func TestEndPostInvalidBase64(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.EndPost(w, r); err != nil {
+	if err := h.users.EndPostRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -337,7 +337,7 @@ func TestEndPostExpiredToken(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.EndPost(w, r); err != nil {
+	if err := h.users.EndPostRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -356,7 +356,7 @@ func TestEndPostUserNotExist(t *testing.T) {
 	r := test.Request("GET")
 	w := httptest.NewRecorder()
 
-	if err := h.recover.EndPost(w, r); err != nil {
+	if err := h.users.EndPostRecover(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -371,14 +371,14 @@ func TestConfirmMailURL(t *testing.T) {
 	h.ab.Config.Paths.Mount = "/v1/auth"
 
 	want := "https://api.test.com:6343/v1/auth/recover/end?token=abc"
-	if got := h.recover.mailURL("abc"); got != want {
+	if got := h.users.mailRecoverURL("abc"); got != want {
 		t.Error("want:", want, "got:", got)
 	}
 
 	h.ab.Config.Mail.RootURL = "https://test.com:3333/testauth"
 
 	want = "https://test.com:3333/testauth/recover/end?token=abc"
-	if got := h.recover.mailURL("abc"); got != want {
+	if got := h.users.mailRecoverURL("abc"); got != want {
 		t.Error("want:", want, "got:", got)
 	}
 }
