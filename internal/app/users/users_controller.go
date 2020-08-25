@@ -51,26 +51,24 @@ func (u *Users) Init() (err error) {
 	u.Config.Core.Router.GET("/register", u.Config.Core.ErrorHandler.Wrap(u.GetRegister))
 	u.Config.Core.Router.POST("/register", u.Config.Core.ErrorHandler.Wrap(u.PostRegister))
 
-	// confirmation events
-	u.Events.Before(engine.EventAuth, u.PreventAuth)
+	// authentication events
 	u.Events.After(engine.EventRegister, u.StartConfirmationWeb)
 
-	// lock events
+	u.Events.Before(engine.EventAuth, u.PreventAuth)
 	u.Events.Before(engine.EventAuth, u.EnsureNotLocked)
 	u.Events.Before(engine.EventOAuth2, u.EnsureNotLocked)
-	u.Events.After(engine.EventAuth, u.ResetLoginAttempts)
-	u.Events.After(engine.EventAuthFail, u.UpdateLockAttempts)
 
-	// remember me events
+	u.Events.After(engine.EventAuth, u.ResetLoginAttempts)
 	u.Events.After(engine.EventAuth, u.CreateRememberToken)
 	u.Events.After(engine.EventOAuth2, u.CreateRememberToken)
-	u.Events.After(engine.EventPasswordReset, u.ResetAllTokens)
-
-	// timeout events
 	u.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		refreshExpiry(w)
 		return false, nil
 	})
+
+	u.Events.After(engine.EventAuthFail, u.UpdateLockAttempts)
+
+	u.Events.After(engine.EventPasswordReset, u.ResetAllTokens)
 
 	return nil
 }
