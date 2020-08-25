@@ -9,35 +9,6 @@ import (
 	"github.com/ibraheemdev/agilely/test"
 )
 
-func TestEngineInit(t *testing.T) {
-	t.Parallel()
-
-	e := engine.New()
-
-	router := &test.Router{}
-	renderer := &test.Renderer{}
-	errHandler := &test.ErrorHandler{}
-	e.Config.Core.Router = router
-	e.Config.Core.ViewRenderer = renderer
-	e.Config.Core.ErrorHandler = errHandler
-
-	u := NewController(e)
-	if err := u.InitAuth(); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := renderer.HasLoadedViews(PageLogin); err != nil {
-		t.Error(err)
-	}
-
-	if err := router.HasGets("/login"); err != nil {
-		t.Error(err)
-	}
-	if err := router.HasPosts("/login"); err != nil {
-		t.Error(err)
-	}
-}
-
 func TestAuthGet(t *testing.T) {
 	t.Parallel()
 

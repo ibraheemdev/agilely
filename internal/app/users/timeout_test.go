@@ -18,7 +18,11 @@ func TestTimeoutSetup(t *testing.T) {
 	e.Storage.SessionState = clientRW
 
 	u := NewController(e)
-	u.InitTimeout()
+
+	u.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		refreshExpiry(w)
+		return false, nil
+	})
 
 	w := httptest.NewRecorder()
 	wr := e.NewResponse(w)

@@ -11,45 +11,6 @@ import (
 	"github.com/ibraheemdev/agilely/test"
 )
 
-func TestLogout(t *testing.T) {
-	t.Parallel()
-
-	e := engine.New()
-
-	router := &test.Router{}
-	errHandler := &test.ErrorHandler{}
-	e.Config.Core.Router = router
-	e.Config.Core.ErrorHandler = errHandler
-
-	u := NewController(e)
-	if err := u.InitLogout(); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := router.HasDeletes("/logout"); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestLogoutRoutes(t *testing.T) {
-	t.Parallel()
-
-	e := engine.New()
-	router := &test.Router{}
-	errHandler := &test.ErrorHandler{}
-	e.Config.Core.Router = router
-	e.Config.Core.ErrorHandler = errHandler
-
-	u := NewController(e)
-
-	if err := u.InitLogout(); err != nil {
-		t.Error("should have failed to register the route")
-	}
-	if err := router.HasDeletes("/logout"); err != nil {
-		t.Error(err)
-	}
-}
-
 type testLogoutHarness struct {
 	users *Users
 	e     *engine.Engine

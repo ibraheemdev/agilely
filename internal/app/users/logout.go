@@ -6,14 +6,6 @@ import (
 	"github.com/ibraheemdev/agilely/internal/app/engine"
 )
 
-// InitLogout the module
-func (u *Users) InitLogout() error {
-
-	u.Engine.Config.Core.Router.DELETE("/logout", u.Engine.Core.ErrorHandler.Wrap(u.Logout))
-
-	return nil
-}
-
 // Logout the user
 func (u *Users) Logout(w http.ResponseWriter, r *http.Request) error {
 	logger := u.RequestLogger(r)

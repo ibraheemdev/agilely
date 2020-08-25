@@ -36,20 +36,6 @@ const (
 	confirmTokenSplit = confirmTokenSize / 2
 )
 
-// InitConfirm module
-func (u *Users) InitConfirm() (err error) {
-	if err = u.Engine.Config.Core.MailRenderer.Load(EmailConfirmHTML, EmailConfirmTxt); err != nil {
-		return err
-	}
-
-	u.Engine.Config.Core.Router.GET("/confirm", u.Engine.Config.Core.ErrorHandler.Wrap(u.GetConfirm))
-
-	u.Events.Before(engine.EventAuth, u.PreventAuth)
-	u.Events.After(engine.EventRegister, u.StartConfirmationWeb)
-
-	return nil
-}
-
 // PreventAuth stops the EventAuth from succeeding when a user is not confirmed
 // This relies on the fact that the context holds the user at this point in time
 // loaded by the auth module (or something else).

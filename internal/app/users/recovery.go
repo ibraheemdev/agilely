@@ -39,25 +39,6 @@ const (
 	recoverTokenSplit = recoverTokenSize / 2
 )
 
-// InitRecover module
-func (u *Users) InitRecover() (err error) {
-
-	if err := u.Engine.Config.Core.ViewRenderer.Load(PageRecoverStart, PageRecoverEnd); err != nil {
-		return err
-	}
-
-	if err := u.Engine.Config.Core.MailRenderer.Load(EmailRecoverHTML, EmailRecoverTxt); err != nil {
-		return err
-	}
-
-	u.Engine.Config.Core.Router.GET("/recover", u.Core.ErrorHandler.Wrap(u.StartGetRecover))
-	u.Engine.Config.Core.Router.POST("/recover", u.Core.ErrorHandler.Wrap(u.StartPostRecover))
-	u.Engine.Config.Core.Router.GET("/recover/end", u.Core.ErrorHandler.Wrap(u.EndGetRecover))
-	u.Engine.Config.Core.Router.POST("/recover/end", u.Core.ErrorHandler.Wrap(u.EndPostRecover))
-
-	return nil
-}
-
 // StartGetRecover starts the recover procedure by rendering a form for the user.
 func (u *Users) StartGetRecover(w http.ResponseWriter, req *http.Request) error {
 	return u.Engine.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRecoverStart, nil)

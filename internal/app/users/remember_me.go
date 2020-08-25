@@ -17,16 +17,6 @@ const (
 	nNonceSize = 32
 )
 
-// InitRemember :
-func (u *Users) InitRemember() error {
-
-	u.Events.After(engine.EventAuth, u.CreateRememberToken)
-	u.Events.After(engine.EventOAuth2, u.CreateRememberToken)
-	u.Events.After(engine.EventPasswordReset, u.ResetAllTokens)
-
-	return nil
-}
-
 // CreateRememberToken creates a remember token and saves it in the user's cookies.
 func (u *Users) CreateRememberToken(w http.ResponseWriter, req *http.Request, handled bool) (bool, error) {
 	rmIntf := req.Context().Value(engine.CTXKeyValues)

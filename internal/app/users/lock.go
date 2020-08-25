@@ -20,17 +20,6 @@ func (u *Users) EnsureNotLocked(w http.ResponseWriter, r *http.Request, handled 
 	return u.updateLockedState(w, r, true)
 }
 
-// InitLock : Init the lock module
-func (u *Users) InitLock() error {
-
-	u.Events.Before(engine.EventAuth, u.ResetLoginAttempts)
-	u.Events.Before(engine.EventOAuth2, u.ResetLoginAttempts)
-	u.Events.After(engine.EventAuth, u.ResetLoginAttempts)
-	u.Events.After(engine.EventAuthFail, u.UpdateLockAttempts)
-
-	return nil
-}
-
 // ResetLoginAttempts resets the attempt number field.
 func (u *Users) ResetLoginAttempts(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 	user, err := u.Engine.CurrentUser(r)

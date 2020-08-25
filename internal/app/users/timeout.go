@@ -10,19 +10,6 @@ import (
 
 var nowTime = time.Now
 
-// InitTimeout :
-//
-// This installs a hook into the login process so that the
-// LastAction is recorded immediately.
-func (u *Users) InitTimeout() error {
-	u.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
-		refreshExpiry(w)
-		return false, nil
-	})
-
-	return nil
-}
-
 // TimeToExpiry returns zero if the user session is expired else the time
 // until expiry. Takes in the allowed idle duration.
 func TimeToExpiry(r *http.Request, expireAfter time.Duration) time.Duration {

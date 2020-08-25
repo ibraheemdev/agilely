@@ -12,35 +12,6 @@ import (
 	"github.com/ibraheemdev/agilely/test"
 )
 
-func TestRegisterInit(t *testing.T) {
-	t.Parallel()
-
-	e := engine.New()
-
-	router := &test.Router{}
-	renderer := &test.Renderer{}
-	errHandler := &test.ErrorHandler{}
-	e.Config.Core.Router = router
-	e.Config.Core.ViewRenderer = renderer
-	e.Config.Core.ErrorHandler = errHandler
-	e.Config.Storage.Server = &test.ServerStorer{}
-
-	u := NewController(e)
-	if err := u.InitRegister(); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := renderer.HasLoadedViews(PageRegister); err != nil {
-		t.Error(err)
-	}
-
-	if err := router.HasGets("/register"); err != nil {
-		t.Error(err)
-	}
-	if err := router.HasPosts("/register"); err != nil {
-		t.Error(err)
-	}
-}
 func TestRegisterGet(t *testing.T) {
 	t.Parallel()
 

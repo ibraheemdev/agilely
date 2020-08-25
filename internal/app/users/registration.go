@@ -15,25 +15,6 @@ const (
 	PageRegister = "register.html.tpl"
 )
 
-// InitRegister :
-func (u *Users) InitRegister() (err error) {
-
-	if _, ok := u.Config.Storage.Server.(engine.CreatingServerStorer); !ok {
-		return errors.New("register module activated but storer could not be upgraded to CreatingServerStorer")
-	}
-
-	if err := u.Config.Core.ViewRenderer.Load(PageRegister); err != nil {
-		return err
-	}
-
-	sort.Strings(u.Config.Modules.RegisterPreserveFields)
-
-	u.Config.Core.Router.GET("/register", u.Config.Core.ErrorHandler.Wrap(u.GetRegister))
-	u.Config.Core.Router.POST("/register", u.Config.Core.ErrorHandler.Wrap(u.PostRegister))
-
-	return nil
-}
-
 // GetRegister the register page
 func (u *Users) GetRegister(w http.ResponseWriter, req *http.Request) error {
 	return u.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, nil)

@@ -14,18 +14,6 @@ const (
 	PageLogin = "login.html.tpl"
 )
 
-// InitAuth :
-func (u *Users) InitAuth() (err error) {
-	if err = u.Engine.Config.Core.ViewRenderer.Load(PageLogin); err != nil {
-		return err
-	}
-
-	u.Engine.Config.Core.Router.GET("/login", u.Engine.Core.ErrorHandler.Wrap(u.LoginGet))
-	u.Engine.Config.Core.Router.POST("/login", u.Engine.Core.ErrorHandler.Wrap(u.LoginPost))
-
-	return nil
-}
-
 // LoginGet simply displays the login form
 func (u *Users) LoginGet(w http.ResponseWriter, r *http.Request) error {
 	data := engine.HTMLData{}
