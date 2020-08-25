@@ -10,22 +10,12 @@ import (
 
 var nowTime = time.Now
 
-func init() {
-	engine.RegisterModule("timeout", &Timeout{})
-}
-
-// Timeout module
-type Timeout struct {
-	*engine.Engine
-}
-
-// Init the expire module
+// InitTimeout :
 //
 // This installs a hook into the login process so that the
 // LastAction is recorded immediately.
-func (t *Timeout) Init(ab *engine.Engine) error {
-	t.Engine = ab
-	t.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+func (u *Users) InitTimeout() error {
+	u.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		refreshExpiry(w)
 		return false, nil
 	})
@@ -79,12 +69,12 @@ type expireMiddleware struct {
 // expired (a.ExpireAfter duration since SessionLastAction).
 // This middleware conflicts with use of the Remember module, don't enable both
 // at the same time.
-func TimeoutMiddleware(ab *engine.Engine) func(http.Handler) http.Handler {
+func TimeoutMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return expireMiddleware{
-			expireAfter:      ab.Config.Modules.ExpireAfter,
+			expireAfter:      e.Config.Modules.ExpireAfter,
 			next:             next,
-			sessionWhitelist: ab.Config.Storage.SessionStateWhitelistKeys,
+			sessionWhitelist: e.Config.Storage.SessionStateWhitelistKeys,
 		}
 	}
 }

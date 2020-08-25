@@ -11,13 +11,14 @@ import (
 	"github.com/ibraheemdev/agilely/test"
 )
 
-func TestExpireSetup(t *testing.T) {
+func TestTimeoutSetup(t *testing.T) {
 	ab := engine.New()
 
 	clientRW := test.NewClientRW()
 	ab.Storage.SessionState = clientRW
 
-	new(Timeout).Init(ab)
+	u := &Users{ab}
+	u.InitTimeout()
 
 	w := httptest.NewRecorder()
 	wr := ab.NewResponse(w)
