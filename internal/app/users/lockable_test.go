@@ -12,8 +12,8 @@ import (
 )
 
 type testLockHarness struct {
-	lock *Lock
-	ab   *engine.Engine
+	users *Users
+	ab    *engine.Engine
 
 	bodyReader *test.BodyReader
 	mailer     *test.Emailer
@@ -49,7 +49,7 @@ func testLockSetup() *testLockHarness {
 	harness.ab.Config.Storage.SessionState = harness.session
 	harness.ab.Config.Storage.Server = harness.storer
 
-	harness.lock = &Lock{harness.ab}
+	harness.users = &Users{harness.ab}
 
 	return harness
 }
@@ -69,7 +69,7 @@ func TestBeforeAuthAllow(t *testing.T) {
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
-	handled, err := harness.lock.BeforeAuth(w, r, false)
+	handled, err := harness.users.ResetLoginAttempts(w, r, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -93,7 +93,7 @@ func TestBeforeAuthDisallow(t *testing.T) {
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
-	handled, err := harness.lock.BeforeAuth(w, r, false)
+	handled, err := harness.users.EnsureNotLocked(w, r, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -133,7 +133,7 @@ func TestAfterAuthSuccess(t *testing.T) {
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
-	handled, err := harness.lock.AfterAuthSuccess(w, r, false)
+	handled, err := harness.users.ResetLoginAttempts(w, r, false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -176,7 +176,7 @@ func TestAfterAuthFailure(t *testing.T) {
 		}
 
 		r := r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
-		handled, err = harness.lock.AfterAuthFail(w, r, false)
+		handled, err = harness.users.UpdateLockAttempts(w, r, false)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -232,7 +232,7 @@ func TestLock(t *testing.T) {
 		t.Error("should not be locked")
 	}
 
-	if err := harness.lock.Lock(context.Background(), "test@test.com"); err != nil {
+	if err := harness.users.Lock(context.Background(), "test@test.com"); err != nil {
 		t.Error(err)
 	}
 
@@ -256,7 +256,7 @@ func TestUnlock(t *testing.T) {
 		t.Error("should be locked")
 	}
 
-	if err := harness.lock.Unlock(context.Background(), "test@test.com"); err != nil {
+	if err := harness.users.Unlock(context.Background(), "test@test.com"); err != nil {
 		t.Error(err)
 	}
 

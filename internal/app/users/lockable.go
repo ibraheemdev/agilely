@@ -15,35 +15,25 @@ const (
 	StoreLocked        = "locked"
 )
 
-func init() {
-	engine.RegisterModule("lock", &Lock{})
+// EnsureNotLocked ensures the account is not locked.
+func (u *Users) EnsureNotLocked(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	return u.updateLockedState(w, r, true)
 }
 
-// Lock module
-type Lock struct {
-	*engine.Engine
-}
+// InitLock : Init the lock module
+func (u *Users) InitLock(e *engine.Engine) error {
 
-// Init the module
-func (l *Lock) Init(ab *engine.Engine) error {
-	l.Engine = ab
-
-	l.Events.Before(engine.EventAuth, l.BeforeAuth)
-	l.Events.Before(engine.EventOAuth2, l.BeforeAuth)
-	l.Events.After(engine.EventAuth, l.AfterAuthSuccess)
-	l.Events.After(engine.EventAuthFail, l.AfterAuthFail)
+	u.Events.Before(engine.EventAuth, u.ResetLoginAttempts)
+	u.Events.Before(engine.EventOAuth2, u.ResetLoginAttempts)
+	u.Events.After(engine.EventAuth, u.ResetLoginAttempts)
+	u.Events.After(engine.EventAuthFail, u.UpdateLockAttempts)
 
 	return nil
 }
 
-// BeforeAuth ensures the account is not locked.
-func (l *Lock) BeforeAuth(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
-	return l.updateLockedState(w, r, true)
-}
-
-// AfterAuthSuccess resets the attempt number field.
-func (l *Lock) AfterAuthSuccess(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
-	user, err := l.Engine.CurrentUser(r)
+// ResetLoginAttempts resets the attempt number field.
+func (u *Users) ResetLoginAttempts(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	user, err := u.Engine.CurrentUser(r)
 	if err != nil {
 		return false, err
 	}
@@ -52,19 +42,19 @@ func (l *Lock) AfterAuthSuccess(w http.ResponseWriter, r *http.Request, handled 
 	lu.PutAttemptCount(0)
 	lu.PutLastAttempt(time.Now().UTC())
 
-	return false, l.Engine.Config.Storage.Server.Save(r.Context(), lu)
+	return false, u.Engine.Config.Storage.Server.Save(r.Context(), lu)
 }
 
-// AfterAuthFail adjusts the attempt number and time negatively
+// UpdateLockAttempts adjusts the attempt number and time negatively
 // and locks the user if they're beyond limits.
-func (l *Lock) AfterAuthFail(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
-	return l.updateLockedState(w, r, false)
+func (u *Users) UpdateLockAttempts(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	return u.updateLockedState(w, r, false)
 }
 
 // updateLockedState exists to minimize any differences between a success and
 // a failure path in the case where a correct/incorrect password is entered
-func (l *Lock) updateLockedState(w http.ResponseWriter, r *http.Request, wasCorrectPassword bool) (bool, error) {
-	user, err := l.Engine.CurrentUser(r)
+func (u *Users) updateLockedState(w http.ResponseWriter, r *http.Request, wasCorrectPassword bool) (bool, error) {
+	user, err := u.Engine.CurrentUser(r)
 	if err != nil {
 		return false, err
 	}
@@ -76,9 +66,9 @@ func (l *Lock) updateLockedState(w http.ResponseWriter, r *http.Request, wasCorr
 	attempts++
 
 	if !wasCorrectPassword {
-		if time.Now().UTC().Sub(last) <= l.Modules.LockWindow {
-			if attempts >= l.Modules.LockAfter {
-				lu.PutLocked(time.Now().UTC().Add(l.Modules.LockDuration))
+		if time.Now().UTC().Sub(last) <= u.Modules.LockWindow {
+			if attempts >= u.Modules.LockAfter {
+				lu.PutLocked(time.Now().UTC().Add(u.Modules.LockDuration))
 			}
 
 			lu.PutAttemptCount(attempts)
@@ -88,7 +78,7 @@ func (l *Lock) updateLockedState(w http.ResponseWriter, r *http.Request, wasCorr
 	}
 	lu.PutLastAttempt(time.Now().UTC())
 
-	if err := l.Engine.Config.Storage.Server.Save(r.Context(), lu); err != nil {
+	if err := u.Engine.Config.Storage.Server.Save(r.Context(), lu); err != nil {
 		return false, err
 	}
 
@@ -101,25 +91,25 @@ func (l *Lock) updateLockedState(w http.ResponseWriter, r *http.Request, wasCorr
 		Failure:      "Your account has been locked, please contact the administrator.",
 		RedirectPath: "/login",
 	}
-	return true, l.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return true, u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
 }
 
 // Lock a user manually.
-func (l *Lock) Lock(ctx context.Context, key string) error {
-	user, err := l.Engine.Config.Storage.Server.Load(ctx, key)
+func (u *Users) Lock(ctx context.Context, key string) error {
+	user, err := u.Engine.Config.Storage.Server.Load(ctx, key)
 	if err != nil {
 		return err
 	}
 
 	lu := engine.MustBeLockable(user)
-	lu.PutLocked(time.Now().UTC().Add(l.Engine.Config.Modules.LockDuration))
+	lu.PutLocked(time.Now().UTC().Add(u.Engine.Config.Modules.LockDuration))
 
-	return l.Engine.Config.Storage.Server.Save(ctx, lu)
+	return u.Engine.Config.Storage.Server.Save(ctx, lu)
 }
 
 // Unlock a user that was locked by this module.
-func (l *Lock) Unlock(ctx context.Context, key string) error {
-	user, err := l.Engine.Config.Storage.Server.Load(ctx, key)
+func (u *Users) Unlock(ctx context.Context, key string) error {
+	user, err := u.Engine.Config.Storage.Server.Load(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -132,10 +122,10 @@ func (l *Lock) Unlock(ctx context.Context, key string) error {
 	// unix_time(0): Jan 1st, 1970
 	now := time.Now().UTC()
 	lu.PutAttemptCount(0)
-	lu.PutLastAttempt(now.Add(-l.Engine.Config.Modules.LockWindow * 2))
-	lu.PutLocked(now.Add(-l.Engine.Config.Modules.LockDuration))
+	lu.PutLastAttempt(now.Add(-u.Engine.Config.Modules.LockWindow * 2))
+	lu.PutLocked(now.Add(-u.Engine.Config.Modules.LockDuration))
 
-	return l.Engine.Config.Storage.Server.Save(ctx, lu)
+	return u.Engine.Config.Storage.Server.Save(ctx, lu)
 }
 
 // LockMiddleware ensures that a user is not locked, or else it will intercept
