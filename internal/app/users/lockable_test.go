@@ -13,7 +13,7 @@ import (
 
 type testLockHarness struct {
 	users *Users
-	ab    *engine.Engine
+	e     *engine.Engine
 
 	bodyReader *test.BodyReader
 	mailer     *test.Emailer
@@ -27,7 +27,7 @@ type testLockHarness struct {
 func testLockSetup() *testLockHarness {
 	harness := &testLockHarness{}
 
-	harness.ab = engine.New()
+	harness.e = engine.New()
 	harness.bodyReader = &test.BodyReader{}
 	harness.mailer = &test.Emailer{}
 	harness.redirector = &test.Redirector{}
@@ -36,20 +36,20 @@ func testLockSetup() *testLockHarness {
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.ab.Modules.LockAfter = 3
-	harness.ab.Modules.LockDuration = time.Hour
-	harness.ab.Modules.LockWindow = time.Minute
+	harness.e.Modules.LockAfter = 3
+	harness.e.Modules.LockDuration = time.Hour
+	harness.e.Modules.LockWindow = time.Minute
 
-	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
-	harness.ab.Config.Core.Mailer = harness.mailer
-	harness.ab.Config.Core.Redirector = harness.redirector
-	harness.ab.Config.Core.MailRenderer = harness.renderer
-	harness.ab.Config.Core.Responder = harness.responder
-	harness.ab.Config.Storage.SessionState = harness.session
-	harness.ab.Config.Storage.Server = harness.storer
+	harness.e.Config.Core.BodyReader = harness.bodyReader
+	harness.e.Config.Core.Logger = test.Logger{}
+	harness.e.Config.Core.Mailer = harness.mailer
+	harness.e.Config.Core.Redirector = harness.redirector
+	harness.e.Config.Core.MailRenderer = harness.renderer
+	harness.e.Config.Core.Responder = harness.responder
+	harness.e.Config.Storage.SessionState = harness.session
+	harness.e.Config.Storage.Server = harness.storer
 
-	harness.users = &Users{harness.ab}
+	harness.users = NewController(harness.e)
 
 	return harness
 }

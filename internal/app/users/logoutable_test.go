@@ -21,7 +21,7 @@ func TestLogout(t *testing.T) {
 	e.Config.Core.Router = router
 	e.Config.Core.ErrorHandler = errHandler
 
-	u := &Users{e}
+	u := NewController(e)
 	if err := u.InitLogout(); err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func TestLogoutRoutes(t *testing.T) {
 	e.Config.Core.Router = router
 	e.Config.Core.ErrorHandler = errHandler
 
-	u := &Users{e}
+	u := NewController(e)
 
 	if err := u.InitLogout(); err != nil {
 		t.Error("should have failed to register the route")
@@ -52,7 +52,7 @@ func TestLogoutRoutes(t *testing.T) {
 
 type testLogoutHarness struct {
 	users *Users
-	ab    *engine.Engine
+	e     *engine.Engine
 
 	redirector *test.Redirector
 	session    *test.ClientStateRW
@@ -63,19 +63,19 @@ type testLogoutHarness struct {
 func testLogoutSetup() *testLogoutHarness {
 	harness := &testLogoutHarness{}
 
-	harness.ab = engine.New()
+	harness.e = engine.New()
 	harness.redirector = &test.Redirector{}
 	harness.session = test.NewClientRW()
 	harness.cookies = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.ab.Config.Core.Logger = test.Logger{}
-	harness.ab.Config.Core.Redirector = harness.redirector
-	harness.ab.Config.Storage.SessionState = harness.session
-	harness.ab.Config.Storage.CookieState = harness.cookies
-	harness.ab.Config.Storage.Server = harness.storer
+	harness.e.Config.Core.Logger = test.Logger{}
+	harness.e.Config.Core.Redirector = harness.redirector
+	harness.e.Config.Storage.SessionState = harness.session
+	harness.e.Config.Storage.CookieState = harness.cookies
+	harness.e.Config.Storage.Server = harness.storer
 
-	harness.users = &Users{harness.ab}
+	harness.users = NewController(harness.e)
 
 	return harness
 }
@@ -92,7 +92,7 @@ func TestLogoutLogout(t *testing.T) {
 
 	r := test.Request("POST")
 	resp := httptest.NewRecorder()
-	w := h.ab.NewResponse(resp)
+	w := h.e.NewResponse(resp)
 
 	// This enables the logging portion
 	// which is debatable-y not useful in a log out method
@@ -100,7 +100,7 @@ func TestLogoutLogout(t *testing.T) {
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 
 	var err error
-	r, err = h.ab.LoadClientState(w, r)
+	r, err = h.e.LoadClientState(w, r)
 	if err != nil {
 		t.Error(err)
 	}

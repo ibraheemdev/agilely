@@ -17,7 +17,7 @@ import (
 
 type testConfirmHarness struct {
 	users *Users
-	ab    *engine.Engine
+	e     *engine.Engine
 
 	bodyReader *test.BodyReader
 	mailer     *test.Emailer
@@ -31,7 +31,7 @@ type testConfirmHarness struct {
 func testConfirmSetup() *testConfirmHarness {
 	harness := &testConfirmHarness{}
 
-	harness.ab = engine.New()
+	harness.e = engine.New()
 	harness.bodyReader = &test.BodyReader{}
 	harness.mailer = &test.Emailer{}
 	harness.redirector = &test.Redirector{}
@@ -40,16 +40,16 @@ func testConfirmSetup() *testConfirmHarness {
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
-	harness.ab.Config.Core.Mailer = harness.mailer
-	harness.ab.Config.Core.Redirector = harness.redirector
-	harness.ab.Config.Core.MailRenderer = harness.renderer
-	harness.ab.Config.Core.Responder = harness.responder
-	harness.ab.Config.Storage.SessionState = harness.session
-	harness.ab.Config.Storage.Server = harness.storer
+	harness.e.Config.Core.BodyReader = harness.bodyReader
+	harness.e.Config.Core.Logger = test.Logger{}
+	harness.e.Config.Core.Mailer = harness.mailer
+	harness.e.Config.Core.Redirector = harness.redirector
+	harness.e.Config.Core.MailRenderer = harness.renderer
+	harness.e.Config.Core.Responder = harness.responder
+	harness.e.Config.Storage.SessionState = harness.session
+	harness.e.Config.Storage.Server = harness.storer
 
-	harness.users = &Users{harness.ab}
+	harness.users = NewController(harness.e)
 
 	return harness
 }
@@ -332,15 +332,15 @@ func TestMailURL(t *testing.T) {
 	t.Parallel()
 
 	h := testConfirmSetup()
-	h.ab.Config.Paths.RootURL = "https://api.test.com:6343"
-	h.ab.Config.Paths.Mount = "/v1/auth"
+	h.e.Config.Paths.RootURL = "https://api.test.com:6343"
+	h.e.Config.Paths.Mount = "/v1/auth"
 
 	want := "https://api.test.com:6343/v1/auth/confirm?cnf=abc"
 	if got := h.users.mailConfirmURL("abc"); got != want {
 		t.Error("want:", want, "got:", got)
 	}
 
-	h.ab.Config.Mail.RootURL = "https://test.com:3333/testauth"
+	h.e.Config.Mail.RootURL = "https://test.com:3333/testauth"
 
 	want = "https://test.com:3333/testauth/confirm?cnf=abc"
 	if got := h.users.mailConfirmURL("abc"); got != want {

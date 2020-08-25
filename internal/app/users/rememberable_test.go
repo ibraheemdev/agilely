@@ -15,7 +15,7 @@ import (
 
 type testRememberHarness struct {
 	users *Users
-	ab    *engine.Engine
+	e     *engine.Engine
 
 	session *test.ClientStateRW
 	cookies *test.ClientStateRW
@@ -25,17 +25,17 @@ type testRememberHarness struct {
 func testRememberSetup() *testRememberHarness {
 	harness := &testRememberHarness{}
 
-	harness.ab = engine.New()
+	harness.e = engine.New()
 	harness.session = test.NewClientRW()
 	harness.cookies = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.ab.Config.Core.Logger = test.Logger{}
-	harness.ab.Config.Storage.SessionState = harness.session
-	harness.ab.Config.Storage.CookieState = harness.cookies
-	harness.ab.Config.Storage.Server = harness.storer
+	harness.e.Config.Core.Logger = test.Logger{}
+	harness.e.Config.Storage.SessionState = harness.session
+	harness.e.Config.Storage.CookieState = harness.cookies
+	harness.e.Config.Storage.Server = harness.storer
 
-	harness.users = &Users{harness.ab}
+	harness.users = NewController(harness.e)
 
 	return harness
 }
@@ -51,7 +51,7 @@ func TestRememberAfterAuth(t *testing.T) {
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyValues, test.Values{Remember: true}))
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 
 	if handled, err := h.users.CreateRememberToken(w, r, false); err != nil {
 		t.Fatal(err)
@@ -78,7 +78,7 @@ func TestRememberAfterAuthSkip(t *testing.T) {
 
 	r := test.Request("POST")
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 
 	if handled, err := h.users.CreateRememberToken(w, r, false); err != nil {
 		t.Fatal(err)
@@ -117,16 +117,16 @@ func TestMiddlewareAuth(t *testing.T) {
 
 	r := test.Request("POST")
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 
 	var err error
-	r, err = h.ab.LoadClientState(w, r)
+	r, err = h.e.LoadClientState(w, r)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	called := false
-	server := RememberMiddleware(h.ab)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := RememberMiddleware(h.e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -157,15 +157,15 @@ func TestAuthenticateSuccess(t *testing.T) {
 
 	r := test.Request("POST")
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 
 	var err error
-	r, err = h.ab.LoadClientState(w, r)
+	r, err = h.e.LoadClientState(w, r)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err = Authenticate(h.ab, w, &r); err != nil {
+	if err = Authenticate(h.e, w, &r); err != nil {
 		t.Fatal(err)
 	}
 
@@ -206,15 +206,15 @@ func TestAuthenticateTokenNotFound(t *testing.T) {
 
 	r := test.Request("POST")
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 
 	var err error
-	r, err = h.ab.LoadClientState(w, r)
+	r, err = h.e.LoadClientState(w, r)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err = Authenticate(h.ab, w, &r); err != nil {
+	if err = Authenticate(h.e, w, &r); err != nil {
 		t.Fatal(err)
 	}
 
@@ -243,15 +243,15 @@ func TestAuthenticateBadTokens(t *testing.T) {
 
 		r := test.Request("POST")
 		rec := httptest.NewRecorder()
-		w := h.ab.NewResponse(rec)
+		w := h.e.NewResponse(rec)
 
 		var err error
-		r, err = h.ab.LoadClientState(w, r)
+		r, err = h.e.LoadClientState(w, r)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if err = Authenticate(h.ab, w, &r); err != nil {
+		if err = Authenticate(h.e, w, &r); err != nil {
 			t.Fatal(err)
 		}
 
@@ -296,7 +296,7 @@ func TestResetAllTokens(t *testing.T) {
 	r := test.Request("POST")
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 
 	if handled, err := h.users.ResetAllTokens(w, r, false); err != nil {
 		t.Error(err)

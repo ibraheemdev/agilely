@@ -25,7 +25,7 @@ func TestRegisterInit(t *testing.T) {
 	e.Config.Core.ErrorHandler = errHandler
 	e.Config.Storage.Server = &test.ServerStorer{}
 
-	u := &Users{e}
+	u := NewController(e)
 	if err := u.InitRegister(); err != nil {
 		t.Fatal(err)
 	}
@@ -44,11 +44,11 @@ func TestRegisterInit(t *testing.T) {
 func TestRegisterGet(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 	responder := &test.Responder{}
-	ab.Config.Core.Responder = responder
+	e.Config.Core.Responder = responder
 
-	u := &Users{ab}
+	u := NewController(e)
 	if err := u.GetRegister(nil, nil); err != nil {
 		t.Error(err)
 	}
@@ -64,7 +64,7 @@ func TestRegisterGet(t *testing.T) {
 
 type testRegisterHarness struct {
 	users *Users
-	ab    *engine.Engine
+	e     *engine.Engine
 
 	bodyReader *test.BodyReader
 	responder  *test.Responder
@@ -76,21 +76,21 @@ type testRegisterHarness struct {
 func testRegisterSetup() *testRegisterHarness {
 	harness := &testRegisterHarness{}
 
-	harness.ab = engine.New()
+	harness.e = engine.New()
 	harness.bodyReader = &test.BodyReader{}
 	harness.redirector = &test.Redirector{}
 	harness.responder = &test.Responder{}
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
-	harness.ab.Config.Core.Responder = harness.responder
-	harness.ab.Config.Core.Redirector = harness.redirector
-	harness.ab.Config.Storage.SessionState = harness.session
-	harness.ab.Config.Storage.Server = harness.storer
+	harness.e.Config.Core.BodyReader = harness.bodyReader
+	harness.e.Config.Core.Logger = test.Logger{}
+	harness.e.Config.Core.Responder = harness.responder
+	harness.e.Config.Core.Redirector = harness.redirector
+	harness.e.Config.Storage.SessionState = harness.session
+	harness.e.Config.Storage.Server = harness.storer
 
-	harness.users = &Users{harness.ab}
+	harness.users = NewController(harness.e)
 
 	return harness
 }
@@ -99,7 +99,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 	t.Parallel()
 
 	setupMore := func(harness *testRegisterHarness) *testRegisterHarness {
-		harness.ab.Modules.RegisterPreserveFields = []string{"email", "another"}
+		harness.e.Modules.RegisterPreserveFields = []string{"email", "another"}
 		harness.bodyReader.Return = test.ArbValues{
 			Values: map[string]string{
 				"email":    "test@test.com",
@@ -117,7 +117,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 
 		r := test.Request("POST")
 		resp := httptest.NewRecorder()
-		w := h.ab.NewResponse(resp)
+		w := h.e.NewResponse(resp)
 
 		if err := h.users.PostRegister(w, r); err != nil {
 			t.Error(err)
@@ -152,7 +152,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 		h := setupMore(testRegisterSetup())
 
 		var afterCalled bool
-		h.ab.Events.After(engine.EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.After(engine.EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			w.WriteHeader(http.StatusTeapot)
 			afterCalled = true
 			return true, nil
@@ -160,7 +160,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 
 		r := test.Request("POST")
 		resp := httptest.NewRecorder()
-		w := h.ab.NewResponse(resp)
+		w := h.e.NewResponse(resp)
 
 		if err := h.users.PostRegister(w, r); err != nil {
 			t.Error(err)
@@ -195,7 +195,7 @@ func TestRegisterPostValidationFailure(t *testing.T) {
 
 	// Ensure the below is sorted, the sort normally happens in Init()
 	// that we don't call
-	h.ab.Modules.RegisterPreserveFields = []string{"another", "email"}
+	h.e.Modules.RegisterPreserveFields = []string{"another", "email"}
 	h.bodyReader.Return = test.ArbValues{
 		Values: map[string]string{
 			"email":    "test@test.com",
@@ -209,7 +209,7 @@ func TestRegisterPostValidationFailure(t *testing.T) {
 
 	r := test.Request("POST")
 	resp := httptest.NewRecorder()
-	w := h.ab.NewResponse(resp)
+	w := h.e.NewResponse(resp)
 
 	if err := h.users.PostRegister(w, r); err != nil {
 		t.Error(err)
@@ -249,7 +249,7 @@ func TestRegisterPostUserExists(t *testing.T) {
 
 	// Ensure the below is sorted, the sort normally happens in Init()
 	// that we don't call
-	h.ab.Modules.RegisterPreserveFields = []string{"another", "email"}
+	h.e.Modules.RegisterPreserveFields = []string{"another", "email"}
 	h.storer.Users["test@test.com"] = &test.User{}
 	h.bodyReader.Return = test.ArbValues{
 		Values: map[string]string{
@@ -261,7 +261,7 @@ func TestRegisterPostUserExists(t *testing.T) {
 
 	r := test.Request("POST")
 	resp := httptest.NewRecorder()
-	w := h.ab.NewResponse(resp)
+	w := h.e.NewResponse(resp)
 
 	if err := h.users.PostRegister(w, r); err != nil {
 		t.Error(err)

@@ -21,7 +21,7 @@ func TestEngineInit(t *testing.T) {
 	e.Config.Core.ViewRenderer = renderer
 	e.Config.Core.ErrorHandler = errHandler
 
-	u := &Users{e}
+	u := NewController(e)
 	if err := u.Init(e); err != nil {
 		t.Fatal(err)
 	}
@@ -41,15 +41,15 @@ func TestEngineInit(t *testing.T) {
 func TestAuthGet(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 	responder := &test.Responder{}
-	ab.Config.Core.Responder = responder
+	e.Config.Core.Responder = responder
 
-	a := &Users{ab}
+	u := NewController(e)
 
 	r := test.Request("GET")
 	r.URL.RawQuery = "redir=/redirectpage"
-	if err := a.LoginGet(nil, r); err != nil {
+	if err := u.LoginGet(nil, r); err != nil {
 		t.Error(err)
 	}
 
@@ -68,7 +68,7 @@ func TestAuthGet(t *testing.T) {
 
 type testHarness struct {
 	users *Users
-	ab    *engine.Engine
+	e     *engine.Engine
 
 	bodyReader *test.BodyReader
 	responder  *test.Responder
@@ -80,21 +80,21 @@ type testHarness struct {
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
-	harness.ab = engine.New()
+	harness.e = engine.New()
 	harness.bodyReader = &test.BodyReader{}
 	harness.redirector = &test.Redirector{}
 	harness.responder = &test.Responder{}
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.ab.Config.Core.BodyReader = harness.bodyReader
-	harness.ab.Config.Core.Logger = test.Logger{}
-	harness.ab.Config.Core.Responder = harness.responder
-	harness.ab.Config.Core.Redirector = harness.redirector
-	harness.ab.Config.Storage.SessionState = harness.session
-	harness.ab.Config.Storage.Server = harness.storer
+	harness.e.Config.Core.BodyReader = harness.bodyReader
+	harness.e.Config.Core.Logger = test.Logger{}
+	harness.e.Config.Core.Responder = harness.responder
+	harness.e.Config.Core.Redirector = harness.redirector
+	harness.e.Config.Storage.SessionState = harness.session
+	harness.e.Config.Storage.Server = harness.storer
 
-	harness.users = &Users{harness.ab}
+	harness.users = NewController(harness.e)
 
 	return harness
 }
@@ -122,12 +122,12 @@ func TestAuthPostSuccess(t *testing.T) {
 
 		var beforeCalled, afterCalled bool
 		var beforeHasValues, afterHasValues bool
-		h.ab.Events.Before(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.Before(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			beforeCalled = true
 			beforeHasValues = r.Context().Value(engine.CTXKeyValues) != nil
 			return false, nil
 		})
-		h.ab.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			afterCalled = true
 			afterHasValues = r.Context().Value(engine.CTXKeyValues) != nil
 			return false, nil
@@ -135,7 +135,7 @@ func TestAuthPostSuccess(t *testing.T) {
 
 		r := test.Request("POST")
 		resp := httptest.NewRecorder()
-		w := h.ab.NewResponse(resp)
+		w := h.e.NewResponse(resp)
 
 		if err := h.users.LoginPost(w, r); err != nil {
 			t.Error(err)
@@ -174,7 +174,7 @@ func TestAuthPostSuccess(t *testing.T) {
 		h := setupMore(testSetup())
 
 		var beforeCalled bool
-		h.ab.Events.Before(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.Before(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			w.WriteHeader(http.StatusTeapot)
 			beforeCalled = true
 			return true, nil
@@ -182,7 +182,7 @@ func TestAuthPostSuccess(t *testing.T) {
 
 		r := test.Request("POST")
 		resp := httptest.NewRecorder()
-		w := h.ab.NewResponse(resp)
+		w := h.e.NewResponse(resp)
 
 		if err := h.users.LoginPost(w, r); err != nil {
 			t.Error(err)
@@ -208,7 +208,7 @@ func TestAuthPostSuccess(t *testing.T) {
 		h := setupMore(testSetup())
 
 		var afterCalled bool
-		h.ab.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			w.WriteHeader(http.StatusTeapot)
 			afterCalled = true
 			return true, nil
@@ -216,7 +216,7 @@ func TestAuthPostSuccess(t *testing.T) {
 
 		r := test.Request("POST")
 		resp := httptest.NewRecorder()
-		w := h.ab.NewResponse(resp)
+		w := h.e.NewResponse(resp)
 
 		if err := h.users.LoginPost(w, r); err != nil {
 			t.Error(err)
@@ -260,10 +260,10 @@ func TestAuthPostBadPassword(t *testing.T) {
 
 		r := test.Request("POST")
 		resp := httptest.NewRecorder()
-		w := h.ab.NewResponse(resp)
+		w := h.e.NewResponse(resp)
 
 		var afterCalled bool
-		h.ab.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			afterCalled = true
 			return false, nil
 		})
@@ -295,10 +295,10 @@ func TestAuthPostBadPassword(t *testing.T) {
 
 		r := test.Request("POST")
 		resp := httptest.NewRecorder()
-		w := h.ab.NewResponse(resp)
+		w := h.e.NewResponse(resp)
 
 		var afterCalled bool
-		h.ab.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			w.WriteHeader(http.StatusTeapot)
 			afterCalled = true
 			return true, nil
@@ -335,12 +335,12 @@ func TestAuthPostUserNotFound(t *testing.T) {
 
 	r := test.Request("POST")
 	resp := httptest.NewRecorder()
-	w := harness.ab.NewResponse(resp)
+	w := harness.e.NewResponse(resp)
 
 	// This event is really the only thing that separates "user not found"
 	// from "bad password"
 	var afterCalled bool
-	harness.ab.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	harness.e.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		afterCalled = true
 		return false, nil
 	})

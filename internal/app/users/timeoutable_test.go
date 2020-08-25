@@ -12,18 +12,18 @@ import (
 )
 
 func TestTimeoutSetup(t *testing.T) {
-	ab := engine.New()
+	e := engine.New()
 
 	clientRW := test.NewClientRW()
-	ab.Storage.SessionState = clientRW
+	e.Storage.SessionState = clientRW
 
-	u := &Users{ab}
+	u := NewController(e)
 	u.InitTimeout()
 
 	w := httptest.NewRecorder()
-	wr := ab.NewResponse(w)
+	wr := e.NewResponse(w)
 
-	handled, err := ab.Events.FireAfter(engine.EventAuth, wr, nil)
+	handled, err := e.Events.FireAfter(engine.EventAuth, wr, nil)
 	if handled {
 		t.Error("it should not handle the event")
 	}

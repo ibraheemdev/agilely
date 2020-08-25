@@ -8,3 +8,8 @@ import (
 type Users struct {
 	*engine.Engine
 }
+
+// NewController : Returns a new users controller
+func NewController(e *engine.Engine) *Users {
+	return &Users{Engine: e}
+}
