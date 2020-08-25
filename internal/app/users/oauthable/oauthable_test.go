@@ -58,18 +58,18 @@ var testToken = &oauth2.Token{
 func TestInit(t *testing.T) {
 	// No t.Parallel() since the cfg.RedirectURL is set in Init()
 
-	ab := engine.New()
+	e := engine.New()
 	oauth := &OAuth2{}
 
 	router := &test.Router{}
-	ab.Config.Modules.OAuth2Providers = testProviders
-	ab.Config.Core.Router = router
-	ab.Config.Core.ErrorHandler = &test.ErrorHandler{}
+	e.Config.Modules.OAuth2Providers = testProviders
+	e.Config.Core.Router = router
+	e.Config.Core.ErrorHandler = &test.ErrorHandler{}
 
-	ab.Config.Paths.Mount = "/auth"
-	ab.Config.Paths.RootURL = "https://www.example.com"
+	e.Config.Paths.Mount = "/auth"
+	e.Config.Paths.RootURL = "https://www.example.com"
 
-	if err := oauth.Init(ab); err != nil {
+	if err := oauth.Init(e); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,7 +84,7 @@ func TestInit(t *testing.T) {
 
 type testHarness struct {
 	oauth *OAuth2
-	ab    *engine.Engine
+	e    *engine.Engine
 
 	redirector *test.Redirector
 	session    *test.ClientStateRW
@@ -94,19 +94,19 @@ type testHarness struct {
 func testSetup() *testHarness {
 	harness := &testHarness{}
 
-	harness.ab = engine.New()
+	harness.e = engine.New()
 	harness.redirector = &test.Redirector{}
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.ab.Modules.OAuth2Providers = testProviders
+	harness.e.Modules.OAuth2Providers = testProviders
 
-	harness.ab.Config.Core.Logger = test.Logger{}
-	harness.ab.Config.Core.Redirector = harness.redirector
-	harness.ab.Config.Storage.SessionState = harness.session
-	harness.ab.Config.Storage.Server = harness.storer
+	harness.e.Config.Core.Logger = test.Logger{}
+	harness.e.Config.Core.Redirector = harness.redirector
+	harness.e.Config.Storage.SessionState = harness.session
+	harness.e.Config.Storage.Server = harness.storer
 
-	harness.oauth = &OAuth2{harness.ab}
+	harness.oauth = &OAuth2{harness.e}
 
 	return harness
 }
@@ -117,7 +117,7 @@ func TestStart(t *testing.T) {
 	h := testSetup()
 
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 	r := httptest.NewRequest("GET", "/oauth2/google?cake=yes&death=no", nil)
 
 	if err := h.oauth.Start(w, r); err != nil {
@@ -160,7 +160,7 @@ func TestStartBadProvider(t *testing.T) {
 	h := testSetup()
 
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 	r := httptest.NewRequest("GET", "/oauth2/test", nil)
 
 	err := h.oauth.Start(w, r)
@@ -175,10 +175,10 @@ func TestEnd(t *testing.T) {
 	h := testSetup()
 
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 
 	h.session.ClientValues[engine.SessionOAuth2State] = "state"
-	r, err := h.ab.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
+	r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,7 +207,7 @@ func TestEndBadProvider(t *testing.T) {
 	h := testSetup()
 
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 	r := httptest.NewRequest("GET", "/oauth2/callback/test", nil)
 
 	err := h.oauth.End(w, r)
@@ -222,7 +222,7 @@ func TestEndBadState(t *testing.T) {
 	h := testSetup()
 
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 	r := httptest.NewRequest("GET", "/oauth2/callback/google", nil)
 
 	err := h.oauth.End(w, r)
@@ -231,7 +231,7 @@ func TestEndBadState(t *testing.T) {
 	}
 
 	h.session.ClientValues[engine.SessionOAuth2State] = "state"
-	r, err = h.ab.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=x", nil))
+	r, err = h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=x", nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -246,10 +246,10 @@ func TestEndErrors(t *testing.T) {
 	h := testSetup()
 
 	rec := httptest.NewRecorder()
-	w := h.ab.NewResponse(rec)
+	w := h.e.NewResponse(rec)
 
 	h.session.ClientValues[engine.SessionOAuth2State] = "state"
-	r, err := h.ab.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state&error=badtimes&error_reason=reason", nil))
+	r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state&error=badtimes&error_reason=reason", nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -274,16 +274,16 @@ func TestEndHandling(t *testing.T) {
 		h := testSetup()
 
 		rec := httptest.NewRecorder()
-		w := h.ab.NewResponse(rec)
+		w := h.e.NewResponse(rec)
 
 		h.session.ClientValues[engine.SessionOAuth2State] = "state"
-		r, err := h.ab.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state&error=badtimes&error_reason=reason", nil))
+		r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state&error=badtimes&error_reason=reason", nil))
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		called := false
-		h.ab.Events.After(engine.EventOAuth2Fail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.After(engine.EventOAuth2Fail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			called = true
 			return true, nil
 		})
@@ -303,16 +303,16 @@ func TestEndHandling(t *testing.T) {
 		h := testSetup()
 
 		rec := httptest.NewRecorder()
-		w := h.ab.NewResponse(rec)
+		w := h.e.NewResponse(rec)
 
 		h.session.ClientValues[engine.SessionOAuth2State] = "state"
-		r, err := h.ab.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
+		r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		called := false
-		h.ab.Events.Before(engine.EventOAuth2, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.Before(engine.EventOAuth2, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			called = true
 			return true, nil
 		})
@@ -338,16 +338,16 @@ func TestEndHandling(t *testing.T) {
 		h := testSetup()
 
 		rec := httptest.NewRecorder()
-		w := h.ab.NewResponse(rec)
+		w := h.e.NewResponse(rec)
 
 		h.session.ClientValues[engine.SessionOAuth2State] = "state"
-		r, err := h.ab.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
+		r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		called := false
-		h.ab.Events.After(engine.EventOAuth2, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.Events.After(engine.EventOAuth2, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			called = true
 			return true, nil
 		})

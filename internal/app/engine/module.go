@@ -96,7 +96,7 @@ func (a *Engine) loadModule(name string) error {
 // oauth2.google for an example. Be careful since this doesn't actually mean
 // that the oauth2 module has been loaded so you should do a conditional
 // that checks for both.
-func ModuleListMiddleware(ab *Engine) func(http.Handler) http.Handler {
+func ModuleListMiddleware(e *Engine) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var data HTMLData
@@ -109,12 +109,12 @@ func ModuleListMiddleware(ab *Engine) func(http.Handler) http.Handler {
 				data = HTMLData{}
 			}
 
-			loaded := make(map[string]bool, len(ab.loadedModules))
-			for k := range ab.loadedModules {
+			loaded := make(map[string]bool, len(e.loadedModules))
+			for k := range e.loadedModules {
 				loaded[k] = true
 			}
 
-			for provider := range ab.Config.Modules.OAuth2Providers {
+			for provider := range e.Config.Modules.OAuth2Providers {
 				loaded["oauth2."+provider] = true
 			}
 

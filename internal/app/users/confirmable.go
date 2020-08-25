@@ -242,10 +242,10 @@ func (u *Users) invalidConfirmToken(w http.ResponseWriter, r *http.Request) erro
 // Panics if the user was not able to be loaded in order to allow a panic
 // handler to show a nice error page, also panics if it failed to redirect
 // for whatever reason.
-func Middleware(ab *engine.Engine) func(http.Handler) http.Handler {
+func Middleware(e *engine.Engine) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := ab.LoadCurrentUserP(&r)
+			user := e.LoadCurrentUserP(&r)
 
 			cu := engine.MustBeConfirmable(user)
 			if cu.GetConfirmed() {
@@ -253,14 +253,14 @@ func Middleware(ab *engine.Engine) func(http.Handler) http.Handler {
 				return
 			}
 
-			logger := ab.RequestLogger(r)
+			logger := e.RequestLogger(r)
 			logger.Infof("user %s prevented from accessing %s: not confirmed", user.GetPID(), r.URL.Path)
 			ro := engine.RedirectOptions{
 				Code:         http.StatusTemporaryRedirect,
 				Failure:      "Your account has not been confirmed, please check your e-mail.",
 				RedirectPath: "/login",
 			}
-			if err := ab.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
+			if err := e.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
 				logger.Errorf("error redirecting in confirm.Middleware: #%v", err)
 			}
 		})

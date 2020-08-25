@@ -38,18 +38,18 @@ func TestTimeoutSetup(t *testing.T) {
 }
 
 func TestExpireIsExpired(t *testing.T) {
-	ab := engine.New()
+	e := engine.New()
 
 	clientRW := test.NewClientRW()
 	clientRW.ClientValues[engine.SessionKey] = "username"
 	clientRW.ClientValues[engine.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)
-	ab.Storage.SessionState = clientRW
+	e.Storage.SessionState = clientRW
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyPID, "primaryid"))
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, struct{}{}))
-	w := ab.NewResponse(httptest.NewRecorder())
-	r, err := ab.LoadClientState(w, r)
+	w := e.NewResponse(httptest.NewRecorder())
+	r, err := e.LoadClientState(w, r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,7 +64,7 @@ func TestExpireIsExpired(t *testing.T) {
 
 	called := false
 	hadUser := false
-	m := TimeoutMiddleware(ab)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	m := TimeoutMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 
 		if r.Context().Value(engine.CTXKeyPID) != nil {
@@ -94,25 +94,25 @@ func TestExpireIsExpired(t *testing.T) {
 }
 
 func TestExpireNotExpired(t *testing.T) {
-	ab := engine.New()
+	e := engine.New()
 	clientRW := test.NewClientRW()
 	clientRW.ClientValues[engine.SessionKey] = "username"
 	clientRW.ClientValues[engine.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)
-	ab.Storage.SessionState = clientRW
+	e.Storage.SessionState = clientRW
 
 	var err error
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyPID, "primaryid"))
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, struct{}{}))
-	w := ab.NewResponse(httptest.NewRecorder())
-	r, err = ab.LoadClientState(w, r)
+	w := e.NewResponse(httptest.NewRecorder())
+	r, err = e.LoadClientState(w, r)
 	if err != nil {
 		t.Error(err)
 	}
 
 	// No t.Parallel() - Also must be after refreshExpiry() call
-	newTime := time.Now().UTC().Add(ab.Modules.ExpireAfter / 2)
+	newTime := time.Now().UTC().Add(e.Modules.ExpireAfter / 2)
 	nowTime = func() time.Time {
 		return newTime
 	}
@@ -122,7 +122,7 @@ func TestExpireNotExpired(t *testing.T) {
 
 	called := false
 	hadUser := true
-	m := TimeoutMiddleware(ab)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	m := TimeoutMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 
 		if r.Context().Value(engine.CTXKeyPID) == nil {
@@ -166,11 +166,11 @@ func TestExpireTimeToExpiry(t *testing.T) {
 func TestExpireRefreshExpiry(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 	clientRW := test.NewClientRW()
-	ab.Storage.SessionState = clientRW
+	e.Storage.SessionState = clientRW
 	r := httptest.NewRequest("GET", "/", nil)
-	w := ab.NewResponse(httptest.NewRecorder())
+	w := e.NewResponse(httptest.NewRecorder())
 
 	RefreshExpiry(w, r)
 	w.WriteHeader(200)

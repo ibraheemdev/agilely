@@ -9,15 +9,15 @@ import (
 func TestEvents(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
+	e := New()
 	afterCalled := false
 	beforeCalled := false
 
-	ab.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
+	e.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
 		beforeCalled = true
 		return false, nil
 	})
-	ab.Events.After(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
+	e.Events.After(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
 		afterCalled = true
 		return false, nil
 	})
@@ -26,7 +26,7 @@ func TestEvents(t *testing.T) {
 		t.Error("Neither should be called.")
 	}
 
-	handled, err := ab.Events.FireBefore(EventRegister, nil, nil)
+	handled, err := e.Events.FireBefore(EventRegister, nil, nil)
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -41,7 +41,7 @@ func TestEvents(t *testing.T) {
 		t.Error("Expected after not to be called.")
 	}
 
-	ab.Events.FireAfter(EventRegister, nil, nil)
+	e.Events.FireAfter(EventRegister, nil, nil)
 	if !afterCalled {
 		t.Error("Expected after to be called.")
 	}
@@ -50,25 +50,25 @@ func TestEvents(t *testing.T) {
 func TestEventsHandled(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
+	e := New()
 	firstCalled := false
 	secondCalled := false
 
 	firstHandled := false
 	secondHandled := false
 
-	ab.Events.Before(EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	e.Events.Before(EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		firstCalled = true
 		firstHandled = handled
 		return true, nil
 	})
-	ab.Events.Before(EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	e.Events.Before(EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		secondCalled = true
 		secondHandled = handled
 		return false, nil
 	})
 
-	handled, err := ab.Events.FireBefore(EventRegister, nil, nil)
+	handled, err := e.Events.FireBefore(EventRegister, nil, nil)
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -94,22 +94,22 @@ func TestEventsHandled(t *testing.T) {
 func TestEventsErrors(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
+	e := New()
 	firstCalled := false
 	secondCalled := false
 
 	expect := errors.New("error")
 
-	ab.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
+	e.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
 		firstCalled = true
 		return false, expect
 	})
-	ab.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
+	e.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
 		secondCalled = true
 		return false, nil
 	})
 
-	_, err := ab.Events.FireBefore(EventRegister, nil, nil)
+	_, err := e.Events.FireBefore(EventRegister, nil, nil)
 	if err != expect {
 		t.Error("got the wrong error back:", err)
 	}

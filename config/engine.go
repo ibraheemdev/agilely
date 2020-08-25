@@ -21,44 +21,44 @@ import (
 
 // SetupEngine :
 func SetupEngine(r *httprouter.Router) {
-	ab := engine.New()
+	e := engine.New()
 
 	rt := router.NewRouter(r)
-	rt.Use(alice.New(ab.LoadClientStateMiddleware, users.RememberMiddleware(ab)))
-	ab.Config.Core.Router = rt
+	rt.Use(alice.New(e.LoadClientStateMiddleware, users.RememberMiddleware(e)))
+	e.Config.Core.Router = rt
 
-	ab.Config.Core.ErrorHandler = defaults.NewErrorHandler(logger.New(os.Stdout))
-	ab.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/*.tpl", "web/templates/layouts/*.tpl")
-	ab.Config.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
-	ab.Config.Core.Responder = responder.New(ab.Config.Core.ViewRenderer)
-	ab.Config.Core.Redirector = responder.NewRedirector(ab.Config.Core.ViewRenderer, engine.FormValueRedirect)
-	ab.Config.Core.BodyReader = defaults.NewHTTPBodyReader(false, false)
-	ab.Config.Core.Mailer = mailer.NewLogMailer(os.Stdout)
-	ab.Config.Core.Logger = logger.New(os.Stdout)
+	e.Config.Core.ErrorHandler = defaults.NewErrorHandler(logger.New(os.Stdout))
+	e.Config.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/*.tpl", "web/templates/layouts/*.tpl")
+	e.Config.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
+	e.Config.Core.Responder = responder.New(e.Config.Core.ViewRenderer)
+	e.Config.Core.Redirector = responder.NewRedirector(e.Config.Core.ViewRenderer, engine.FormValueRedirect)
+	e.Config.Core.BodyReader = defaults.NewHTTPBodyReader(false, false)
+	e.Config.Core.Mailer = mailer.NewLogMailer(os.Stdout)
+	e.Config.Core.Logger = logger.New(os.Stdout)
 
-	ab.Config.Storage.Server = users.DB
-	ab.Config.Storage.SessionState = clientstate.NewSessionStorer("agilely_session", []byte("TODO"), nil)
-	ab.Config.Storage.CookieState = clientstate.NewCookieStorer([]byte("TODO"), nil)
-	ab.Config.Storage.SessionStateWhitelistKeys = []string{}
+	e.Config.Storage.Server = users.DB
+	e.Config.Storage.SessionState = clientstate.NewSessionStorer("agilely_session", []byte("TODO"), nil)
+	e.Config.Storage.CookieState = clientstate.NewCookieStorer([]byte("TODO"), nil)
+	e.Config.Storage.SessionStateWhitelistKeys = []string{}
 
-	ab.Config.Paths.Mount = "/"
-	ab.Config.Paths.RootURL = "http://localhost:8080"
+	e.Config.Paths.Mount = "/"
+	e.Config.Paths.RootURL = "http://localhost:8080"
 
-	ab.Config.Modules.BCryptCost = bcrypt.DefaultCost
-	ab.Config.Modules.ExpireAfter = time.Hour
-	ab.Config.Modules.LockAfter = 3
-	ab.Config.Modules.LockWindow = 5 * time.Minute
-	ab.Config.Modules.LockDuration = 12 * time.Hour
-	ab.Config.Modules.RegisterPreserveFields = []string{"email"}
-	ab.Config.Modules.RecoverTokenDuration = 24 * time.Hour
-	ab.Config.Modules.OAuth2Providers = map[string]engine.OAuth2Provider{}
+	e.Config.Modules.BCryptCost = bcrypt.DefaultCost
+	e.Config.Modules.ExpireAfter = time.Hour
+	e.Config.Modules.LockAfter = 3
+	e.Config.Modules.LockWindow = 5 * time.Minute
+	e.Config.Modules.LockDuration = 12 * time.Hour
+	e.Config.Modules.RegisterPreserveFields = []string{"email"}
+	e.Config.Modules.RecoverTokenDuration = 24 * time.Hour
+	e.Config.Modules.OAuth2Providers = map[string]engine.OAuth2Provider{}
 
-	ab.Config.Mail.RootURL = ""
-	ab.Config.Mail.From = "agilely@agilely.com"
-	ab.Config.Mail.FromName = "agilely"
-	ab.Config.Mail.SubjectPrefix = ""
+	e.Config.Mail.RootURL = ""
+	e.Config.Mail.From = "agilely@agilely.com"
+	e.Config.Mail.FromName = "agilely"
+	e.Config.Mail.SubjectPrefix = ""
 
-	if err := ab.Init(); err != nil {
+	if err := e.Init(); err != nil {
 		log.Fatal(err)
 	}
 }

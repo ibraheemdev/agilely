@@ -268,9 +268,9 @@ func TestUnlock(t *testing.T) {
 func TestLockMiddlewareAllow(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 	called := false
-	server := LockMiddleware(ab)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := LockMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 
@@ -292,13 +292,13 @@ func TestLockMiddlewareAllow(t *testing.T) {
 func TestLockMiddlewareDisallow(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 	redirector := &test.Redirector{}
-	ab.Config.Core.Logger = test.Logger{}
-	ab.Config.Core.Redirector = redirector
+	e.Config.Core.Logger = test.Logger{}
+	e.Config.Core.Redirector = redirector
 
 	called := false
-	server := Middleware(ab)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := Middleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 

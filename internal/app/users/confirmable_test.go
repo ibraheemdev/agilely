@@ -273,9 +273,9 @@ func TestGetUserNotFoundFailure(t *testing.T) {
 func TestMiddlewareAllow(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 	called := false
-	server := Middleware(ab)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := Middleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 
@@ -297,13 +297,13 @@ func TestMiddlewareAllow(t *testing.T) {
 func TestMiddlewareDisallow(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 	redirector := &test.Redirector{}
-	ab.Config.Core.Logger = test.Logger{}
-	ab.Config.Core.Redirector = redirector
+	e.Config.Core.Logger = test.Logger{}
+	e.Config.Core.Redirector = redirector
 
 	called := false
-	server := Middleware(ab)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := Middleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 

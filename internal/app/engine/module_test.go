@@ -55,12 +55,12 @@ func TestLoadedModules(t *testing.T) {
 func TestIsLoaded(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
-	if err := ab.Init(); err != nil {
+	e := New()
+	if err := e.Init(); err != nil {
 		t.Error(err)
 	}
 
-	if loaded := ab.LoadedModules(); len(loaded) == 0 || loaded[0] != testModName {
+	if loaded := e.LoadedModules(); len(loaded) == 0 || loaded[0] != testModName {
 		t.Error("Loaded modules wrong:", loaded)
 	}
 }
@@ -68,19 +68,19 @@ func TestIsLoaded(t *testing.T) {
 func TestModuleLoadedMiddleware(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
+	e := New()
 
-	ab.loadedModules = map[string]Moduler{
+	e.loadedModules = map[string]Moduler{
 		"recover": nil,
 		"auth":    nil,
 		"oauth2":  nil,
 	}
-	ab.Config.Modules.OAuth2Providers = map[string]OAuth2Provider{
+	e.Config.Modules.OAuth2Providers = map[string]OAuth2Provider{
 		"google": {},
 	}
 
 	var mods map[string]bool
-	server := ModuleListMiddleware(ab)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := ModuleListMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data := r.Context().Value(CTXKeyData).(HTMLData)
 		mods = data[DataModules].(map[string]bool)
 	}))

@@ -17,12 +17,12 @@ func (t *testMailer) Send(context.Context, mailer.Email) error {
 func TestEmail(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
+	e := New()
 
 	m := &testMailer{}
 	renderer := &mockEmailRenderer{}
-	ab.Config.Core.Mailer = m
-	ab.Config.Core.MailRenderer = renderer
+	e.Config.Core.Mailer = m
+	e.Config.Core.MailRenderer = renderer
 
 	email := mailer.Email{
 		To:      []string{"support@engine.com"},
@@ -35,7 +35,7 @@ func TestEmail(t *testing.T) {
 		TextTemplate: "text",
 	}
 
-	if err := ab.Email(context.Background(), email, ro); err != nil {
+	if err := e.Email(context.Background(), email, ro); err != nil {
 		t.Error(err)
 	}
 

@@ -54,13 +54,13 @@ func (u *Users) CreateRememberToken(w http.ResponseWriter, req *http.Request, ha
 
 // RememberMiddleware automatically authenticates users if they have remember me tokens
 // If the user has been loaded already, it returns early
-func RememberMiddleware(ab *engine.Engine) func(http.Handler) http.Handler {
+func RememberMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Safely can ignore error here
-			if id, _ := ab.CurrentUserID(r); len(id) == 0 {
-				if err := Authenticate(ab, w, &r); err != nil {
-					logger := ab.RequestLogger(r)
+			if id, _ := e.CurrentUserID(r); len(id) == 0 {
+				if err := Authenticate(e, w, &r); err != nil {
+					logger := e.RequestLogger(r)
 					logger.Errorf("failed to authenticate user via remember me: %+v", err)
 				}
 			}
@@ -79,8 +79,8 @@ func RememberMiddleware(ab *engine.Engine) func(http.Handler) http.Handler {
 //
 // In order to authenticate it adds to the request context as well as to the
 // cookie and session states.
-func Authenticate(ab *engine.Engine, w http.ResponseWriter, req **http.Request) error {
-	logger := ab.RequestLogger(*req)
+func Authenticate(e *engine.Engine, w http.ResponseWriter, req **http.Request) error {
+	logger := e.RequestLogger(*req)
 	cookie, ok := engine.GetCookie(*req, engine.CookieRemember)
 	if !ok {
 		return nil
@@ -104,7 +104,7 @@ func Authenticate(ab *engine.Engine, w http.ResponseWriter, req **http.Request) 
 	sum := sha512.Sum512(rawToken)
 	hash := base64.StdEncoding.EncodeToString(sum[:])
 
-	storer := engine.EnsureCanRemember(ab.Config.Storage.Server)
+	storer := engine.EnsureCanRemember(e.Config.Storage.Server)
 	err = storer.UseRememberToken((*req).Context(), pid, hash)
 	switch {
 	case err == engine.ErrTokenNotFound:

@@ -31,19 +31,19 @@ func (t testCtxLogger) Error(string) {}
 func TestLogger(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
+	e := New()
 	logger := &testLogger{}
-	ab.Config.Core.Logger = logger
+	e.Config.Core.Logger = logger
 
-	if logger != ab.Logger(nil).Logger.(*testLogger) {
+	if logger != e.Logger(nil).Logger.(*testLogger) {
 		t.Error("wanted our logger back")
 	}
 
-	if _, ok := ab.Logger(context.Background()).Logger.(testCtxLogger); !ok {
+	if _, ok := e.Logger(context.Background()).Logger.(testCtxLogger); !ok {
 		t.Error("wanted ctx logger back")
 	}
 
-	if _, ok := ab.RequestLogger(httptest.NewRequest("GET", "/", nil)).Logger.(*testLogger); !ok {
+	if _, ok := e.RequestLogger(httptest.NewRequest("GET", "/", nil)).Logger.(*testLogger); !ok {
 		t.Error("wanted normal logger back")
 	}
 }

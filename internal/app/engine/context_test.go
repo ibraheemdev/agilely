@@ -7,8 +7,8 @@ import (
 	"testing"
 )
 
-func loadClientStateP(ab *Engine, w http.ResponseWriter, r *http.Request) *http.Request {
-	r, err := ab.LoadClientState(w, r)
+func loadClientStateP(e *Engine, w http.ResponseWriter, r *http.Request) *http.Request {
+	r, err := e.LoadClientState(w, r)
 	if err != nil {
 		panic(err)
 	}
@@ -17,45 +17,45 @@ func loadClientStateP(ab *Engine, w http.ResponseWriter, r *http.Request) *http.
 }
 
 func testSetupContext() (*Engine, *http.Request) {
-	ab := New()
-	ab.Storage.SessionState = newMockClientStateRW(SessionKey, "george-pid")
-	ab.Storage.Server = &mockServerStorer{
+	e := New()
+	e.Storage.SessionState = newMockClientStateRW(SessionKey, "george-pid")
+	e.Storage.Server = &mockServerStorer{
 		Users: map[string]*mockUser{
 			"george-pid": {Email: "george-pid", Password: "unreadable"},
 		},
 	}
 	r := httptest.NewRequest("GET", "/", nil)
-	w := ab.NewResponse(httptest.NewRecorder())
-	r = loadClientStateP(ab, w, r)
+	w := e.NewResponse(httptest.NewRecorder())
+	r = loadClientStateP(e, w, r)
 
-	return ab, r
+	return e, r
 }
 
 func testSetupContextCached() (*Engine, *mockUser, *http.Request) {
-	ab := New()
+	e := New()
 	wantUser := &mockUser{Email: "george-pid", Password: "unreadable"}
 	req := httptest.NewRequest("GET", "/", nil)
 	ctx := context.WithValue(req.Context(), CTXKeyPID, "george-pid")
 	ctx = context.WithValue(ctx, CTXKeyUser, wantUser)
 	req = req.WithContext(ctx)
 
-	return ab, wantUser, req
+	return e, wantUser, req
 }
 
 func testSetupContextPanic() *Engine {
-	ab := New()
-	ab.Storage.SessionState = newMockClientStateRW(SessionKey, "george-pid")
-	ab.Storage.Server = &mockServerStorer{}
+	e := New()
+	e.Storage.SessionState = newMockClientStateRW(SessionKey, "george-pid")
+	e.Storage.Server = &mockServerStorer{}
 
-	return ab
+	return e
 }
 
 func TestCurrentUserID(t *testing.T) {
 	t.Parallel()
 
-	ab, r := testSetupContext()
+	e, r := testSetupContext()
 
-	id, err := ab.CurrentUserID(r)
+	id, err := e.CurrentUserID(r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -68,9 +68,9 @@ func TestCurrentUserID(t *testing.T) {
 func TestCurrentUserIDContext(t *testing.T) {
 	t.Parallel()
 
-	ab, r := testSetupContext()
+	e, r := testSetupContext()
 
-	id, err := ab.CurrentUserID(r)
+	id, err := e.CurrentUserID(r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -83,9 +83,9 @@ func TestCurrentUserIDContext(t *testing.T) {
 func TestCurrentUserIDP(t *testing.T) {
 	t.Parallel()
 
-	ab := testSetupContextPanic()
+	e := testSetupContextPanic()
 	// Overwrite the setup functions state storer
-	ab.Storage.SessionState = newMockClientStateRW()
+	e.Storage.SessionState = newMockClientStateRW()
 
 	defer func() {
 		if recover().(error) != ErrUserNotFound {
@@ -93,15 +93,15 @@ func TestCurrentUserIDP(t *testing.T) {
 		}
 	}()
 
-	_ = ab.CurrentUserIDP(httptest.NewRequest("GET", "/", nil))
+	_ = e.CurrentUserIDP(httptest.NewRequest("GET", "/", nil))
 }
 
 func TestCurrentUser(t *testing.T) {
 	t.Parallel()
 
-	ab, r := testSetupContext()
+	e, r := testSetupContext()
 
-	user, err := ab.CurrentUser(r)
+	user, err := e.CurrentUser(r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -114,9 +114,9 @@ func TestCurrentUser(t *testing.T) {
 func TestCurrentUserContext(t *testing.T) {
 	t.Parallel()
 
-	ab, _, r := testSetupContextCached()
+	e, _, r := testSetupContextCached()
 
-	user, err := ab.CurrentUser(r)
+	user, err := e.CurrentUser(r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -129,7 +129,7 @@ func TestCurrentUserContext(t *testing.T) {
 func TestCurrentUserP(t *testing.T) {
 	t.Parallel()
 
-	ab := testSetupContextPanic()
+	e := testSetupContextPanic()
 
 	defer func() {
 		if recover().(error) != ErrUserNotFound {
@@ -137,15 +137,15 @@ func TestCurrentUserP(t *testing.T) {
 		}
 	}()
 
-	_ = ab.CurrentUserP(httptest.NewRequest("GET", "/", nil))
+	_ = e.CurrentUserP(httptest.NewRequest("GET", "/", nil))
 }
 
 func TestLoadCurrentUserID(t *testing.T) {
 	t.Parallel()
 
-	ab, r := testSetupContext()
+	e, r := testSetupContext()
 
-	id, err := ab.LoadCurrentUserID(&r)
+	id, err := e.LoadCurrentUserID(&r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -162,9 +162,9 @@ func TestLoadCurrentUserID(t *testing.T) {
 func TestLoadCurrentUserIDContext(t *testing.T) {
 	t.Parallel()
 
-	ab, _, r := testSetupContextCached()
+	e, _, r := testSetupContextCached()
 
-	pid, err := ab.LoadCurrentUserID(&r)
+	pid, err := e.LoadCurrentUserID(&r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -177,7 +177,7 @@ func TestLoadCurrentUserIDContext(t *testing.T) {
 func TestLoadCurrentUserIDP(t *testing.T) {
 	t.Parallel()
 
-	ab := testSetupContextPanic()
+	e := testSetupContextPanic()
 
 	defer func() {
 		if recover().(error) != ErrUserNotFound {
@@ -186,15 +186,15 @@ func TestLoadCurrentUserIDP(t *testing.T) {
 	}()
 
 	r := httptest.NewRequest("GET", "/", nil)
-	_ = ab.LoadCurrentUserIDP(&r)
+	_ = e.LoadCurrentUserIDP(&r)
 }
 
 func TestLoadCurrentUser(t *testing.T) {
 	t.Parallel()
 
-	ab, r := testSetupContext()
+	e, r := testSetupContext()
 
-	user, err := ab.LoadCurrentUser(&r)
+	user, err := e.LoadCurrentUser(&r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -213,9 +213,9 @@ func TestLoadCurrentUser(t *testing.T) {
 func TestLoadCurrentUserContext(t *testing.T) {
 	t.Parallel()
 
-	ab, wantUser, r := testSetupContextCached()
+	e, wantUser, r := testSetupContextCached()
 
-	user, err := ab.LoadCurrentUser(&r)
+	user, err := e.LoadCurrentUser(&r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -229,7 +229,7 @@ func TestLoadCurrentUserContext(t *testing.T) {
 func TestLoadCurrentUserP(t *testing.T) {
 	t.Parallel()
 
-	ab := testSetupContextPanic()
+	e := testSetupContextPanic()
 
 	defer func() {
 		if recover().(error) != ErrUserNotFound {
@@ -238,7 +238,7 @@ func TestLoadCurrentUserP(t *testing.T) {
 	}()
 
 	r := httptest.NewRequest("GET", "/", nil)
-	_ = ab.LoadCurrentUserP(&r)
+	_ = e.LoadCurrentUserP(&r)
 }
 
 func TestCTXKeyString(t *testing.T) {

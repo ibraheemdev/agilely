@@ -10,15 +10,15 @@ import (
 func TestStateGet(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
-	ab.Storage.SessionState = newMockClientStateRW("one", "two")
-	ab.Storage.CookieState = newMockClientStateRW("three", "four")
+	e := New()
+	e.Storage.SessionState = newMockClientStateRW("one", "two")
+	e.Storage.CookieState = newMockClientStateRW("three", "four")
 
 	r := httptest.NewRequest("GET", "/", nil)
-	w := ab.NewResponse(httptest.NewRecorder())
+	w := e.NewResponse(httptest.NewRecorder())
 
 	var err error
-	r, err = ab.LoadClientState(w, r)
+	r, err = e.LoadClientState(w, r)
 	if err != nil {
 		t.Error(err)
 	}
@@ -34,10 +34,10 @@ func TestStateGet(t *testing.T) {
 func TestStateResponseWriterDoubleWritePanic(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
-	ab.Storage.SessionState = newMockClientStateRW("one", "two")
+	e := New()
+	e.Storage.SessionState = newMockClientStateRW("one", "two")
 
-	w := ab.NewResponse(httptest.NewRecorder())
+	w := e.NewResponse(httptest.NewRecorder())
 
 	w.WriteHeader(200)
 	// Check this doesn't panic
@@ -55,10 +55,10 @@ func TestStateResponseWriterDoubleWritePanic(t *testing.T) {
 func TestStateResponseWriterLastSecondWriteHeader(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
-	ab.Storage.SessionState = newMockClientStateRW()
+	e := New()
+	e.Storage.SessionState = newMockClientStateRW()
 
-	w := ab.NewResponse(httptest.NewRecorder())
+	w := e.NewResponse(httptest.NewRecorder())
 
 	PutSession(w, "one", "two")
 
@@ -72,10 +72,10 @@ func TestStateResponseWriterLastSecondWriteHeader(t *testing.T) {
 func TestStateResponseWriterLastSecondWriteWrite(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
-	ab.Storage.SessionState = newMockClientStateRW()
+	e := New()
+	e.Storage.SessionState = newMockClientStateRW()
 
-	w := ab.NewResponse(httptest.NewRecorder())
+	w := e.NewResponse(httptest.NewRecorder())
 
 	PutSession(w, "one", "two")
 
@@ -90,8 +90,8 @@ func TestStateResponseWriterLastSecondWriteWrite(t *testing.T) {
 func TestStateResponseWriterEvents(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
-	w := ab.NewResponse(httptest.NewRecorder())
+	e := New()
+	w := e.NewResponse(httptest.NewRecorder())
 
 	PutSession(w, "one", "two")
 	DelSession(w, "one")
@@ -122,11 +122,11 @@ func TestStateResponseWriterEvents(t *testing.T) {
 func TestFlashClearer(t *testing.T) {
 	t.Parallel()
 
-	ab := New()
-	ab.Storage.SessionState = newMockClientStateRW(FlashSuccessKey, "a", FlashErrorKey, "b")
+	e := New()
+	e.Storage.SessionState = newMockClientStateRW(FlashSuccessKey, "a", FlashErrorKey, "b")
 
 	r := httptest.NewRequest("GET", "/", nil)
-	w := ab.NewResponse(httptest.NewRecorder())
+	w := e.NewResponse(httptest.NewRecorder())
 
 	if msg := FlashSuccess(w, r); msg != "" {
 		t.Error("unexpected flash success:", msg)
@@ -137,7 +137,7 @@ func TestFlashClearer(t *testing.T) {
 	}
 
 	var err error
-	r, err = ab.LoadClientState(w, r)
+	r, err = e.LoadClientState(w, r)
 	if err != nil {
 		t.Error(err)
 	}

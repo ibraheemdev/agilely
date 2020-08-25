@@ -27,13 +27,13 @@ type Engine struct {
 // New makes a new instance of engine with a default
 // configuration.
 func New() *Engine {
-	ab := &Engine{}
+	e := &Engine{}
 
-	ab.loadedModules = make(map[string]Moduler)
-	ab.Events = NewEvents()
+	e.loadedModules = make(map[string]Moduler)
+	e.Events = NewEvents()
 
-	ab.Config.Defaults()
-	return ab
+	e.Config.Defaults()
+	return e
 }
 
 // Init engine, modules, renderers
@@ -129,8 +129,8 @@ const (
 //
 // failureResponse is how the middleware rejects the users that don't meet
 // the criteria. This should be chosen from the MWRespondOnFailure constants.
-func Middleware(ab *Engine, requirements MWRequirements, failureResponse MWRespondOnFailure) func(http.Handler) http.Handler {
-	return MountedMiddleware(ab, false, requirements, failureResponse)
+func Middleware(e *Engine, requirements MWRequirements, failureResponse MWRespondOnFailure) func(http.Handler) http.Handler {
+	return MountedMiddleware(e, false, requirements, failureResponse)
 }
 
 // MountedMiddleware hides an option from typical users in "mountPathed".
@@ -140,10 +140,10 @@ func Middleware(ab *Engine, requirements MWRequirements, failureResponse MWRespo
 //
 // If mountPathed is true, then before redirecting to a URL it will add
 // the mountpath to the front of it.
-func MountedMiddleware(ab *Engine, mountPathed bool, reqs MWRequirements, failResponse MWRespondOnFailure) func(http.Handler) http.Handler {
+func MountedMiddleware(e *Engine, mountPathed bool, reqs MWRequirements, failResponse MWRespondOnFailure) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log := ab.RequestLogger(r)
+			log := e.RequestLogger(r)
 
 			fail := func(w http.ResponseWriter, r *http.Request) {
 				switch failResponse {
@@ -158,18 +158,18 @@ func MountedMiddleware(ab *Engine, mountPathed bool, reqs MWRequirements, failRe
 					vals := make(url.Values)
 
 					redirURL := r.URL.Path
-					if mountPathed && len(ab.Config.Paths.Mount) != 0 {
-						redirURL = path.Join(ab.Config.Paths.Mount, redirURL)
+					if mountPathed && len(e.Config.Paths.Mount) != 0 {
+						redirURL = path.Join(e.Config.Paths.Mount, redirURL)
 					}
 					vals.Set(FormValueRedirect, redirURL)
 
 					ro := RedirectOptions{
 						Code:         http.StatusTemporaryRedirect,
 						Failure:      "please re-login",
-						RedirectPath: path.Join(ab.Config.Paths.Mount, fmt.Sprintf("/login?%s", vals.Encode())),
+						RedirectPath: path.Join(e.Config.Paths.Mount, fmt.Sprintf("/login?%s", vals.Encode())),
 					}
 
-					if err := ab.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
+					if err := e.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
 						log.Errorf("failed to redirect user during engine.Middleware redirect: %+v", err)
 					}
 					return
@@ -181,7 +181,7 @@ func MountedMiddleware(ab *Engine, mountPathed bool, reqs MWRequirements, failRe
 				return
 			}
 
-			if _, err := ab.LoadCurrentUser(&r); err == ErrUserNotFound {
+			if _, err := e.LoadCurrentUser(&r); err == ErrUserNotFound {
 				fail(w, r)
 				return
 			} else if err != nil {

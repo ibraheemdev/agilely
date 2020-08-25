@@ -192,10 +192,10 @@ func TestResponseRedirectNonAPI(t *testing.T) {
 	r := httptest.NewRequest("POST", "/?redir=/pow", nil)
 	w := httptest.NewRecorder()
 
-	ab := engine.New()
-	ab.Config.Storage.SessionState = test.NewClientRW()
-	ab.Config.Storage.CookieState = test.NewClientRW()
-	aw := ab.NewResponse(w)
+	e := engine.New()
+	e.Config.Storage.SessionState = test.NewClientRW()
+	e.Config.Storage.CookieState = test.NewClientRW()
+	aw := e.NewResponse(w)
 
 	ro := engine.RedirectOptions{
 		Success: "success", Failure: "failure",
@@ -231,10 +231,10 @@ func TestResponseRedirectNonAPIFollowRedir(t *testing.T) {
 	r := httptest.NewRequest("POST", "/?redir=/pow", nil)
 	w := httptest.NewRecorder()
 
-	ab := engine.New()
-	ab.Config.Storage.SessionState = test.NewClientRW()
-	ab.Config.Storage.CookieState = test.NewClientRW()
-	aw := ab.NewResponse(w)
+	e := engine.New()
+	e.Config.Storage.SessionState = test.NewClientRW()
+	e.Config.Storage.CookieState = test.NewClientRW()
+	aw := e.NewResponse(w)
 
 	ro := engine.RedirectOptions{
 		RedirectPath: "/redirect", FollowRedirParam: true,

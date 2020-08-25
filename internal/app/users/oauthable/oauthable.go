@@ -75,8 +75,8 @@ func init() {
 }
 
 // Init module
-func (o *OAuth2) Init(ab *engine.Engine) error {
-	o.Engine = ab
+func (o *OAuth2) Init(e *engine.Engine) error {
+	o.Engine = e
 
 	// Do annoying sorting on keys so we can have predictable
 	// route registration (both for consistency inside the router but

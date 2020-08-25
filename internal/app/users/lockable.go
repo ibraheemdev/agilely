@@ -132,10 +132,10 @@ func (u *Users) Unlock(ctx context.Context, key string) error {
 // the request and send them to the configured LockNotOK page, this will load
 // the user if he's not been loaded yet from the session. And panics if it
 // cannot load the user.
-func LockMiddleware(ab *engine.Engine) func(http.Handler) http.Handler {
+func LockMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := ab.LoadCurrentUserP(&r)
+			user := e.LoadCurrentUserP(&r)
 
 			lu := engine.MustBeLockable(user)
 			if !IsLocked(lu) {
@@ -143,14 +143,14 @@ func LockMiddleware(ab *engine.Engine) func(http.Handler) http.Handler {
 				return
 			}
 
-			logger := ab.RequestLogger(r)
+			logger := e.RequestLogger(r)
 			logger.Infof("user %s prevented from accessing %s: locked", user.GetPID(), r.URL.Path)
 			ro := engine.RedirectOptions{
 				Code:         http.StatusTemporaryRedirect,
 				Failure:      "Your account has been locked, please contact the administrator.",
 				RedirectPath: "/login",
 			}
-			if err := ab.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
+			if err := e.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
 				logger.Errorf("error redirecting in lock.Middleware: #%v", err)
 			}
 		})
