@@ -15,44 +15,34 @@ const (
 	PageRegister = "register.html.tpl"
 )
 
-func init() {
-	engine.RegisterModule("register", &Register{})
-}
+// InitRegister :
+func (u *Users) InitRegister() (err error) {
 
-// Register module.
-type Register struct {
-	*engine.Engine
-}
-
-// Init the module.
-func (r *Register) Init(ab *engine.Engine) (err error) {
-	r.Engine = ab
-
-	if _, ok := ab.Config.Storage.Server.(engine.CreatingServerStorer); !ok {
+	if _, ok := u.Config.Storage.Server.(engine.CreatingServerStorer); !ok {
 		return errors.New("register module activated but storer could not be upgraded to CreatingServerStorer")
 	}
 
-	if err := ab.Config.Core.ViewRenderer.Load(PageRegister); err != nil {
+	if err := u.Config.Core.ViewRenderer.Load(PageRegister); err != nil {
 		return err
 	}
 
-	sort.Strings(ab.Config.Modules.RegisterPreserveFields)
+	sort.Strings(u.Config.Modules.RegisterPreserveFields)
 
-	ab.Config.Core.Router.GET("/register", ab.Config.Core.ErrorHandler.Wrap(r.Get))
-	ab.Config.Core.Router.POST("/register", ab.Config.Core.ErrorHandler.Wrap(r.Post))
+	u.Config.Core.Router.GET("/register", u.Config.Core.ErrorHandler.Wrap(u.GetRegister))
+	u.Config.Core.Router.POST("/register", u.Config.Core.ErrorHandler.Wrap(u.PostRegister))
 
 	return nil
 }
 
-// Get the register page
-func (r *Register) Get(w http.ResponseWriter, req *http.Request) error {
-	return r.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, nil)
+// GetRegister the register page
+func (u *Users) GetRegister(w http.ResponseWriter, req *http.Request) error {
+	return u.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, nil)
 }
 
-// Post to the register page
-func (r *Register) Post(w http.ResponseWriter, req *http.Request) error {
-	logger := r.RequestLogger(req)
-	validatable, err := r.Core.BodyReader.Read(PageRegister, req)
+// PostRegister to the register page
+func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
+	logger := u.RequestLogger(req)
+	validatable, err := u.Core.BodyReader.Read(PageRegister, req)
 	if err != nil {
 		return err
 	}
@@ -64,7 +54,7 @@ func (r *Register) Post(w http.ResponseWriter, req *http.Request) error {
 		preserve = make(map[string]string)
 
 		for k, v := range arbitrary {
-			if hasString(r.Config.Modules.RegisterPreserveFields, k) {
+			if hasString(u.Config.Modules.RegisterPreserveFields, k) {
 				preserve[k] = v
 			}
 		}
@@ -79,7 +69,7 @@ func (r *Register) Post(w http.ResponseWriter, req *http.Request) error {
 		if preserve != nil {
 			data[engine.DataPreserve] = preserve
 		}
-		return r.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
+		return u.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
 	}
 
 	// Get values from request
@@ -87,10 +77,10 @@ func (r *Register) Post(w http.ResponseWriter, req *http.Request) error {
 	pid, password := userVals.GetPID(), userVals.GetPassword()
 
 	// Put values into newly created user for storage
-	storer := engine.EnsureCanCreate(r.Config.Storage.Server)
+	storer := engine.EnsureCanCreate(u.Config.Storage.Server)
 	user := engine.MustBeAuthable(storer.New(req.Context()))
 
-	pass, err := bcrypt.GenerateFromPassword([]byte(password), r.Config.Modules.BCryptCost)
+	pass, err := bcrypt.GenerateFromPassword([]byte(password), u.Config.Modules.BCryptCost)
 	if err != nil {
 		return err
 	}
@@ -113,13 +103,13 @@ func (r *Register) Post(w http.ResponseWriter, req *http.Request) error {
 		if preserve != nil {
 			data[engine.DataPreserve] = preserve
 		}
-		return r.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
+		return u.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
 	case err != nil:
 		return err
 	}
 
 	req = req.WithContext(context.WithValue(req.Context(), engine.CTXKeyUser, user))
-	handled, err := r.Events.FireAfter(engine.EventRegister, w, req)
+	handled, err := u.Events.FireAfter(engine.EventRegister, w, req)
 	if err != nil {
 		return err
 	} else if handled {
@@ -136,7 +126,7 @@ func (r *Register) Post(w http.ResponseWriter, req *http.Request) error {
 		Success:      "Account successfully created, you are now logged in",
 		RedirectPath: "/login",
 	}
-	return r.Config.Core.Redirector.Redirect(w, req, ro)
+	return u.Config.Core.Redirector.Redirect(w, req, ro)
 }
 
 // hasString checks to see if a sorted (ascending) array of

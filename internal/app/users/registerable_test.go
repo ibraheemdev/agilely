@@ -15,18 +15,18 @@ import (
 func TestRegisterInit(t *testing.T) {
 	t.Parallel()
 
-	ab := engine.New()
+	e := engine.New()
 
 	router := &test.Router{}
 	renderer := &test.Renderer{}
 	errHandler := &test.ErrorHandler{}
-	ab.Config.Core.Router = router
-	ab.Config.Core.ViewRenderer = renderer
-	ab.Config.Core.ErrorHandler = errHandler
-	ab.Config.Storage.Server = &test.ServerStorer{}
+	e.Config.Core.Router = router
+	e.Config.Core.ViewRenderer = renderer
+	e.Config.Core.ErrorHandler = errHandler
+	e.Config.Storage.Server = &test.ServerStorer{}
 
-	reg := &Register{}
-	if err := reg.Init(ab); err != nil {
+	u := &Users{}
+	if err := u.InitRegister(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -41,7 +41,6 @@ func TestRegisterInit(t *testing.T) {
 		t.Error(err)
 	}
 }
-
 func TestRegisterGet(t *testing.T) {
 	t.Parallel()
 
@@ -49,8 +48,8 @@ func TestRegisterGet(t *testing.T) {
 	responder := &test.Responder{}
 	ab.Config.Core.Responder = responder
 
-	a := &Register{ab}
-	if err := a.Get(nil, nil); err != nil {
+	u := &Users{ab}
+	if err := u.GetRegister(nil, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -64,8 +63,8 @@ func TestRegisterGet(t *testing.T) {
 }
 
 type testRegisterHarness struct {
-	reg *Register
-	ab  *engine.Engine
+	users *Users
+	ab    *engine.Engine
 
 	bodyReader *test.BodyReader
 	responder  *test.Responder
@@ -91,7 +90,7 @@ func testRegisterSetup() *testRegisterHarness {
 	harness.ab.Config.Storage.SessionState = harness.session
 	harness.ab.Config.Storage.Server = harness.storer
 
-	harness.reg = &Register{harness.ab}
+	harness.users = &Users{harness.ab}
 
 	return harness
 }
@@ -120,7 +119,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
-		if err := h.reg.Post(w, r); err != nil {
+		if err := h.users.PostRegister(w, r); err != nil {
 			t.Error(err)
 		}
 
@@ -163,7 +162,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 		resp := httptest.NewRecorder()
 		w := h.ab.NewResponse(resp)
 
-		if err := h.reg.Post(w, r); err != nil {
+		if err := h.users.PostRegister(w, r); err != nil {
 			t.Error(err)
 		}
 
@@ -212,7 +211,7 @@ func TestRegisterPostValidationFailure(t *testing.T) {
 	resp := httptest.NewRecorder()
 	w := h.ab.NewResponse(resp)
 
-	if err := h.reg.Post(w, r); err != nil {
+	if err := h.users.PostRegister(w, r); err != nil {
 		t.Error(err)
 	}
 
@@ -264,7 +263,7 @@ func TestRegisterPostUserExists(t *testing.T) {
 	resp := httptest.NewRecorder()
 	w := h.ab.NewResponse(resp)
 
-	if err := h.reg.Post(w, r); err != nil {
+	if err := h.users.PostRegister(w, r); err != nil {
 		t.Error(err)
 	}
 
