@@ -1,4 +1,4 @@
-package defaults
+package bodyreader
 
 import (
 	"encoding/json"
@@ -124,10 +124,10 @@ type HTTPBodyReader struct {
 	Whitelist map[string][]string
 }
 
-// NewHTTPBodyReader creates a form reader with default validation rules
+// NewHTTP creates a form reader with default validation rules
 // and fields for each page. If no defaults are required, simply construct
 // this using the struct members itself for more control.
-func NewHTTPBodyReader(readJSON, useUsernameNotEmail bool) *HTTPBodyReader {
+func NewHTTP(readJSON, useUsernameNotEmail bool) *HTTPBodyReader {
 	var pid string
 	var pidRules Rules
 

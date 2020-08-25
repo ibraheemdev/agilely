@@ -1,4 +1,4 @@
-package defaults
+package bodyreader
 
 import (
 	"net/http/httptest"
@@ -12,7 +12,7 @@ import (
 func TestHTTPBodyReaderLogin(t *testing.T) {
 	t.Parallel()
 
-	h := NewHTTPBodyReader(false, false)
+	h := NewHTTP(false, false)
 	r := test.Request("POST", "email", "john@john.john", "password", "flowers")
 
 	validator, err := h.Read("login.html.tpl", r)
@@ -32,7 +32,7 @@ func TestHTTPBodyReaderLogin(t *testing.T) {
 func TestHTTPBodyReaderJSON(t *testing.T) {
 	t.Parallel()
 
-	h := NewHTTPBodyReader(true, false)
+	h := NewHTTP(true, false)
 	r := httptest.NewRequest("POST", "/", strings.NewReader(`{"email":"john@john.john","password":"flowers"}`))
 
 	validator, err := h.Read("login.html.tpl", r)
@@ -52,7 +52,7 @@ func TestHTTPBodyReaderJSON(t *testing.T) {
 func TestHTTPBodyReaderConfirm(t *testing.T) {
 	t.Parallel()
 
-	h := NewHTTPBodyReader(false, false)
+	h := NewHTTP(false, false)
 	r := test.Request("POST", FormValueConfirm, "token")
 
 	validator, err := h.Read("confirm.html.tpl", r)
@@ -69,7 +69,7 @@ func TestHTTPBodyReaderConfirm(t *testing.T) {
 func TestHTTPBodyReaderRecoverStart(t *testing.T) {
 	t.Parallel()
 
-	h := NewHTTPBodyReader(false, false)
+	h := NewHTTP(false, false)
 	r := test.Request("POST", FormValueEmail, "email")
 
 	validator, err := h.Read("recover_start.html.tpl", r)
@@ -86,7 +86,7 @@ func TestHTTPBodyReaderRecoverStart(t *testing.T) {
 func TestHTTPBodyReaderRecoverMiddle(t *testing.T) {
 	t.Parallel()
 
-	h := NewHTTPBodyReader(false, false)
+	h := NewHTTP(false, false)
 	r := httptest.NewRequest("GET", "/?token=token", nil)
 
 	validator, err := h.Read("recover_middle.html.tpl", r)
@@ -103,7 +103,7 @@ func TestHTTPBodyReaderRecoverMiddle(t *testing.T) {
 func TestHTTPBodyReaderRecoverEnd(t *testing.T) {
 	t.Parallel()
 
-	h := NewHTTPBodyReader(false, false)
+	h := NewHTTP(false, false)
 	r := test.Request("POST", "token", "token", "password", "password")
 
 	validator, err := h.Read("recover_end.html.tpl", r)
@@ -123,7 +123,7 @@ func TestHTTPBodyReaderRecoverEnd(t *testing.T) {
 func TestHTTPBodyReaderRegister(t *testing.T) {
 	t.Parallel()
 
-	h := NewHTTPBodyReader(false, false)
+	h := NewHTTP(false, false)
 	h.Whitelist["register.html.tpl"] = []string{"address"}
 	r := test.Request("POST", "email", "a@a.com", "password", "1234", "address", "555 go street")
 

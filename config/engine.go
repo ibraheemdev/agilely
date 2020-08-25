@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
-	"github.com/ibraheemdev/agilely/internal/app/engine/defaults"
 	"github.com/ibraheemdev/agilely/internal/app/users"
+	"github.com/ibraheemdev/agilely/pkg/body_reader"
 	"github.com/ibraheemdev/agilely/pkg/client_state"
 	"github.com/ibraheemdev/agilely/pkg/error_handler"
 	"github.com/ibraheemdev/agilely/pkg/logger"
@@ -33,7 +33,7 @@ func SetupEngine(r *httprouter.Router) {
 	e.Config.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
 	e.Config.Core.Responder = responder.New(e.Config.Core.ViewRenderer)
 	e.Config.Core.Redirector = responder.NewRedirector(e.Config.Core.ViewRenderer, engine.FormValueRedirect)
-	e.Config.Core.BodyReader = defaults.NewHTTPBodyReader(false, false)
+	e.Config.Core.BodyReader = bodyreader.NewHTTP(false, false)
 	e.Config.Core.Mailer = mailer.NewLogMailer(os.Stdout)
 	e.Config.Core.Logger = logger.New(os.Stdout)
 
