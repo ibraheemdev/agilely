@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/ibraheemdev/agilely/internal/app/engine"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -16,14 +18,15 @@ var (
 )
 
 // ConnectToDatabase :
-func ConnectToDatabase() *mongo.Client {
+func ConnectToDatabase(e *engine.Engine) *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s", Config.Database.Host, Config.Database.Port)))
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%d", e.Config.Database.Host, e.Config.Database.Port)))
 	if err != nil {
 		log.Fatal(err)
 	}
-	DatabaseClient = client.Database(Config.Database.Name)
+	DatabaseClient = client.Database(e.Config.Database.Name)
 	return client
 }
 

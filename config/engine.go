@@ -2,7 +2,8 @@ package config
 
 import (
 	"os"
-	"time"
+
+	"github.com/justinas/alice"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
 	"github.com/ibraheemdev/agilely/internal/app/users"
@@ -15,46 +16,33 @@ import (
 	"github.com/ibraheemdev/agilely/pkg/responder"
 	"github.com/ibraheemdev/agilely/pkg/router"
 	"github.com/julienschmidt/httprouter"
-	"github.com/justinas/alice"
-	"golang.org/x/crypto/bcrypt"
 )
 
-// SetupEngine :
-func SetupEngine(r *httprouter.Router) {
-	e := engine.New()
-
-	rt := router.NewRouter(r)
+// SetCore : Set's the core components of an engine instance
+func SetCore(e *engine.Engine) {
+	rt := router.NewRouter(httprouter.New())
 	rt.Use(alice.New(e.LoadClientStateMiddleware, users.RememberMiddleware(e)))
 	e.Core.Router = rt
 
-	e.Core.ErrorHandler = errorhandler.New(logger.New(os.Stdout))
-	e.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/*.tpl", "web/templates/layouts/*.tpl")
 	e.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")
-	e.Core.Responder = responder.New(e.Core.ViewRenderer)
+	e.Core.ViewRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/*.tpl", "web/templates/layouts/*.tpl")
+	e.Core.SessionState = clientstate.NewSessionStorer("agilely_session", []byte("TODO"), nil)
 	e.Core.Redirector = responder.NewRedirector(e.Core.ViewRenderer, engine.FormValueRedirect)
+	e.Core.CookieState = clientstate.NewCookieStorer([]byte("TODO"), nil)
+	e.Core.ErrorHandler = errorhandler.New(logger.New(os.Stdout))
+	e.Core.Responder = responder.New(e.Core.ViewRenderer)
 	e.Core.BodyReader = bodyreader.NewHTTP(false, false)
 	e.Core.Mailer = mailer.NewLogMailer(os.Stdout)
 	e.Core.Logger = logger.New(os.Stdout)
-
 	e.Core.Server = users.DB
-	e.Core.SessionState = clientstate.NewSessionStorer("agilely_session", []byte("TODO"), nil)
-	e.Core.CookieState = clientstate.NewCookieStorer([]byte("TODO"), nil)
-	e.Config.SessionStateWhitelistKeys = []string{}
+}
 
-	e.Config.Mount = "/"
-	e.Config.RootURL = "http://localhost:8080"
-
-	e.Config.Authboss.BCryptCost = bcrypt.DefaultCost
-	e.Config.Authboss.ExpireAfter = time.Hour
-	e.Config.Authboss.LockAfter = 3
-	e.Config.Authboss.LockWindow = 5 * time.Minute
-	e.Config.Authboss.LockDuration = 12 * time.Hour
-	e.Config.Authboss.RegisterPreserveFields = []string{"email"}
-	e.Config.Authboss.RecoverTokenDuration = 24 * time.Hour
-	e.Config.Authboss.OAuth2Providers = map[string]engine.OAuth2Provider{}
-
-	e.Config.Mail.RootURL = ""
-	e.Config.Mail.From = "agilely@agilely.com"
-	e.Config.Mail.FromName = "agilely"
-	e.Config.Mail.SubjectPrefix = ""
+// SetConfig : Set's the engine's configuration variables by reading config files
+func SetConfig(e *engine.Engine) error {
+	cfg, err := ReadConfig()
+	if err != nil {
+		return err
+	}
+	e.Config = *cfg
+	return nil
 }

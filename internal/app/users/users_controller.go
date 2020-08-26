@@ -31,26 +31,6 @@ func (u *Users) Init() (err error) {
 		return errors.New("register module activated but storer could not be upgraded to CreatingServerStorer")
 	}
 
-	// login
-	u.Engine.Core.Router.GET("/login", u.Engine.Core.ErrorHandler.Wrap(u.LoginGet))
-	u.Engine.Core.Router.POST("/login", u.Engine.Core.ErrorHandler.Wrap(u.LoginPost))
-
-	// logout
-	u.Engine.Core.Router.DELETE("/logout", u.Engine.Core.ErrorHandler.Wrap(u.Logout))
-
-	// confirmation
-	u.Engine.Core.Router.GET("/confirm", u.Engine.Core.ErrorHandler.Wrap(u.GetConfirm))
-
-	// account recovery
-	u.Engine.Core.Router.GET("/recover", u.Core.ErrorHandler.Wrap(u.StartGetRecover))
-	u.Engine.Core.Router.POST("/recover", u.Core.ErrorHandler.Wrap(u.StartPostRecover))
-	u.Engine.Core.Router.GET("/recover/end", u.Core.ErrorHandler.Wrap(u.EndGetRecover))
-	u.Engine.Core.Router.POST("/recover/end", u.Core.ErrorHandler.Wrap(u.EndPostRecover))
-
-	// registration
-	u.Core.Router.GET("/register", u.Core.ErrorHandler.Wrap(u.GetRegister))
-	u.Core.Router.POST("/register", u.Core.ErrorHandler.Wrap(u.PostRegister))
-
 	// authentication events
 	u.AuthEvents.After(engine.EventRegister, u.StartConfirmationWeb)
 

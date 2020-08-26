@@ -1,15 +1,8 @@
 package polls
 
 import (
-	"context"
-	"go.mongodb.org/mongo-driver/mongo"
-	"log"
-	"time"
-
 	"github.com/google/uuid"
-	"github.com/ibraheemdev/agilely/config"
 	"github.com/ibraheemdev/agilely/pkg/validator"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -18,11 +11,6 @@ type Poll struct {
 	ID       primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	Title    string             `json:"title" bson:"title"`
 	Password uuid.UUID          `json:"password" bson:"password"`
-}
-
-// Collection : The poll collection
-func (p Poll) Collection() *mongo.Collection {
-	return config.DatabaseClient.Collection("polls")
 }
 
 // PollParams : Valid poll params
@@ -44,34 +32,35 @@ func createPoll(poll *PollParams) (string, validator.ValidationErrors) {
 	if errs != nil {
 		return "", errs
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	pwd, err := uuid.NewRandom()
-	if err != nil {
-		log.Println(err.Error())
-		// TODO : Move to base
-		return "", nil
-	}
-	create := bson.M{"title": poll.Title, "password": pwd}
-	res, err := config.DatabaseClient.Collection("polls").InsertOne(ctx, create)
-	if err != nil {
-		log.Println(err.Error())
-		// TODO : Move to base
-		return "", nil
-	}
-	id := res.InsertedID.(primitive.ObjectID).Hex()
-	return id, nil
+	// TODO :
+	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// defer cancel()
+	// pwd, err := uuid.NewRandom()
+	// if err != nil {
+	// 	log.Println(err.Error())
+	// 	return "", nil
+	// }
+	// create := bson.M{"title": poll.Title, "password": pwd}
+	// res, err := config.DatabaseClient.Collection("polls").InsertOne(ctx, create)
+	// if err != nil {
+	// 	log.Println(err.Error())
+	// 	return "", nil
+	// }
+	// id := res.InsertedID.(primitive.ObjectID).Hex()
+	// return id, nil
+	return "", nil
 }
 
 func updatePoll(id string, poll *PollParams) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	filter := bson.D{{"_id", id}}
-	update := bson.D{{"$set", bson.D{{"title", poll.Title}}}}
-	_, err := config.DatabaseClient.Collection("polls").UpdateOne(ctx, filter, update)
-	if err != nil {
-		log.Println(err.Error())
-		return err
-	}
+	// TODO :
+	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// defer cancel()
+	// filter := bson.D{{"_id", id}}
+	// update := bson.D{{"$set", bson.D{{"title", poll.Title}}}}
+	// // _, err := config.DatabaseClient.Collection("polls").UpdateOne(ctx, filter, update)
+	// if err != nil {
+	// 	log.Println(err.Error())
+	// 	return err
+	// }
 	return nil
 }

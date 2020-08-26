@@ -79,10 +79,9 @@ type Engine struct {
 // configuration.
 func New() *Engine {
 	e := &Engine{}
-
 	e.AuthEvents = NewAuthEvents()
+	e.Config.Authboss.OAuth2Providers = map[string]OAuth2Provider{}
 
-	e.Config.Defaults()
 	return e
 }
 

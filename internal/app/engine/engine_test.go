@@ -166,7 +166,7 @@ func TestEngineMiddleware(t *testing.T) {
 		if redir.Opts.Code != http.StatusTemporaryRedirect {
 			t.Error("code was wrong:", redir.Opts.Code)
 		}
-		if redir.Opts.RedirectPath != "/auth/login?redir=%2Fsuper%2Fsecret" {
+		if redir.Opts.RedirectPath != "/login?redir=%2Fsuper%2Fsecret" {
 			t.Error("redirect path was wrong:", redir.Opts.RedirectPath)
 		}
 		if called {
@@ -187,7 +187,7 @@ func TestEngineMiddleware(t *testing.T) {
 		if redir.Opts.Code != http.StatusTemporaryRedirect {
 			t.Error("code was wrong:", redir.Opts.Code)
 		}
-		if redir.Opts.RedirectPath != "/auth/login?redir=%2Fauth%2Fsuper%2Fsecret" {
+		if redir.Opts.RedirectPath != "/login?redir=%2Fsuper%2Fsecret" {
 			t.Error("redirect path was wrong:", redir.Opts.RedirectPath)
 		}
 		if called {

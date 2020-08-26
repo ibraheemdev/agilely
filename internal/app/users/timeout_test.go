@@ -99,6 +99,8 @@ func TestExpireIsExpired(t *testing.T) {
 
 func TestExpireNotExpired(t *testing.T) {
 	e := engine.New()
+	e.Config.Authboss.ExpireAfter = time.Hour
+
 	clientRW := test.NewClientRW()
 	clientRW.ClientValues[engine.SessionKey] = "username"
 	clientRW.ClientValues[engine.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)

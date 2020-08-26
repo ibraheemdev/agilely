@@ -4,12 +4,12 @@ session_state_whitelist_keys: ["email"]
 
 database:
   host: "agilely.com"
-  port: "27017"
+  port: 27017
   name: "agilely_development"
 
 server:
   host: "agilely.com"
-  port: "3000"
+  port: 3000
   static:
     manifestpath: "web/build/asset-manifest.json"
 

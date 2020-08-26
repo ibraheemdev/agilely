@@ -5,53 +5,25 @@ import (
 	"log"
 	"os"
 
+	"github.com/ibraheemdev/agilely/internal/app/engine"
 	"gopkg.in/yaml.v3"
 )
 
-// Config : application config stored as global variable
-var Config *EnvironmentConfig
-
-// EnvironmentConfig :
-type EnvironmentConfig struct {
-	Server   ServerConfig   `yaml:"server"`
-	Database DatabaseConfig `yaml:"database"`
-}
-
-// DatabaseConfig :
-type DatabaseConfig struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
-	Name string `yaml:"name"`
-}
-
-// ServerConfig :
-type ServerConfig struct {
-	Host   string       `yaml:"host"`
-	Port   string       `yaml:"port"`
-	Static StaticConfig `yaml:"static"`
-}
-
-// StaticConfig :
-type StaticConfig struct {
-	ManifestPath string `yaml:"manifestpath"`
-}
-
-// ReadConfig : read configuration files into global Config variable
-func ReadConfig() {
+// ReadConfig : read configuration files
+func ReadConfig() (*engine.Config, error) {
 	file := fmt.Sprintf("config/environments/%s.yml", os.Getenv("AGILELY_ENV"))
 	f, err := os.Open(file)
 	if err != nil {
-		log.Fatal(err)
-		os.Exit(2)
+		return nil, err
 	}
 	defer f.Close()
 
-	var cfg EnvironmentConfig
+	cfg := &engine.Config{}
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(&cfg)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(2)
 	}
-	Config = &cfg
+	return cfg, nil
 }

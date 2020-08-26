@@ -1,18 +1,11 @@
 package engine
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/yaml.v3"
 )
 
 // Config holds all the configuration for both engine and it's modules.
 type Config struct {
-
 	// Mount is the path to mount engine's routes at
 	Mount string `yaml:"mount"`
 
@@ -30,7 +23,7 @@ type Config struct {
 		Host string `yaml:"host"`
 
 		// database port
-		Port string `yaml:"port"`
+		Port int `yaml:"port"`
 
 		// database name
 		Name string `yaml:"name"`
@@ -41,7 +34,7 @@ type Config struct {
 		Host string `yaml:"host"`
 
 		// server port
-		Port string `yaml:"port"`
+		Port int `yaml:"port"`
 
 		// config for static file server
 		Static struct {
@@ -106,38 +99,4 @@ type Config struct {
 		// email subjects.
 		SubjectPrefix string `yaml:"subject_prefix"`
 	} `yaml:"mail"`
-}
-
-// ReadConfig : read configuration files into global Config variable
-func ReadConfig() Config {
-	file := fmt.Sprintf("config/environments/%s.yml", os.Getenv("AGILELY_ENV"))
-	f, err := os.Open(file)
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(2)
-	}
-	defer f.Close()
-
-	cfg := Config{}
-	decoder := yaml.NewDecoder(f)
-	err = decoder.Decode(&cfg)
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(2)
-	}
-	return cfg
-}
-
-// Defaults sets the configuration's default values.
-func (c *Config) Defaults() {
-	c.Mount = "/auth"
-	c.RootURL = "http://localhost:8080"
-
-	c.Authboss.BCryptCost = bcrypt.DefaultCost
-	c.Authboss.ExpireAfter = time.Hour
-	c.Authboss.LockAfter = 3
-	c.Authboss.LockWindow = 5 * time.Minute
-	c.Authboss.LockDuration = 12 * time.Hour
-	c.Authboss.RecoverTokenDuration = 24 * time.Hour
-	c.Authboss.RegisterPreserveFields = []string{"email"}
 }

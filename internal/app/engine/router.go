@@ -11,4 +11,5 @@ type Router interface {
 	GET(path string, handler http.Handler)
 	POST(path string, handler http.Handler)
 	DELETE(path string, handler http.Handler)
+	PUT(path string, handler http.Handler)
 }
