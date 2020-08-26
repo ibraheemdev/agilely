@@ -1,3 +1,7 @@
+mount: "/"
+root_url: "http://agilely.com:3000"
+session_state_whitelist_keys: ["email"]
+
 database:
   host: "agilely.com"
   port: "27017"
@@ -5,6 +9,20 @@ database:
 
 server:
   host: "agilely.com"
-  port: "5000"
+  port: "3000"
   static:
     manifestpath: "web/build/asset-manifest.json"
+
+authboss:
+  bcrypt_cost: 10
+  expire_after: "1h"
+  lock_after: 3
+  lock_window: "5m"
+  lock_duration: "12h"
+  recover_token_duration: "24h"
+
+mail:
+  root_url: "http://agilely.com:3000"
+  from: "hello@agilely.com"
+  from_name: "Agilely Support"
+  subject_prefix: ""

@@ -1,42 +1,71 @@
 package engine
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/yaml.v3"
 )
 
 // Config holds all the configuration for both engine and it's modules.
 type Config struct {
 
-	// Mount is the path to mount engine's routes at (eg /auth).
-	Mount string
+	// Mount is the path to mount engine's routes at
+	Mount string `yaml:"mount"`
 
-	// RootURL is the scheme+host+port of the web application
-	// (eg https://www.happiness.com:8080) for url generation.
 	// No trailing slash.
-	RootURL string
+	RootURL string `yaml:"root_url"`
 
 	// SessionStateWhitelistKeys are set to preserve keys in the session
 	// when engine.DelAllSession is called. A correct implementation
 	// of ClientStateReadWriter will delete ALL session key-value pairs
 	// unless that key is whitelisted here.
-	SessionStateWhitelistKeys []string
+	SessionStateWhitelistKeys []string `yaml:"session_state_whitelist_keys"`
+
+	Database struct {
+		// database host
+		Host string `yaml:"host"`
+
+		// database port
+		Port string `yaml:"port"`
+
+		// database name
+		Name string `yaml:"name"`
+	} `yaml:"database"`
+
+	Server struct {
+		// server host
+		Host string `yaml:"host"`
+
+		// server port
+		Port string `yaml:"port"`
+
+		// config for static file server
+		Static struct {
+			// path to webpack manifest.json
+			ManifestPath string `yaml:"manifestpath"`
+		} `yaml:"static"`
+	} `yaml:"server"`
 
 	Authboss struct {
 		// BCryptCost is the cost of the bcrypt password hashing function.
-		BCryptCost int
+		BCryptCost int `yaml:"bcrypt_cost"`
 
 		// ExpireAfter controls the time an account is idle before being
 		// logged out by the ExpireMiddleware.
-		ExpireAfter time.Duration
+		ExpireAfter time.Duration `yaml:"expire_after"`
 
 		// LockAfter this many tries.
-		LockAfter int
+		LockAfter int `yaml:"lock_after"`
+
 		// LockWindow is the waiting time before the number of attempts are reset.
-		LockWindow time.Duration
+		LockWindow time.Duration `yaml:"lock_window"`
+
 		// LockDuration is how long an account is locked for.
-		LockDuration time.Duration
+		LockDuration time.Duration `yaml:"lock_duration"`
 
 		// RegisterPreserveFields are fields used with registration that are
 		// to be rendered when post fails in a normal way
@@ -52,33 +81,51 @@ type Config struct {
 		// to have that returned by the ArbitraryValuer.GetValues() method and
 		// then it would be available to be whitelisted by this
 		// configuration variable.
-		RegisterPreserveFields []string
+		RegisterPreserveFields []string `yaml:"register_preserve_fields"`
 
 		// RecoverTokenDuration controls how long a token sent via
 		// email for password recovery is valid for.
-		RecoverTokenDuration time.Duration
+		RecoverTokenDuration time.Duration `yaml:"recover_token_duration"`
 
 		// OAuth2Providers lists all providers that can be used. See
 		// OAuthProvider documentation for more details.
 		OAuth2Providers map[string]OAuth2Provider
-	}
+	} `yaml:"authboss"`
 
 	Mail struct {
-		// RootURL is a full path to an application that is hosting a front-end
-		// Typically using a combination of .RootURL and .Mount
-		// MailRoot will be assembled if not set.
-		// Typically looks like: https://our-front-end.com/authenication
 		// No trailing slash.
-		RootURL string
+		RootURL string `yaml:"root_url"`
 
 		// From is the email address engine e-mails come from.
-		From string
+		From string `yaml:"from"`
+
 		// FromName is the name engine e-mails come from.
-		FromName string
+		FromName string `yaml:"from_name"`
+
 		// SubjectPrefix is used to add something to the front of the engine
 		// email subjects.
-		SubjectPrefix string
+		SubjectPrefix string `yaml:"subject_prefix"`
+	} `yaml:"mail"`
+}
+
+// ReadConfig : read configuration files into global Config variable
+func ReadConfig() Config {
+	file := fmt.Sprintf("config/environments/%s.yml", os.Getenv("AGILELY_ENV"))
+	f, err := os.Open(file)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(2)
 	}
+	defer f.Close()
+
+	cfg := Config{}
+	decoder := yaml.NewDecoder(f)
+	err = decoder.Decode(&cfg)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(2)
+	}
+	return cfg
 }
 
 // Defaults sets the configuration's default values.
