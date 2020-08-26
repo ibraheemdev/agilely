@@ -17,7 +17,7 @@ const (
 
 // GetRegister the register page
 func (u *Users) GetRegister(w http.ResponseWriter, req *http.Request) error {
-	return u.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, nil)
+	return u.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, nil)
 }
 
 // PostRegister to the register page
@@ -35,7 +35,7 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 		preserve = make(map[string]string)
 
 		for k, v := range arbitrary {
-			if hasString(u.Config.Modules.RegisterPreserveFields, k) {
+			if hasString(u.Config.Authboss.RegisterPreserveFields, k) {
 				preserve[k] = v
 			}
 		}
@@ -50,7 +50,7 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 		if preserve != nil {
 			data[engine.DataPreserve] = preserve
 		}
-		return u.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
+		return u.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
 	}
 
 	// Get values from request
@@ -58,10 +58,10 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 	pid, password := userVals.GetPID(), userVals.GetPassword()
 
 	// Put values into newly created user for storage
-	storer := engine.EnsureCanCreate(u.Config.Storage.Server)
+	storer := engine.EnsureCanCreate(u.Core.Server)
 	user := engine.MustBeAuthable(storer.New(req.Context()))
 
-	pass, err := bcrypt.GenerateFromPassword([]byte(password), u.Config.Modules.BCryptCost)
+	pass, err := bcrypt.GenerateFromPassword([]byte(password), u.Config.Authboss.BCryptCost)
 	if err != nil {
 		return err
 	}
@@ -84,13 +84,13 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 		if preserve != nil {
 			data[engine.DataPreserve] = preserve
 		}
-		return u.Config.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
+		return u.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
 	case err != nil:
 		return err
 	}
 
 	req = req.WithContext(context.WithValue(req.Context(), engine.CTXKeyUser, user))
-	handled, err := u.Events.FireAfter(engine.EventRegister, w, req)
+	handled, err := u.AuthEvents.FireAfter(engine.EventRegister, w, req)
 	if err != nil {
 		return err
 	} else if handled {
@@ -107,7 +107,7 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 		Success:      "Account successfully created, you are now logged in",
 		RedirectPath: "/login",
 	}
-	return u.Config.Core.Redirector.Redirect(w, req, ro)
+	return u.Core.Redirector.Redirect(w, req, ro)
 }
 
 // hasString checks to see if a sorted (ascending) array of

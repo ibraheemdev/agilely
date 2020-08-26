@@ -8,7 +8,7 @@ func TestEventString(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		ev  Event
+		ev  AuthEvent
 		str string
 	}{
 		{EventRegister, "EventRegister"},
@@ -30,8 +30,8 @@ func TestEventString(t *testing.T) {
 	}
 
 	// This test is only for 100% test coverage of stringers.go
-	var testEvent Event = -1
-	if got := testEvent.String(); got != "Event(-1)" {
-		t.Errorf("Wrong string for Event(%d) expected: \"\", got: %s", testEvent, got)
+	var EventTest AuthEvent = -1
+	if got := EventTest.String(); got != "AuthEvent(-1)" {
+		t.Errorf("Wrong string for Event(%d) expected: 'AuthEvent(-1)', got: %s", EventTest, got)
 	}
 }

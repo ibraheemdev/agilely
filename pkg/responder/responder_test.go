@@ -193,8 +193,8 @@ func TestResponseRedirectNonAPI(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	e := engine.New()
-	e.Config.Storage.SessionState = test.NewClientRW()
-	e.Config.Storage.CookieState = test.NewClientRW()
+	e.Core.SessionState = test.NewClientRW()
+	e.Core.CookieState = test.NewClientRW()
 	aw := e.NewResponse(w)
 
 	ro := engine.RedirectOptions{
@@ -232,8 +232,8 @@ func TestResponseRedirectNonAPIFollowRedir(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	e := engine.New()
-	e.Config.Storage.SessionState = test.NewClientRW()
-	e.Config.Storage.CookieState = test.NewClientRW()
+	e.Core.SessionState = test.NewClientRW()
+	e.Core.CookieState = test.NewClientRW()
 	aw := e.NewResponse(w)
 
 	ro := engine.RedirectOptions{

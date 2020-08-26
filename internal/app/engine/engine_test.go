@@ -14,7 +14,7 @@ func TestEngineUpdatePassword(t *testing.T) {
 	storer := newMockServerStorer()
 
 	e := New()
-	e.Config.Storage.Server = storer
+	e.Core.Server = storer
 
 	if err := e.UpdatePassword(context.Background(), user, "hello world"); err != nil {
 		t.Error(err)
@@ -43,7 +43,7 @@ func TestEngineMiddleware(t *testing.T) {
 
 	e := New()
 	e.Core.Logger = mockLogger{}
-	e.Storage.Server = &mockServerStorer{
+	e.Core.Server = &mockServerStorer{
 		Users: map[string]*mockUser{
 			"test@test.com": {},
 		},
@@ -79,7 +79,7 @@ func TestEngineMiddleware(t *testing.T) {
 	}
 
 	t.Run("Accept", func(t *testing.T) {
-		e.Storage.SessionState = mockClientStateReadWriter{
+		e.Core.SessionState = mockClientStateReadWriter{
 			state: mockClientState{SessionKey: "test@test.com"},
 		}
 
@@ -93,7 +93,7 @@ func TestEngineMiddleware(t *testing.T) {
 		}
 	})
 	t.Run("AcceptHalfAuth", func(t *testing.T) {
-		e.Storage.SessionState = mockClientStateReadWriter{
+		e.Core.SessionState = mockClientStateReadWriter{
 			state: mockClientState{SessionKey: "test@test.com", SessionHalfAuthKey: "true"},
 		}
 
@@ -107,7 +107,7 @@ func TestEngineMiddleware(t *testing.T) {
 		}
 	})
 	t.Run("RejectNotFound", func(t *testing.T) {
-		e.Storage.SessionState = mockClientStateReadWriter{}
+		e.Core.SessionState = mockClientStateReadWriter{}
 
 		rec, called, hadUser := setupMore(false, RequireNone, RespondNotFound)
 
@@ -122,7 +122,7 @@ func TestEngineMiddleware(t *testing.T) {
 		}
 	})
 	t.Run("RejectUnauthorized", func(t *testing.T) {
-		e.Storage.SessionState = mockClientStateReadWriter{}
+		e.Core.SessionState = mockClientStateReadWriter{}
 
 		r := httptest.NewRequest("GET", "/super/secret", nil)
 		rec := httptest.NewRecorder()
@@ -157,9 +157,9 @@ func TestEngineMiddleware(t *testing.T) {
 	})
 	t.Run("RejectRedirect", func(t *testing.T) {
 		redir := &testRedirector{}
-		e.Config.Core.Redirector = redir
+		e.Core.Redirector = redir
 
-		e.Storage.SessionState = mockClientStateReadWriter{}
+		e.Core.SessionState = mockClientStateReadWriter{}
 
 		_, called, hadUser := setupMore(false, RequireNone, RespondRedirect)
 
@@ -178,9 +178,9 @@ func TestEngineMiddleware(t *testing.T) {
 	})
 	t.Run("RejectMountpathedRedirect", func(t *testing.T) {
 		redir := &testRedirector{}
-		e.Config.Core.Redirector = redir
+		e.Core.Redirector = redir
 
-		e.Storage.SessionState = mockClientStateReadWriter{}
+		e.Core.SessionState = mockClientStateReadWriter{}
 
 		_, called, hadUser := setupMore(true, RequireNone, RespondRedirect)
 
@@ -198,7 +198,7 @@ func TestEngineMiddleware(t *testing.T) {
 		}
 	})
 	t.Run("RequireFullAuth", func(t *testing.T) {
-		e.Storage.SessionState = mockClientStateReadWriter{
+		e.Core.SessionState = mockClientStateReadWriter{
 			state: mockClientState{SessionKey: "test@test.com", SessionHalfAuthKey: "true"},
 		}
 

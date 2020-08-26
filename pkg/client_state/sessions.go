@@ -102,7 +102,7 @@ func (s SessionStorer) ReadState(r *http.Request) (engine.ClientState, error) {
 }
 
 // WriteState to the responsewriter
-func (s SessionStorer) WriteState(w http.ResponseWriter, state engine.ClientState, ev []engine.ClientStateEvent) error {
+func (s SessionStorer) WriteState(w http.ResponseWriter, state engine.ClientState, ev []engine.ClientStateAuthEvent) error {
 	// This should never be nil (despite what engine.ClientStateReadWriter
 	// interface says) because all Get methods return a new session in gorilla.
 	// In cases where Get returns an error, we ensure we create a new session
@@ -110,12 +110,12 @@ func (s SessionStorer) WriteState(w http.ResponseWriter, state engine.ClientStat
 
 	for _, ev := range ev {
 		switch ev.Kind {
-		case engine.ClientStateEventPut:
+		case engine.ClientStateAuthEventPut:
 			ses.session.Values[ev.Key] = ev.Value
-		case engine.ClientStateEventDel:
+		case engine.ClientStateAuthEventDel:
 			delete(ses.session.Values, ev.Key)
 
-		case engine.ClientStateEventDelAll:
+		case engine.ClientStateAuthEventDelAll:
 			if len(ev.Key) == 0 {
 				// Delete the entire session
 				ses.session.Options.MaxAge = -1

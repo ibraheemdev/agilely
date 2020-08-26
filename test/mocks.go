@@ -376,14 +376,14 @@ func (c *ClientStateRW) ReadState(*http.Request) (engine.ClientState, error) {
 }
 
 // WriteState to memory
-func (c *ClientStateRW) WriteState(w http.ResponseWriter, cstate engine.ClientState, cse []engine.ClientStateEvent) error {
+func (c *ClientStateRW) WriteState(w http.ResponseWriter, cstate engine.ClientState, cse []engine.ClientStateAuthEvent) error {
 	for _, e := range cse {
 		switch e.Kind {
-		case engine.ClientStateEventPut:
+		case engine.ClientStateAuthEventPut:
 			c.ClientValues[e.Key] = e.Value
-		case engine.ClientStateEventDel:
+		case engine.ClientStateAuthEventDel:
 			delete(c.ClientValues, e.Key)
-		case engine.ClientStateEventDelAll:
+		case engine.ClientStateAuthEventDelAll:
 			c.ClientValues = make(map[string]string)
 		}
 	}
@@ -445,7 +445,7 @@ func (m *Mailer) Send(ctx context.Context, email mailer.Email) error {
 // AfterCallback is a callback that knows if it was called
 type AfterCallback struct {
 	HasBeenCalled bool
-	Fn            engine.EventHandler
+	Fn            engine.AuthEventHandler
 }
 
 // NewAfterCallback constructs a new aftercallback.

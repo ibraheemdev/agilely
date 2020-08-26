@@ -31,7 +31,7 @@ func (u *Users) ResetLoginAttempts(w http.ResponseWriter, r *http.Request, handl
 	lu.PutAttemptCount(0)
 	lu.PutLastAttempt(time.Now().UTC())
 
-	return false, u.Engine.Config.Storage.Server.Save(r.Context(), lu)
+	return false, u.Engine.Core.Server.Save(r.Context(), lu)
 }
 
 // UpdateLockAttempts adjusts the attempt number and time negatively
@@ -55,9 +55,9 @@ func (u *Users) updateLockedState(w http.ResponseWriter, r *http.Request, wasCor
 	attempts++
 
 	if !wasCorrectPassword {
-		if time.Now().UTC().Sub(last) <= u.Modules.LockWindow {
-			if attempts >= u.Modules.LockAfter {
-				lu.PutLocked(time.Now().UTC().Add(u.Modules.LockDuration))
+		if time.Now().UTC().Sub(last) <= u.Config.Authboss.LockWindow {
+			if attempts >= u.Config.Authboss.LockAfter {
+				lu.PutLocked(time.Now().UTC().Add(u.Config.Authboss.LockDuration))
 			}
 
 			lu.PutAttemptCount(attempts)
@@ -67,7 +67,7 @@ func (u *Users) updateLockedState(w http.ResponseWriter, r *http.Request, wasCor
 	}
 	lu.PutLastAttempt(time.Now().UTC())
 
-	if err := u.Engine.Config.Storage.Server.Save(r.Context(), lu); err != nil {
+	if err := u.Engine.Core.Server.Save(r.Context(), lu); err != nil {
 		return false, err
 	}
 
@@ -80,25 +80,25 @@ func (u *Users) updateLockedState(w http.ResponseWriter, r *http.Request, wasCor
 		Failure:      "Your account has been locked, please contact the administrator.",
 		RedirectPath: "/login",
 	}
-	return true, u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return true, u.Engine.Core.Redirector.Redirect(w, r, ro)
 }
 
 // Lock a user manually.
 func (u *Users) Lock(ctx context.Context, key string) error {
-	user, err := u.Engine.Config.Storage.Server.Load(ctx, key)
+	user, err := u.Engine.Core.Server.Load(ctx, key)
 	if err != nil {
 		return err
 	}
 
 	lu := engine.MustBeLockable(user)
-	lu.PutLocked(time.Now().UTC().Add(u.Engine.Config.Modules.LockDuration))
+	lu.PutLocked(time.Now().UTC().Add(u.Engine.Config.Authboss.LockDuration))
 
-	return u.Engine.Config.Storage.Server.Save(ctx, lu)
+	return u.Engine.Core.Server.Save(ctx, lu)
 }
 
 // Unlock a user that was locked by this module.
 func (u *Users) Unlock(ctx context.Context, key string) error {
-	user, err := u.Engine.Config.Storage.Server.Load(ctx, key)
+	user, err := u.Engine.Core.Server.Load(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -111,10 +111,10 @@ func (u *Users) Unlock(ctx context.Context, key string) error {
 	// unix_time(0): Jan 1st, 1970
 	now := time.Now().UTC()
 	lu.PutAttemptCount(0)
-	lu.PutLastAttempt(now.Add(-u.Engine.Config.Modules.LockWindow * 2))
-	lu.PutLocked(now.Add(-u.Engine.Config.Modules.LockDuration))
+	lu.PutLastAttempt(now.Add(-u.Engine.Config.Authboss.LockWindow * 2))
+	lu.PutLocked(now.Add(-u.Engine.Config.Authboss.LockDuration))
 
-	return u.Engine.Config.Storage.Server.Save(ctx, lu)
+	return u.Engine.Core.Server.Save(ctx, lu)
 }
 
 // LockMiddleware ensures that a user is not locked, or else it will intercept
@@ -139,7 +139,7 @@ func LockMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 				Failure:      "Your account has been locked, please contact the administrator.",
 				RedirectPath: "/login",
 			}
-			if err := e.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
+			if err := e.Core.Redirector.Redirect(w, r, ro); err != nil {
 				logger.Errorf("error redirecting in lock.Middleware: #%v", err)
 			}
 		})

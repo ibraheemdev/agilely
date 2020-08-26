@@ -40,14 +40,14 @@ func testConfirmSetup() *testConfirmHarness {
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.e.Config.Core.BodyReader = harness.bodyReader
-	harness.e.Config.Core.Logger = test.Logger{}
-	harness.e.Config.Core.Mailer = harness.mailer
-	harness.e.Config.Core.Redirector = harness.redirector
-	harness.e.Config.Core.MailRenderer = harness.renderer
-	harness.e.Config.Core.Responder = harness.responder
-	harness.e.Config.Storage.SessionState = harness.session
-	harness.e.Config.Storage.Server = harness.storer
+	harness.e.Core.BodyReader = harness.bodyReader
+	harness.e.Core.Logger = test.Logger{}
+	harness.e.Core.Mailer = harness.mailer
+	harness.e.Core.Redirector = harness.redirector
+	harness.e.Core.MailRenderer = harness.renderer
+	harness.e.Core.Responder = harness.responder
+	harness.e.Core.SessionState = harness.session
+	harness.e.Core.Server = harness.storer
 
 	harness.users = NewController(harness.e)
 
@@ -299,8 +299,8 @@ func TestMiddlewareDisallow(t *testing.T) {
 
 	e := engine.New()
 	redirector := &test.Redirector{}
-	e.Config.Core.Logger = test.Logger{}
-	e.Config.Core.Redirector = redirector
+	e.Core.Logger = test.Logger{}
+	e.Core.Redirector = redirector
 
 	called := false
 	server := Middleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -332,8 +332,8 @@ func TestMailURL(t *testing.T) {
 	t.Parallel()
 
 	h := testConfirmSetup()
-	h.e.Config.Paths.RootURL = "https://api.test.com:6343"
-	h.e.Config.Paths.Mount = "/v1/auth"
+	h.e.Config.RootURL = "https://api.test.com:6343"
+	h.e.Config.Mount = "/v1/auth"
 
 	want := "https://api.test.com:6343/v1/auth/confirm?cnf=abc"
 	if got := h.users.mailConfirmURL("abc"); got != want {

@@ -36,7 +36,7 @@ const App = () => {
     return () => clearInterval(timeout);
   }, [poll, pollArray, phrase, status]);
 
-  const handleNewPoll = (event: React.FormEvent): void => {
+  const handleNewPoll = (event: React.FormAuthEvent): void => {
     event.preventDefault();
     axios
       .post(

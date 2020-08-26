@@ -98,10 +98,10 @@ func (c CookieStorer) ReadState(r *http.Request) (engine.ClientState, error) {
 }
 
 // WriteState to the responsewriter
-func (c CookieStorer) WriteState(w http.ResponseWriter, state engine.ClientState, ev []engine.ClientStateEvent) error {
+func (c CookieStorer) WriteState(w http.ResponseWriter, state engine.ClientState, ev []engine.ClientStateAuthEvent) error {
 	for _, ev := range ev {
 		switch ev.Kind {
-		case engine.ClientStateEventPut:
+		case engine.ClientStateAuthEventPut:
 			encoded, err := c.SecureCookie.Encode(ev.Key, ev.Value)
 			if err != nil {
 				return fmt.Errorf("failed to encode cookie: %w", err)
@@ -120,7 +120,7 @@ func (c CookieStorer) WriteState(w http.ResponseWriter, state engine.ClientState
 				SameSite: c.SameSite,
 			}
 			http.SetCookie(w, cookie)
-		case engine.ClientStateEventDel:
+		case engine.ClientStateAuthEventDel:
 			cookie := &http.Cookie{
 				MaxAge: -1,
 				Name:   ev.Key,

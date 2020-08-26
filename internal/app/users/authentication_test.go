@@ -14,7 +14,7 @@ func TestAuthGet(t *testing.T) {
 
 	e := engine.New()
 	responder := &test.Responder{}
-	e.Config.Core.Responder = responder
+	e.Core.Responder = responder
 
 	u := NewController(e)
 
@@ -58,12 +58,12 @@ func testSetup() *testHarness {
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.e.Config.Core.BodyReader = harness.bodyReader
-	harness.e.Config.Core.Logger = test.Logger{}
-	harness.e.Config.Core.Responder = harness.responder
-	harness.e.Config.Core.Redirector = harness.redirector
-	harness.e.Config.Storage.SessionState = harness.session
-	harness.e.Config.Storage.Server = harness.storer
+	harness.e.Core.BodyReader = harness.bodyReader
+	harness.e.Core.Logger = test.Logger{}
+	harness.e.Core.Responder = harness.responder
+	harness.e.Core.Redirector = harness.redirector
+	harness.e.Core.SessionState = harness.session
+	harness.e.Core.Server = harness.storer
 
 	harness.users = NewController(harness.e)
 
@@ -93,12 +93,12 @@ func TestAuthPostSuccess(t *testing.T) {
 
 		var beforeCalled, afterCalled bool
 		var beforeHasValues, afterHasValues bool
-		h.e.Events.Before(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.Before(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			beforeCalled = true
 			beforeHasValues = r.Context().Value(engine.CTXKeyValues) != nil
 			return false, nil
 		})
-		h.e.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			afterCalled = true
 			afterHasValues = r.Context().Value(engine.CTXKeyValues) != nil
 			return false, nil
@@ -145,7 +145,7 @@ func TestAuthPostSuccess(t *testing.T) {
 		h := setupMore(testSetup())
 
 		var beforeCalled bool
-		h.e.Events.Before(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.Before(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			w.WriteHeader(http.StatusTeapot)
 			beforeCalled = true
 			return true, nil
@@ -179,7 +179,7 @@ func TestAuthPostSuccess(t *testing.T) {
 		h := setupMore(testSetup())
 
 		var afterCalled bool
-		h.e.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			w.WriteHeader(http.StatusTeapot)
 			afterCalled = true
 			return true, nil
@@ -234,7 +234,7 @@ func TestAuthPostBadPassword(t *testing.T) {
 		w := h.e.NewResponse(resp)
 
 		var afterCalled bool
-		h.e.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			afterCalled = true
 			return false, nil
 		})
@@ -269,7 +269,7 @@ func TestAuthPostBadPassword(t *testing.T) {
 		w := h.e.NewResponse(resp)
 
 		var afterCalled bool
-		h.e.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			w.WriteHeader(http.StatusTeapot)
 			afterCalled = true
 			return true, nil
@@ -311,7 +311,7 @@ func TestAuthPostUserNotFound(t *testing.T) {
 	// This event is really the only thing that separates "user not found"
 	// from "bad password"
 	var afterCalled bool
-	harness.e.Events.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	harness.e.AuthEvents.After(engine.EventAuthFail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		afterCalled = true
 		return false, nil
 	})

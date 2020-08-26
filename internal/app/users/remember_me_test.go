@@ -30,10 +30,10 @@ func testRememberSetup() *testRememberHarness {
 	harness.cookies = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.e.Config.Core.Logger = test.Logger{}
-	harness.e.Config.Storage.SessionState = harness.session
-	harness.e.Config.Storage.CookieState = harness.cookies
-	harness.e.Config.Storage.Server = harness.storer
+	harness.e.Core.Logger = test.Logger{}
+	harness.e.Core.SessionState = harness.session
+	harness.e.Core.CookieState = harness.cookies
+	harness.e.Core.Server = harness.storer
 
 	harness.users = NewController(harness.e)
 

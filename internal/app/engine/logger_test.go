@@ -33,7 +33,7 @@ func TestLogger(t *testing.T) {
 
 	e := New()
 	logger := &testLogger{}
-	e.Config.Core.Logger = logger
+	e.Core.Logger = logger
 
 	if logger != e.Logger(nil).Logger.(*testLogger) {
 		t.Error("wanted our logger back")

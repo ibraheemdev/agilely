@@ -8,17 +8,22 @@ import (
 
 // Config holds all the configuration for both engine and it's modules.
 type Config struct {
-	Paths struct {
-		// Mount is the path to mount engine's routes at (eg /auth).
-		Mount string
 
-		// RootURL is the scheme+host+port of the web application
-		// (eg https://www.happiness.com:8080) for url generation.
-		// No trailing slash.
-		RootURL string
-	}
+	// Mount is the path to mount engine's routes at (eg /auth).
+	Mount string
 
-	Modules struct {
+	// RootURL is the scheme+host+port of the web application
+	// (eg https://www.happiness.com:8080) for url generation.
+	// No trailing slash.
+	RootURL string
+
+	// SessionStateWhitelistKeys are set to preserve keys in the session
+	// when engine.DelAllSession is called. A correct implementation
+	// of ClientStateReadWriter will delete ALL session key-value pairs
+	// unless that key is whitelisted here.
+	SessionStateWhitelistKeys []string
+
+	Authboss struct {
 		// BCryptCost is the cost of the bcrypt password hashing function.
 		BCryptCost int
 
@@ -60,7 +65,7 @@ type Config struct {
 
 	Mail struct {
 		// RootURL is a full path to an application that is hosting a front-end
-		// Typically using a combination of Paths.RootURL and Paths.Mount
+		// Typically using a combination of .RootURL and .Mount
 		// MailRoot will be assembled if not set.
 		// Typically looks like: https://our-front-end.com/authenication
 		// No trailing slash.
@@ -74,75 +79,18 @@ type Config struct {
 		// email subjects.
 		SubjectPrefix string
 	}
-
-	Storage struct {
-		// Storer is the interface through which Engine accesses the web apps
-		// database for user operations.
-		Server ServerStorer
-
-		// CookieState must be defined to provide an interface capapable of
-		// storing cookies for the given response, and reading them from the
-		// request.
-		CookieState ClientStateReadWriter
-		// SessionState must be defined to provide an interface capable of
-		// storing session-only values for the given response, and reading them
-		// from the request.
-		SessionState ClientStateReadWriter
-
-		// SessionStateWhitelistKeys are set to preserve keys in the session
-		// when engine.DelAllSession is called. A correct implementation
-		// of ClientStateReadWriter will delete ALL session key-value pairs
-		// unless that key is whitelisted here.
-		SessionStateWhitelistKeys []string
-	}
-
-	Core struct {
-		// Router is the entity that controls all routing to engine routes
-		// modules will register their routes with it.
-		Router Router
-
-		// ErrorHandler wraps http requests with centralized error handling.
-		ErrorHandler ErrorHandler
-
-		// Responder takes a generic response from a controller and prepares
-		// the response, uses a renderer to create the body, and replies to the
-		// http request.
-		Responder HTTPResponder
-
-		// Redirector can redirect a response, similar to Responder but
-		// responsible only for redirection.
-		Redirector HTTPRedirector
-
-		// BodyReader reads validatable data from the body of a request to
-		// be able to get data from the user's client.
-		BodyReader BodyReader
-
-		// ViewRenderer loads the templates for the application.
-		ViewRenderer Renderer
-
-		// MailRenderer loads the templates for mail
-		MailRenderer Renderer
-
-		// Mailer is the mailer being used to send e-mails out via smtp
-		Mailer Mailer
-
-		// Logger implies just a few log levels for use, can optionally
-		// also implement the ContextLogger to be able to upgrade to a
-		// request specific logger.
-		Logger Logger
-	}
 }
 
 // Defaults sets the configuration's default values.
 func (c *Config) Defaults() {
-	c.Paths.Mount = "/auth"
-	c.Paths.RootURL = "http://localhost:8080"
+	c.Mount = "/auth"
+	c.RootURL = "http://localhost:8080"
 
-	c.Modules.BCryptCost = bcrypt.DefaultCost
-	c.Modules.ExpireAfter = time.Hour
-	c.Modules.LockAfter = 3
-	c.Modules.LockWindow = 5 * time.Minute
-	c.Modules.LockDuration = 12 * time.Hour
-	c.Modules.RecoverTokenDuration = 24 * time.Hour
-	c.Modules.RegisterPreserveFields = []string{"email"}
+	c.Authboss.BCryptCost = bcrypt.DefaultCost
+	c.Authboss.ExpireAfter = time.Hour
+	c.Authboss.LockAfter = 3
+	c.Authboss.LockWindow = 5 * time.Minute
+	c.Authboss.LockDuration = 12 * time.Hour
+	c.Authboss.RecoverTokenDuration = 24 * time.Hour
+	c.Authboss.RegisterPreserveFields = []string{"email"}
 }

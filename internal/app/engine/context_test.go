@@ -18,8 +18,8 @@ func loadClientStateP(e *Engine, w http.ResponseWriter, r *http.Request) *http.R
 
 func testSetupContext() (*Engine, *http.Request) {
 	e := New()
-	e.Storage.SessionState = newMockClientStateRW(SessionKey, "george-pid")
-	e.Storage.Server = &mockServerStorer{
+	e.Core.SessionState = newMockClientStateRW(SessionKey, "george-pid")
+	e.Core.Server = &mockServerStorer{
 		Users: map[string]*mockUser{
 			"george-pid": {Email: "george-pid", Password: "unreadable"},
 		},
@@ -44,8 +44,8 @@ func testSetupContextCached() (*Engine, *mockUser, *http.Request) {
 
 func testSetupContextPanic() *Engine {
 	e := New()
-	e.Storage.SessionState = newMockClientStateRW(SessionKey, "george-pid")
-	e.Storage.Server = &mockServerStorer{}
+	e.Core.SessionState = newMockClientStateRW(SessionKey, "george-pid")
+	e.Core.Server = &mockServerStorer{}
 
 	return e
 }
@@ -85,7 +85,7 @@ func TestCurrentUserIDP(t *testing.T) {
 
 	e := testSetupContextPanic()
 	// Overwrite the setup functions state storer
-	e.Storage.SessionState = newMockClientStateRW()
+	e.Core.SessionState = newMockClientStateRW()
 
 	defer func() {
 		if recover().(error) != ErrUserNotFound {

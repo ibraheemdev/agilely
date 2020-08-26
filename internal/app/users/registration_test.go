@@ -17,7 +17,7 @@ func TestRegisterGet(t *testing.T) {
 
 	e := engine.New()
 	responder := &test.Responder{}
-	e.Config.Core.Responder = responder
+	e.Core.Responder = responder
 
 	u := NewController(e)
 	if err := u.GetRegister(nil, nil); err != nil {
@@ -54,12 +54,12 @@ func testRegisterSetup() *testRegisterHarness {
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.e.Config.Core.BodyReader = harness.bodyReader
-	harness.e.Config.Core.Logger = test.Logger{}
-	harness.e.Config.Core.Responder = harness.responder
-	harness.e.Config.Core.Redirector = harness.redirector
-	harness.e.Config.Storage.SessionState = harness.session
-	harness.e.Config.Storage.Server = harness.storer
+	harness.e.Core.BodyReader = harness.bodyReader
+	harness.e.Core.Logger = test.Logger{}
+	harness.e.Core.Responder = harness.responder
+	harness.e.Core.Redirector = harness.redirector
+	harness.e.Core.SessionState = harness.session
+	harness.e.Core.Server = harness.storer
 
 	harness.users = NewController(harness.e)
 
@@ -70,7 +70,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 	t.Parallel()
 
 	setupMore := func(harness *testRegisterHarness) *testRegisterHarness {
-		harness.e.Modules.RegisterPreserveFields = []string{"email", "another"}
+		harness.e.Config.Authboss.RegisterPreserveFields = []string{"email", "another"}
 		harness.bodyReader.Return = test.ArbValues{
 			Values: map[string]string{
 				"email":    "test@test.com",
@@ -123,7 +123,7 @@ func TestRegisterPostSuccess(t *testing.T) {
 		h := setupMore(testRegisterSetup())
 
 		var afterCalled bool
-		h.e.Events.After(engine.EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.After(engine.EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			w.WriteHeader(http.StatusTeapot)
 			afterCalled = true
 			return true, nil
@@ -166,7 +166,7 @@ func TestRegisterPostValidationFailure(t *testing.T) {
 
 	// Ensure the below is sorted, the sort normally happens in Init()
 	// that we don't call
-	h.e.Modules.RegisterPreserveFields = []string{"another", "email"}
+	h.e.Config.Authboss.RegisterPreserveFields = []string{"another", "email"}
 	h.bodyReader.Return = test.ArbValues{
 		Values: map[string]string{
 			"email":    "test@test.com",
@@ -220,7 +220,7 @@ func TestRegisterPostUserExists(t *testing.T) {
 
 	// Ensure the below is sorted, the sort normally happens in Init()
 	// that we don't call
-	h.e.Modules.RegisterPreserveFields = []string{"another", "email"}
+	h.e.Config.Authboss.RegisterPreserveFields = []string{"another", "email"}
 	h.storer.Users["test@test.com"] = &test.User{}
 	h.bodyReader.Return = test.ArbValues{
 		Values: map[string]string{

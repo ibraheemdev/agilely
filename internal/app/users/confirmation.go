@@ -59,7 +59,7 @@ func (u *Users) PreventAuth(w http.ResponseWriter, r *http.Request, handled bool
 		RedirectPath: "/login",
 		Failure:      "Your account has not been confirmed, please check your e-mail.",
 	}
-	return true, u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return true, u.Engine.Core.Redirector.Redirect(w, r, ro)
 }
 
 // StartConfirmationWeb hijacks a request and forces a user to be confirmed
@@ -80,7 +80,7 @@ func (u *Users) StartConfirmationWeb(w http.ResponseWriter, r *http.Request, han
 		RedirectPath: "/login",
 		Success:      "Please verify your account, an e-mail has been sent to you.",
 	}
-	return true, u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return true, u.Engine.Core.Redirector.Redirect(w, r, ro)
 }
 
 // StartConfirmation begins confirmation on a user by setting them to require
@@ -98,7 +98,7 @@ func (u *Users) StartConfirmation(ctx context.Context, user engine.ConfirmableUs
 	user.PutConfirmVerifier(verifier)
 
 	logger.Infof("generated new confirm token for user: %s", user.GetPID())
-	if err := u.Engine.Config.Storage.Server.Save(ctx, user); err != nil {
+	if err := u.Engine.Core.Server.Save(ctx, user); err != nil {
 		return fmt.Errorf("%w failed to save user during StartConfirmation, user data may be in weird state", err)
 	}
 
@@ -136,7 +136,7 @@ func (u *Users) SendConfirmEmail(ctx context.Context, to, token string) {
 func (u *Users) GetConfirm(w http.ResponseWriter, r *http.Request) error {
 	logger := u.RequestLogger(r)
 
-	validator, err := u.Engine.Config.Core.BodyReader.Read(PageConfirm, r)
+	validator, err := u.Engine.Core.BodyReader.Read(PageConfirm, r)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (u *Users) GetConfirm(w http.ResponseWriter, r *http.Request) error {
 	verifierBytes := sha512.Sum512(rawToken[confirmTokenSplit:])
 	selector := base64.StdEncoding.EncodeToString(selectorBytes[:])
 
-	storer := engine.EnsureCanConfirm(u.Engine.Config.Storage.Server)
+	storer := engine.EnsureCanConfirm(u.Engine.Core.Server)
 	user, err := storer.LoadByConfirmSelector(r.Context(), selector)
 	if err == engine.ErrUserNotFound {
 		logger.Infof("confirm selector was not found in database: %s", selector)
@@ -189,7 +189,7 @@ func (u *Users) GetConfirm(w http.ResponseWriter, r *http.Request) error {
 	user.PutConfirmed(true)
 
 	logger.Infof("user %s confirmed their account", user.GetPID())
-	if err = u.Engine.Config.Storage.Server.Save(r.Context(), user); err != nil {
+	if err = u.Engine.Core.Server.Save(r.Context(), user); err != nil {
 		return err
 	}
 
@@ -198,7 +198,7 @@ func (u *Users) GetConfirm(w http.ResponseWriter, r *http.Request) error {
 		Success:      "You have successfully confirmed your account.",
 		RedirectPath: "/login",
 	}
-	return u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return u.Engine.Core.Redirector.Redirect(w, r, ro)
 }
 
 func (u *Users) mailConfirmURL(token string) string {
@@ -208,8 +208,8 @@ func (u *Users) mailConfirmURL(token string) string {
 		return fmt.Sprintf("%s?%s", u.Config.Mail.RootURL+"/confirm", query.Encode())
 	}
 
-	p := path.Join(u.Config.Paths.Mount, "confirm")
-	return fmt.Sprintf("%s%s?%s", u.Config.Paths.RootURL, p, query.Encode())
+	p := path.Join(u.Config.Mount, "confirm")
+	return fmt.Sprintf("%s%s?%s", u.Config.RootURL, p, query.Encode())
 }
 
 func (u *Users) invalidConfirmToken(w http.ResponseWriter, r *http.Request) error {
@@ -218,7 +218,7 @@ func (u *Users) invalidConfirmToken(w http.ResponseWriter, r *http.Request) erro
 		Failure:      "confirm token is invalid",
 		RedirectPath: "/login",
 	}
-	return u.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return u.Engine.Core.Redirector.Redirect(w, r, ro)
 }
 
 // Middleware ensures that a user is confirmed, or else it will intercept the
@@ -246,7 +246,7 @@ func Middleware(e *engine.Engine) func(http.Handler) http.Handler {
 				Failure:      "Your account has not been confirmed, please check your e-mail.",
 				RedirectPath: "/login",
 			}
-			if err := e.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
+			if err := e.Core.Redirector.Redirect(w, r, ro); err != nil {
 				logger.Errorf("error redirecting in confirm.Middleware: #%v", err)
 			}
 		})

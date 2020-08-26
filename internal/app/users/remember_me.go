@@ -32,7 +32,7 @@ func (u *Users) CreateRememberToken(w http.ResponseWriter, req *http.Request, ha
 		return false, err
 	}
 
-	storer := engine.EnsureCanRemember(u.Engine.Config.Storage.Server)
+	storer := engine.EnsureCanRemember(u.Engine.Core.Server)
 	if err = storer.AddRememberToken(req.Context(), user.GetPID(), hash); err != nil {
 		return false, err
 	}
@@ -94,7 +94,7 @@ func Authenticate(e *engine.Engine, w http.ResponseWriter, req **http.Request) e
 	sum := sha512.Sum512(rawToken)
 	hash := base64.StdEncoding.EncodeToString(sum[:])
 
-	storer := engine.EnsureCanRemember(e.Config.Storage.Server)
+	storer := engine.EnsureCanRemember(e.Core.Server)
 	err = storer.UseRememberToken((*req).Context(), pid, hash)
 	switch {
 	case err == engine.ErrTokenNotFound:
@@ -132,7 +132,7 @@ func (u *Users) ResetAllTokens(w http.ResponseWriter, req *http.Request, handled
 	}
 
 	logger := u.Engine.RequestLogger(req)
-	storer := engine.EnsureCanRemember(u.Engine.Config.Storage.Server)
+	storer := engine.EnsureCanRemember(u.Engine.Core.Server)
 
 	pid := user.GetPID()
 	engine.DelCookie(w, engine.CookieRemember)

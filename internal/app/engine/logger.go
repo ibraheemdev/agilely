@@ -26,7 +26,7 @@ type RequestLogger interface {
 // it calls Logger which tries to do a ContextLogger, and if
 // that fails it will finally get a normal logger.
 func (a *Engine) RequestLogger(r *http.Request) FmtLogger {
-	logger := a.Config.Core.Logger
+	logger := a.Core.Logger
 	if reqLogger, ok := logger.(RequestLogger); ok {
 		return FmtLogger{reqLogger.FromRequest(r)}
 	}
@@ -41,7 +41,7 @@ func (a *Engine) RequestLogger(r *http.Request) FmtLogger {
 // the configured logger to a ContextLogger, and create
 // a context-specific logger for use.
 func (a *Engine) Logger(ctx context.Context) FmtLogger {
-	logger := a.Config.Core.Logger
+	logger := a.Core.Logger
 	if ctx == nil {
 		return FmtLogger{logger}
 	}

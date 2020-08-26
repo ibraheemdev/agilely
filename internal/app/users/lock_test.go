@@ -36,18 +36,18 @@ func testLockSetup() *testLockHarness {
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.e.Modules.LockAfter = 3
-	harness.e.Modules.LockDuration = time.Hour
-	harness.e.Modules.LockWindow = time.Minute
+	harness.e.Config.Authboss.LockAfter = 3
+	harness.e.Config.Authboss.LockDuration = time.Hour
+	harness.e.Config.Authboss.LockWindow = time.Minute
 
-	harness.e.Config.Core.BodyReader = harness.bodyReader
-	harness.e.Config.Core.Logger = test.Logger{}
-	harness.e.Config.Core.Mailer = harness.mailer
-	harness.e.Config.Core.Redirector = harness.redirector
-	harness.e.Config.Core.MailRenderer = harness.renderer
-	harness.e.Config.Core.Responder = harness.responder
-	harness.e.Config.Storage.SessionState = harness.session
-	harness.e.Config.Storage.Server = harness.storer
+	harness.e.Core.BodyReader = harness.bodyReader
+	harness.e.Core.Logger = test.Logger{}
+	harness.e.Core.Mailer = harness.mailer
+	harness.e.Core.Redirector = harness.redirector
+	harness.e.Core.MailRenderer = harness.renderer
+	harness.e.Core.Responder = harness.responder
+	harness.e.Core.SessionState = harness.session
+	harness.e.Core.Server = harness.storer
 
 	harness.users = NewController(harness.e)
 
@@ -294,8 +294,8 @@ func TestLockMiddlewareDisallow(t *testing.T) {
 
 	e := engine.New()
 	redirector := &test.Redirector{}
-	e.Config.Core.Logger = test.Logger{}
-	e.Config.Core.Redirector = redirector
+	e.Core.Logger = test.Logger{}
+	e.Core.Redirector = redirector
 
 	called := false
 	server := Middleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

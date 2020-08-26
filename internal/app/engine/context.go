@@ -87,7 +87,7 @@ func (a *Engine) CurrentUserP(r *http.Request) User {
 }
 
 func (a *Engine) currentUser(ctx context.Context, pid string) (User, error) {
-	return a.Storage.Server.Load(ctx, pid)
+	return a.Core.Server.Load(ctx, pid)
 }
 
 // LoadCurrentUserID takes a pointer to a pointer to the request in order to

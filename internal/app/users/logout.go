@@ -18,17 +18,17 @@ func (u *Users) Logout(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var handled bool
-	handled, err = u.Events.FireBefore(engine.EventLogout, w, r)
+	handled, err = u.AuthEvents.FireBefore(engine.EventLogout, w, r)
 	if err != nil {
 		return err
 	} else if handled {
 		return nil
 	}
 
-	engine.DelAllSession(w, u.Config.Storage.SessionStateWhitelistKeys)
+	engine.DelAllSession(w, u.Config.SessionStateWhitelistKeys)
 	engine.DelKnownCookie(w)
 
-	handled, err = u.Engine.Events.FireAfter(engine.EventLogout, w, r)
+	handled, err = u.Engine.AuthEvents.FireAfter(engine.EventLogout, w, r)
 	if err != nil {
 		return err
 	} else if handled {

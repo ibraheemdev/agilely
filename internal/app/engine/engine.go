@@ -18,8 +18,61 @@ import (
 
 // Engine contains a configuration and other details for running.
 type Engine struct {
-	Config
-	Events *Events
+	// Engine configuration
+	Config Config
+
+	// Authentication Events, used as controller level middleware
+	AuthEvents *AuthEvents
+
+	Core struct {
+		// Router is the entity that controls all routing to engine routes
+		// modules will register their routes with it.
+		Router Router
+
+		// ErrorHandler wraps http requests with centralized error handling.
+		ErrorHandler ErrorHandler
+
+		// Responder takes a generic response from a controller and prepares
+		// the response, uses a renderer to create the body, and replies to the
+		// http request.
+		Responder HTTPResponder
+
+		// Redirector can redirect a response, similar to Responder but
+		// responsible only for redirection.
+		Redirector HTTPRedirector
+
+		// BodyReader reads validatable data from the body of a request to
+		// be able to get data from the user's client.
+		BodyReader BodyReader
+
+		// ViewRenderer loads the templates for the application.
+		ViewRenderer Renderer
+
+		// MailRenderer loads the templates for mail
+		MailRenderer Renderer
+
+		// Mailer is the mailer being used to send e-mails out via smtp
+		Mailer Mailer
+
+		// Logger implies just a few log levels for use, can optionally
+		// also implement the ContextLogger to be able to upgrade to a
+		// request specific logger.
+		Logger Logger
+
+		// Storer is the interface through which Engine accesses the web apps
+		// database for user operations.
+		Server ServerStorer
+
+		// CookieState must be defined to provide an interface capapable of
+		// storing cookies for the given response, and reading them from the
+		// request.
+		CookieState ClientStateReadWriter
+
+		// SessionState must be defined to provide an interface capable of
+		// storing session-only values for the given response, and reading them
+		// from the request.
+		SessionState ClientStateReadWriter
+	}
 }
 
 // New makes a new instance of engine with a default
@@ -27,7 +80,7 @@ type Engine struct {
 func New() *Engine {
 	e := &Engine{}
 
-	e.Events = NewEvents()
+	e.AuthEvents = NewAuthEvents()
 
 	e.Config.Defaults()
 	return e
@@ -43,14 +96,14 @@ func New() *Engine {
 // If it's also desirable to log the user out, use:
 // engine.DelKnown(Session|Cookie)
 func (a *Engine) UpdatePassword(ctx context.Context, user AuthableUser, newPassword string) error {
-	pass, err := bcrypt.GenerateFromPassword([]byte(newPassword), a.Config.Modules.BCryptCost)
+	pass, err := bcrypt.GenerateFromPassword([]byte(newPassword), a.Config.Authboss.BCryptCost)
 	if err != nil {
 		return err
 	}
 
 	user.PutPassword(string(pass))
 
-	storer := a.Config.Storage.Server
+	storer := a.Core.Server
 	if err := storer.Save(ctx, user); err != nil {
 		return err
 	}
@@ -140,18 +193,18 @@ func MountedMiddleware(e *Engine, mountPathed bool, reqs MWRequirements, failRes
 					vals := make(url.Values)
 
 					redirURL := r.URL.Path
-					if mountPathed && len(e.Config.Paths.Mount) != 0 {
-						redirURL = path.Join(e.Config.Paths.Mount, redirURL)
+					if mountPathed && len(e.Config.Mount) != 0 {
+						redirURL = path.Join(e.Config.Mount, redirURL)
 					}
 					vals.Set(FormValueRedirect, redirURL)
 
 					ro := RedirectOptions{
 						Code:         http.StatusTemporaryRedirect,
 						Failure:      "please re-login",
-						RedirectPath: path.Join(e.Config.Paths.Mount, fmt.Sprintf("/login?%s", vals.Encode())),
+						RedirectPath: path.Join(e.Config.Mount, fmt.Sprintf("/login?%s", vals.Encode())),
 					}
 
-					if err := e.Config.Core.Redirector.Redirect(w, r, ro); err != nil {
+					if err := e.Core.Redirector.Redirect(w, r, ro); err != nil {
 						log.Errorf("failed to redirect user during engine.Middleware redirect: %+v", err)
 					}
 					return

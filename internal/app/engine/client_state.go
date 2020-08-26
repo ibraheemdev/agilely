@@ -35,28 +35,28 @@ const (
 	FlashErrorKey = "flash_error"
 )
 
-// ClientStateEventKind is an enum.
-type ClientStateEventKind int
+// ClientStateAuthEventKind is an enum.
+type ClientStateAuthEventKind int
 
-// ClientStateEvent kinds
+// ClientStateAuthEvent kinds
 const (
-	// ClientStateEventPut means you should put the key-value pair into the
+	// ClientStateAuthEventPut means you should put the key-value pair into the
 	// client state.
-	ClientStateEventPut ClientStateEventKind = iota
-	// ClientStateEventPut means you should delete the key-value pair from the
+	ClientStateAuthEventPut ClientStateAuthEventKind = iota
+	// ClientStateAuthEventPut means you should delete the key-value pair from the
 	// client state.
-	ClientStateEventDel
-	// ClientStateEventDelAll means you should delete EVERY key-value pair from
+	ClientStateAuthEventDel
+	// ClientStateAuthEventDelAll means you should delete EVERY key-value pair from
 	// the client state - though a whitelist of keys that should not be deleted
 	// may be passed through as a comma separated list of keys in
-	// the ClientStateEvent.Key field.
-	ClientStateEventDelAll
+	// the ClientStateAuthEvent.Key field.
+	ClientStateAuthEventDelAll
 )
 
-// ClientStateEvent are the different events that can be recorded during
+// ClientStateAuthEvent are the different events that can be recorded during
 // a request.
-type ClientStateEvent struct {
-	Kind  ClientStateEventKind
+type ClientStateAuthEvent struct {
+	Kind  ClientStateAuthEventKind
 	Key   string
 	Value string
 }
@@ -73,7 +73,7 @@ type ClientStateReadWriter interface {
 	ReadState(*http.Request) (ClientState, error)
 	// WriteState can sometimes be called with a nil ClientState in the event
 	// that no ClientState was read in from LoadClientState
-	WriteState(http.ResponseWriter, ClientState, []ClientStateEvent) error
+	WriteState(http.ResponseWriter, ClientState, []ClientStateAuthEvent) error
 }
 
 // UnderlyingResponseWriter retrieves the response
@@ -104,8 +104,8 @@ type ClientStateResponseWriter struct {
 	sessionState ClientState
 
 	hasWritten         bool
-	cookieStateEvents  []ClientStateEvent
-	sessionStateEvents []ClientStateEvent
+	cookieStateAuthEvents  []ClientStateAuthEvent
+	sessionStateAuthEvents []ClientStateAuthEvent
 }
 
 // LoadClientStateMiddleware wraps all requests with the
@@ -131,16 +131,16 @@ func (a *Engine) LoadClientStateMiddleware(h http.Handler) http.Handler {
 func (a *Engine) NewResponse(w http.ResponseWriter) *ClientStateResponseWriter {
 	return &ClientStateResponseWriter{
 		ResponseWriter: w,
-		cookieStateRW:  a.Config.Storage.CookieState,
-		sessionStateRW: a.Config.Storage.SessionState,
+		cookieStateRW:  a.Core.CookieState,
+		sessionStateRW: a.Core.SessionState,
 	}
 }
 
 // LoadClientState loads the state from sessions and cookies
 // into the ResponseWriter for later use.
 func (a *Engine) LoadClientState(w http.ResponseWriter, r *http.Request) (*http.Request, error) {
-	if a.Storage.SessionState != nil {
-		state, err := a.Storage.SessionState.ReadState(r)
+	if a.Core.SessionState != nil {
+		state, err := a.Core.SessionState.ReadState(r)
 		if err != nil {
 			return nil, err
 		} else if state != nil {
@@ -149,8 +149,8 @@ func (a *Engine) LoadClientState(w http.ResponseWriter, r *http.Request) (*http.
 			r = r.WithContext(context.WithValue(r.Context(), CTXKeySessionState, state))
 		}
 	}
-	if a.Storage.CookieState != nil {
-		state, err := a.Storage.CookieState.ReadState(r)
+	if a.Core.CookieState != nil {
+		state, err := a.Core.CookieState.ReadState(r)
 		if err != nil {
 			return nil, err
 		} else if state != nil {
@@ -228,18 +228,18 @@ func (c *ClientStateResponseWriter) putClientState() error {
 	}
 	c.hasWritten = true
 
-	if len(c.cookieStateEvents) == 0 && len(c.sessionStateEvents) == 0 {
+	if len(c.cookieStateAuthEvents) == 0 && len(c.sessionStateAuthEvents) == 0 {
 		return nil
 	}
 
-	if c.sessionStateRW != nil && len(c.sessionStateEvents) > 0 {
-		err := c.sessionStateRW.WriteState(c, c.sessionState, c.sessionStateEvents)
+	if c.sessionStateRW != nil && len(c.sessionStateAuthEvents) > 0 {
+		err := c.sessionStateRW.WriteState(c, c.sessionState, c.sessionStateAuthEvents)
 		if err != nil {
 			return err
 		}
 	}
-	if c.cookieStateRW != nil && len(c.cookieStateEvents) > 0 {
-		err := c.cookieStateRW.WriteState(c, c.cookieState, c.cookieStateEvents)
+	if c.cookieStateRW != nil && len(c.cookieStateAuthEvents) > 0 {
+		err := c.cookieStateRW.WriteState(c, c.cookieState, c.cookieStateAuthEvents)
 		if err != nil {
 			return err
 		}
@@ -304,33 +304,33 @@ func GetCookie(r *http.Request, key string) (string, bool) {
 }
 
 func putState(w http.ResponseWriter, CTXKey contextKey, key, val string) {
-	setState(w, CTXKey, ClientStateEventPut, key, val)
+	setState(w, CTXKey, ClientStateAuthEventPut, key, val)
 }
 
 func delState(w http.ResponseWriter, CTXKey contextKey, key string) {
-	setState(w, CTXKey, ClientStateEventDel, key, "")
+	setState(w, CTXKey, ClientStateAuthEventDel, key, "")
 }
 
 func delAllState(w http.ResponseWriter, CTXKey contextKey, whitelist []string) {
-	setState(w, CTXKey, ClientStateEventDelAll, strings.Join(whitelist, ","), "")
+	setState(w, CTXKey, ClientStateAuthEventDelAll, strings.Join(whitelist, ","), "")
 }
 
-func setState(w http.ResponseWriter, ctxKey contextKey, op ClientStateEventKind, key, val string) {
+func setState(w http.ResponseWriter, ctxKey contextKey, op ClientStateAuthEventKind, key, val string) {
 	csrw := MustClientStateResponseWriter(w)
-	ev := ClientStateEvent{
+	ev := ClientStateAuthEvent{
 		Kind: op,
 		Key:  key,
 	}
 
-	if op == ClientStateEventPut {
+	if op == ClientStateAuthEventPut {
 		ev.Value = val
 	}
 
 	switch ctxKey {
 	case CTXKeySessionState:
-		csrw.sessionStateEvents = append(csrw.sessionStateEvents, ev)
+		csrw.sessionStateAuthEvents = append(csrw.sessionStateAuthEvents, ev)
 	case CTXKeyCookieState:
-		csrw.cookieStateEvents = append(csrw.cookieStateEvents, ev)
+		csrw.cookieStateAuthEvents = append(csrw.cookieStateAuthEvents, ev)
 	}
 }
 

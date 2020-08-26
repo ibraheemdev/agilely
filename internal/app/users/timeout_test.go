@@ -15,11 +15,11 @@ func TestTimeoutSetup(t *testing.T) {
 	e := engine.New()
 
 	clientRW := test.NewClientRW()
-	e.Storage.SessionState = clientRW
+	e.Core.SessionState = clientRW
 
 	u := NewController(e)
 
-	u.Events.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	u.AuthEvents.After(engine.EventAuth, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		refreshExpiry(w)
 		return false, nil
 	})
@@ -27,7 +27,7 @@ func TestTimeoutSetup(t *testing.T) {
 	w := httptest.NewRecorder()
 	wr := e.NewResponse(w)
 
-	handled, err := e.Events.FireAfter(engine.EventAuth, wr, nil)
+	handled, err := e.AuthEvents.FireAfter(engine.EventAuth, wr, nil)
 	if handled {
 		t.Error("it should not handle the event")
 	}
@@ -47,7 +47,7 @@ func TestExpireIsExpired(t *testing.T) {
 	clientRW := test.NewClientRW()
 	clientRW.ClientValues[engine.SessionKey] = "username"
 	clientRW.ClientValues[engine.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)
-	e.Storage.SessionState = clientRW
+	e.Core.SessionState = clientRW
 
 	r := httptest.NewRequest("GET", "/", nil)
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyPID, "primaryid"))
@@ -102,7 +102,7 @@ func TestExpireNotExpired(t *testing.T) {
 	clientRW := test.NewClientRW()
 	clientRW.ClientValues[engine.SessionKey] = "username"
 	clientRW.ClientValues[engine.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)
-	e.Storage.SessionState = clientRW
+	e.Core.SessionState = clientRW
 
 	var err error
 
@@ -116,7 +116,7 @@ func TestExpireNotExpired(t *testing.T) {
 	}
 
 	// No t.Parallel() - Also must be after refreshExpiry() call
-	newTime := time.Now().UTC().Add(e.Modules.ExpireAfter / 2)
+	newTime := time.Now().UTC().Add(e.Config.Authboss.ExpireAfter / 2)
 	nowTime = func() time.Time {
 		return newTime
 	}
@@ -172,7 +172,7 @@ func TestExpireRefreshExpiry(t *testing.T) {
 
 	e := engine.New()
 	clientRW := test.NewClientRW()
-	e.Storage.SessionState = clientRW
+	e.Core.SessionState = clientRW
 	r := httptest.NewRequest("GET", "/", nil)
 	w := e.NewResponse(httptest.NewRecorder())
 

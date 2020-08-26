@@ -62,12 +62,12 @@ func TestInit(t *testing.T) {
 	oauth := &OAuth2{}
 
 	router := &test.Router{}
-	e.Config.Modules.OAuth2Providers = testProviders
-	e.Config.Core.Router = router
-	e.Config.Core.ErrorHandler = &test.ErrorHandler{}
+	e.Config.Authboss.OAuth2Providers = testProviders
+	e.Core.Router = router
+	e.Core.ErrorHandler = &test.ErrorHandler{}
 
-	e.Config.Paths.Mount = "/auth"
-	e.Config.Paths.RootURL = "https://www.example.com"
+	e.Config.Mount = "/auth"
+	e.Config.RootURL = "https://www.example.com"
 
 	if err := oauth.Init(e); err != nil {
 		t.Fatal(err)
@@ -84,7 +84,7 @@ func TestInit(t *testing.T) {
 
 type testHarness struct {
 	oauth *OAuth2
-	e    *engine.Engine
+	e     *engine.Engine
 
 	redirector *test.Redirector
 	session    *test.ClientStateRW
@@ -99,12 +99,12 @@ func testSetup() *testHarness {
 	harness.session = test.NewClientRW()
 	harness.storer = test.NewServerStorer()
 
-	harness.e.Modules.OAuth2Providers = testProviders
+	harness.e.Config.Authboss.OAuth2Providers = testProviders
 
-	harness.e.Config.Core.Logger = test.Logger{}
-	harness.e.Config.Core.Redirector = harness.redirector
-	harness.e.Config.Storage.SessionState = harness.session
-	harness.e.Config.Storage.Server = harness.storer
+	harness.e.Core.Logger = test.Logger{}
+	harness.e.Core.Redirector = harness.redirector
+	harness.e.Core.SessionState = harness.session
+	harness.e.Core.Server = harness.storer
 
 	harness.oauth = &OAuth2{harness.e}
 
@@ -283,7 +283,7 @@ func TestEndHandling(t *testing.T) {
 		}
 
 		called := false
-		h.e.Events.After(engine.EventOAuth2Fail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.After(engine.EventOAuth2Fail, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			called = true
 			return true, nil
 		})
@@ -312,7 +312,7 @@ func TestEndHandling(t *testing.T) {
 		}
 
 		called := false
-		h.e.Events.Before(engine.EventOAuth2, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.Before(engine.EventOAuth2, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			called = true
 			return true, nil
 		})
@@ -347,7 +347,7 @@ func TestEndHandling(t *testing.T) {
 		}
 
 		called := false
-		h.e.Events.After(engine.EventOAuth2, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+		h.e.AuthEvents.After(engine.EventOAuth2, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 			called = true
 			return true, nil
 		})

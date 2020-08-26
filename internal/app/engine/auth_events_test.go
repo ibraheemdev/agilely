@@ -13,11 +13,11 @@ func TestEvents(t *testing.T) {
 	afterCalled := false
 	beforeCalled := false
 
-	e.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
+	e.AuthEvents.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
 		beforeCalled = true
 		return false, nil
 	})
-	e.Events.After(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
+	e.AuthEvents.After(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
 		afterCalled = true
 		return false, nil
 	})
@@ -26,7 +26,7 @@ func TestEvents(t *testing.T) {
 		t.Error("Neither should be called.")
 	}
 
-	handled, err := e.Events.FireBefore(EventRegister, nil, nil)
+	handled, err := e.AuthEvents.FireBefore(EventRegister, nil, nil)
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -41,7 +41,7 @@ func TestEvents(t *testing.T) {
 		t.Error("Expected after not to be called.")
 	}
 
-	e.Events.FireAfter(EventRegister, nil, nil)
+	e.AuthEvents.FireAfter(EventRegister, nil, nil)
 	if !afterCalled {
 		t.Error("Expected after to be called.")
 	}
@@ -57,18 +57,18 @@ func TestEventsHandled(t *testing.T) {
 	firstHandled := false
 	secondHandled := false
 
-	e.Events.Before(EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	e.AuthEvents.Before(EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		firstCalled = true
 		firstHandled = handled
 		return true, nil
 	})
-	e.Events.Before(EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
+	e.AuthEvents.Before(EventRegister, func(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 		secondCalled = true
 		secondHandled = handled
 		return false, nil
 	})
 
-	handled, err := e.Events.FireBefore(EventRegister, nil, nil)
+	handled, err := e.AuthEvents.FireBefore(EventRegister, nil, nil)
 	if err != nil {
 		t.Error("Unexpected error:", err)
 	}
@@ -100,16 +100,16 @@ func TestEventsErrors(t *testing.T) {
 
 	expect := errors.New("error")
 
-	e.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
+	e.AuthEvents.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
 		firstCalled = true
 		return false, expect
 	})
-	e.Events.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
+	e.AuthEvents.Before(EventRegister, func(http.ResponseWriter, *http.Request, bool) (bool, error) {
 		secondCalled = true
 		return false, nil
 	})
 
-	_, err := e.Events.FireBefore(EventRegister, nil, nil)
+	_, err := e.AuthEvents.FireBefore(EventRegister, nil, nil)
 	if err != expect {
 		t.Error("got the wrong error back:", err)
 	}

@@ -38,7 +38,7 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 	creds := engine.MustHaveUserValues(validatable)
 
 	pid := creds.GetPID()
-	pidUser, err := u.Engine.Storage.Server.Load(r.Context(), pid)
+	pidUser, err := u.Engine.Core.Server.Load(r.Context(), pid)
 	if err == engine.ErrUserNotFound {
 		logger.Infof("failed to load user requested by pid: %s", pid)
 		data := engine.HTMLData{engine.DataErr: "Invalid Credentials"}
@@ -55,7 +55,7 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 	var handled bool
 	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(creds.GetPassword()))
 	if err != nil {
-		handled, err = u.Engine.Events.FireAfter(engine.EventAuthFail, w, r)
+		handled, err = u.Engine.AuthEvents.FireAfter(engine.EventAuthFail, w, r)
 		if err != nil {
 			return err
 		} else if handled {
@@ -69,14 +69,14 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyValues, validatable))
 
-	handled, err = u.Events.FireBefore(engine.EventAuth, w, r)
+	handled, err = u.AuthEvents.FireBefore(engine.EventAuth, w, r)
 	if err != nil {
 		return err
 	} else if handled {
 		return nil
 	}
 
-	handled, err = u.Events.FireBefore(engine.EventAuthHijack, w, r)
+	handled, err = u.AuthEvents.FireBefore(engine.EventAuthHijack, w, r)
 	if err != nil {
 		return err
 	} else if handled {
@@ -87,7 +87,7 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 	engine.PutSession(w, engine.SessionKey, pid)
 	engine.DelSession(w, engine.SessionHalfAuthKey)
 
-	handled, err = u.Engine.Events.FireAfter(engine.EventAuth, w, r)
+	handled, err = u.Engine.AuthEvents.FireAfter(engine.EventAuth, w, r)
 	if err != nil {
 		return err
 	} else if handled {

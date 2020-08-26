@@ -16,7 +16,7 @@
 //
 // In order to do this there are a number of parts:
 //   1. The configuration of a provider
-//      (handled by engine.Config.Modules.OAuth2Providers).
+//      (handled by engine.Config.Authboss.OAuth2Providers).
 //   2. The flow of redirection of client, parameter passing etc
 //      (handled by this package)
 //   3. The HTTP call to the service once a token has been retrieved to
@@ -78,26 +78,26 @@ func (o *OAuth2) Init(e *engine.Engine) error {
 	// route registration (both for consistency inside the router but
 	// also for tests -_-)
 	var keys []string
-	for k := range o.Engine.Config.Modules.OAuth2Providers {
+	for k := range o.Engine.Config.Authboss.OAuth2Providers {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
 	for _, provider := range keys {
-		cfg := o.Engine.Config.Modules.OAuth2Providers[provider]
+		cfg := o.Engine.Config.Authboss.OAuth2Providers[provider]
 		provider = strings.ToLower(provider)
 
 		init := fmt.Sprintf("/oauth2/%s", provider)
 		callback := fmt.Sprintf("/oauth2/callback/%s", provider)
 
-		o.Engine.Config.Core.Router.GET(init, o.Engine.Core.ErrorHandler.Wrap(o.Start))
-		o.Engine.Config.Core.Router.GET(callback, o.Engine.Core.ErrorHandler.Wrap(o.End))
+		o.Engine.Core.Router.GET(init, o.Engine.Core.ErrorHandler.Wrap(o.Start))
+		o.Engine.Core.Router.GET(callback, o.Engine.Core.ErrorHandler.Wrap(o.End))
 
-		if mount := o.Engine.Config.Paths.Mount; len(mount) > 0 {
+		if mount := o.Engine.Config.Mount; len(mount) > 0 {
 			callback = path.Join(mount, callback)
 		}
 
-		cfg.OAuth2Config.RedirectURL = o.Engine.Config.Paths.RootURL + callback
+		cfg.OAuth2Config.RedirectURL = o.Engine.Config.RootURL + callback
 	}
 
 	return nil
@@ -109,7 +109,7 @@ func (o *OAuth2) Start(w http.ResponseWriter, r *http.Request) error {
 
 	provider := strings.ToLower(filepath.Base(r.URL.Path))
 	logger.Infof("started oauth2 flow for provider: %s", provider)
-	cfg, ok := o.Engine.Config.Modules.OAuth2Providers[provider]
+	cfg, ok := o.Engine.Config.Authboss.OAuth2Providers[provider]
 	if !ok {
 		return fmt.Errorf("oauth2 provider %q not found", provider)
 	}
@@ -167,7 +167,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 	logger.Infof("finishing oauth2 flow for provider: %s", provider)
 
 	// This shouldn't happen because the router should 404 first, but just in case
-	cfg, ok := o.Engine.Config.Modules.OAuth2Providers[provider]
+	cfg, ok := o.Engine.Config.Authboss.OAuth2Providers[provider]
 	if !ok {
 		return fmt.Errorf("oauth2 provider %q not found", provider)
 	}
@@ -200,7 +200,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 		reason := r.FormValue("error_reason")
 		logger.Infof("oauth2 login failed: %s, reason: %s", hasErr, reason)
 
-		handled, err := o.Engine.Events.FireAfter(engine.EventOAuth2Fail, w, r)
+		handled, err := o.Engine.AuthEvents.FireAfter(engine.EventOAuth2Fail, w, r)
 		if err != nil {
 			return err
 		} else if handled {
@@ -227,7 +227,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	storer := engine.EnsureCanOAuth2(o.Engine.Config.Storage.Server)
+	storer := engine.EnsureCanOAuth2(o.Engine.Core.Server)
 	user, err := storer.NewFromOAuth2(r.Context(), provider, details)
 	if err != nil {
 		return fmt.Errorf("%w failed to create oauth2 user from values", err)
@@ -246,7 +246,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
 
-	handled, err := o.Engine.Events.FireBefore(engine.EventOAuth2, w, r)
+	handled, err := o.Engine.AuthEvents.FireBefore(engine.EventOAuth2, w, r)
 	if err != nil {
 		return err
 	} else if handled {
@@ -274,7 +274,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	handled, err = o.Engine.Events.FireAfter(engine.EventOAuth2, w, r)
+	handled, err = o.Engine.AuthEvents.FireAfter(engine.EventOAuth2, w, r)
 	if err != nil {
 		return err
 	} else if handled {
@@ -290,7 +290,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 		RedirectPath: redirect,
 		Success:      fmt.Sprintf("Logged in successfully with %s.", strings.Title(provider)),
 	}
-	return o.Engine.Config.Core.Redirector.Redirect(w, r, ro)
+	return o.Engine.Core.Redirector.Redirect(w, r, ro)
 }
 
 // RMTrue is a dummy struct implementing engine.RememberValuer

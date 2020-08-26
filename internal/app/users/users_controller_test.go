@@ -19,11 +19,11 @@ func TestEngineInit(t *testing.T) {
 	errHandler := &test.ErrorHandler{}
 	server := &test.ServerStorer{}
 	mailRenderer := &test.Renderer{}
-	e.Config.Core.Router = router
-	e.Config.Core.ViewRenderer = renderer
-	e.Config.Core.ErrorHandler = errHandler
-	e.Config.Core.MailRenderer = mailRenderer
-	e.Config.Storage.Server = server
+	e.Core.Router = router
+	e.Core.ViewRenderer = renderer
+	e.Core.ErrorHandler = errHandler
+	e.Core.MailRenderer = mailRenderer
+	e.Core.Server = server
 
 	u := NewController(e)
 
@@ -47,10 +47,10 @@ func TestEngineInit(t *testing.T) {
 		t.Error(err)
 	}
 
-	events := reflect.ValueOf(e.Events).Elem()
+	events := reflect.ValueOf(e.AuthEvents).Elem()
 
 	a := events.FieldByName("after")
-	after := reflect.NewAt(a.Type(), unsafe.Pointer(a.UnsafeAddr())).Elem().Interface().(map[engine.Event][]engine.EventHandler)
+	after := reflect.NewAt(a.Type(), unsafe.Pointer(a.UnsafeAddr())).Elem().Interface().(map[engine.AuthEvent][]engine.AuthEventHandler)
 
 	if len(after) != 5 {
 		t.Errorf("expected 1 event, got %d", len(after))
@@ -77,7 +77,7 @@ func TestEngineInit(t *testing.T) {
 	}
 
 	b := events.FieldByName("before")
-	before := reflect.NewAt(b.Type(), unsafe.Pointer(b.UnsafeAddr())).Elem().Interface().(map[engine.Event][]engine.EventHandler)
+	before := reflect.NewAt(b.Type(), unsafe.Pointer(b.UnsafeAddr())).Elem().Interface().(map[engine.AuthEvent][]engine.AuthEventHandler)
 
 	if len(before) != 2 {
 		t.Errorf("expected 1 event, got %d", len(before))

@@ -21,8 +21,8 @@ func TestEmail(t *testing.T) {
 
 	m := &testMailer{}
 	renderer := &mockEmailRenderer{}
-	e.Config.Core.Mailer = m
-	e.Config.Core.MailRenderer = renderer
+	e.Core.Mailer = m
+	e.Core.MailRenderer = renderer
 
 	email := mailer.Email{
 		To:      []string{"support@engine.com"},

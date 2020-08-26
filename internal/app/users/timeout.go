@@ -59,9 +59,9 @@ type expireMiddleware struct {
 func TimeoutMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return expireMiddleware{
-			expireAfter:      e.Config.Modules.ExpireAfter,
+			expireAfter:      e.Config.Authboss.ExpireAfter,
 			next:             next,
-			sessionWhitelist: e.Config.Storage.SessionStateWhitelistKeys,
+			sessionWhitelist: e.Config.SessionStateWhitelistKeys,
 		}
 	}
 }

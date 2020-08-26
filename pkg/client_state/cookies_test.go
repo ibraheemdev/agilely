@@ -31,7 +31,7 @@ func writeInitialState(s CookieStorer, w *httptest.ResponseRecorder, r *http.Req
 	if val, ok := emptyState.Get("hello"); ok || len(val) != 0 {
 		return nil, fmt.Errorf("it should not have had a value: %s", val)
 	}
-	put := []engine.ClientStateEvent{{Kind: engine.ClientStateEventPut, Key: "hello", Value: "World"}}
+	put := []engine.ClientStateAuthEvent{{Kind: engine.ClientStateAuthEventPut, Key: "hello", Value: "World"}}
 	if err := s.WriteState(w, emptyState, put); err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func TestCookiePutAndDelete(t *testing.T) {
 		}
 	}
 
-	del := []engine.ClientStateEvent{{Kind: engine.ClientStateEventDel, Key: "hello", Value: "World"}}
+	del := []engine.ClientStateAuthEvent{{Kind: engine.ClientStateAuthEventDel, Key: "hello", Value: "World"}}
 
 	if err := storer.WriteState(w, state, del); err != nil {
 		t.Fatal(err)

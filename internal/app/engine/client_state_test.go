@@ -11,8 +11,8 @@ func TestStateGet(t *testing.T) {
 	t.Parallel()
 
 	e := New()
-	e.Storage.SessionState = newMockClientStateRW("one", "two")
-	e.Storage.CookieState = newMockClientStateRW("three", "four")
+	e.Core.SessionState = newMockClientStateRW("one", "two")
+	e.Core.CookieState = newMockClientStateRW("three", "four")
 
 	r := httptest.NewRequest("GET", "/", nil)
 	w := e.NewResponse(httptest.NewRecorder())
@@ -35,7 +35,7 @@ func TestStateResponseWriterDoubleWritePanic(t *testing.T) {
 	t.Parallel()
 
 	e := New()
-	e.Storage.SessionState = newMockClientStateRW("one", "two")
+	e.Core.SessionState = newMockClientStateRW("one", "two")
 
 	w := e.NewResponse(httptest.NewRecorder())
 
@@ -56,7 +56,7 @@ func TestStateResponseWriterLastSecondWriteHeader(t *testing.T) {
 	t.Parallel()
 
 	e := New()
-	e.Storage.SessionState = newMockClientStateRW()
+	e.Core.SessionState = newMockClientStateRW()
 
 	w := e.NewResponse(httptest.NewRecorder())
 
@@ -73,7 +73,7 @@ func TestStateResponseWriterLastSecondWriteWrite(t *testing.T) {
 	t.Parallel()
 
 	e := New()
-	e.Storage.SessionState = newMockClientStateRW()
+	e.Core.SessionState = newMockClientStateRW()
 
 	w := e.NewResponse(httptest.NewRecorder())
 
@@ -87,7 +87,7 @@ func TestStateResponseWriterLastSecondWriteWrite(t *testing.T) {
 	}
 }
 
-func TestStateResponseWriterEvents(t *testing.T) {
+func TestStateResponseWriterAuthEvents(t *testing.T) {
 	t.Parallel()
 
 	e := New()
@@ -98,23 +98,23 @@ func TestStateResponseWriterEvents(t *testing.T) {
 	DelCookie(w, "one")
 	PutCookie(w, "two", "one")
 
-	want := ClientStateEvent{Kind: ClientStateEventPut, Key: "one", Value: "two"}
-	if got := w.sessionStateEvents[0]; got != want {
+	want := ClientStateAuthEvent{Kind: ClientStateAuthEventPut, Key: "one", Value: "two"}
+	if got := w.sessionStateAuthEvents[0]; got != want {
 		t.Error("event was wrong", got)
 	}
 
-	want = ClientStateEvent{Kind: ClientStateEventDel, Key: "one"}
-	if got := w.sessionStateEvents[1]; got != want {
+	want = ClientStateAuthEvent{Kind: ClientStateAuthEventDel, Key: "one"}
+	if got := w.sessionStateAuthEvents[1]; got != want {
 		t.Error("event was wrong", got)
 	}
 
-	want = ClientStateEvent{Kind: ClientStateEventDel, Key: "one"}
-	if got := w.cookieStateEvents[0]; got != want {
+	want = ClientStateAuthEvent{Kind: ClientStateAuthEventDel, Key: "one"}
+	if got := w.cookieStateAuthEvents[0]; got != want {
 		t.Error("event was wrong", got)
 	}
 
-	want = ClientStateEvent{Kind: ClientStateEventPut, Key: "two", Value: "one"}
-	if got := w.cookieStateEvents[1]; got != want {
+	want = ClientStateAuthEvent{Kind: ClientStateAuthEventPut, Key: "two", Value: "one"}
+	if got := w.cookieStateAuthEvents[1]; got != want {
 		t.Error("event was wrong", got)
 	}
 }
@@ -123,7 +123,7 @@ func TestFlashClearer(t *testing.T) {
 	t.Parallel()
 
 	e := New()
-	e.Storage.SessionState = newMockClientStateRW(FlashSuccessKey, "a", FlashErrorKey, "b")
+	e.Core.SessionState = newMockClientStateRW(FlashSuccessKey, "a", FlashErrorKey, "b")
 
 	r := httptest.NewRequest("GET", "/", nil)
 	w := e.NewResponse(httptest.NewRecorder())
@@ -150,12 +150,12 @@ func TestFlashClearer(t *testing.T) {
 		t.Error("Unexpected flash error:", msg)
 	}
 
-	want := ClientStateEvent{Kind: ClientStateEventDel, Key: FlashSuccessKey}
-	if got := w.sessionStateEvents[0]; got != want {
+	want := ClientStateAuthEvent{Kind: ClientStateAuthEventDel, Key: FlashSuccessKey}
+	if got := w.sessionStateAuthEvents[0]; got != want {
 		t.Error("event was wrong", got)
 	}
-	want = ClientStateEvent{Kind: ClientStateEventDel, Key: FlashErrorKey}
-	if got := w.sessionStateEvents[1]; got != want {
+	want = ClientStateAuthEvent{Kind: ClientStateAuthEventDel, Key: FlashErrorKey}
+	if got := w.sessionStateAuthEvents[1]; got != want {
 		t.Error("event was wrong", got)
 	}
 }
@@ -167,10 +167,10 @@ func TestDelAllSession(t *testing.T) {
 
 	DelAllSession(csrw, []string{"notthisone", "orthis"})
 
-	if len(csrw.sessionStateEvents) != 1 {
+	if len(csrw.sessionStateAuthEvents) != 1 {
 		t.Error("should have one delete all")
 	}
-	if ev := csrw.sessionStateEvents[0]; ev.Kind != ClientStateEventDelAll {
+	if ev := csrw.sessionStateAuthEvents[0]; ev.Kind != ClientStateAuthEventDelAll {
 		t.Error("it should be a delete all event:", ev.Kind)
 	} else if ev.Key != "notthisone,orthis" {
 		t.Error("the whitelist should be passed through as CSV:", ev.Key)
