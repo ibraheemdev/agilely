@@ -648,6 +648,7 @@ type Router struct {
 	Gets    []string
 	Posts   []string
 	Deletes []string
+	Puts    []string
 }
 
 // ServeHTTP does nothing
@@ -669,6 +670,11 @@ func (r *Router) DELETE(path string, _ http.Handler) {
 	r.Deletes = append(r.Deletes, path)
 }
 
+// PUT records the path in the router
+func (r *Router) PUT(path string, _ http.Handler) {
+	r.Puts = append(r.Puts, path)
+}
+
 // HasGets ensures all gets routes are present
 func (r *Router) HasGets(gets ...string) error {
 	return r.hasRoutes(gets, r.Gets)
@@ -682,6 +688,11 @@ func (r *Router) HasPosts(posts ...string) error {
 // HasDeletes ensures all gets routes are present
 func (r *Router) HasDeletes(deletes ...string) error {
 	return r.hasRoutes(deletes, r.Deletes)
+}
+
+// HasPuts ensures all gets routes are present
+func (r *Router) HasPuts(puts ...string) error {
+	return r.hasRoutes(puts, r.Puts)
 }
 
 func (r *Router) hasRoutes(want []string, got []string) error {

@@ -35,18 +35,6 @@ func TestEngineInit(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := router.HasGets("/login", "/confirm", "/recover", "/recover/end", "/register"); err != nil {
-		t.Error(err)
-	}
-
-	if err := router.HasPosts("/login", "/recover", "/recover/end", "/register"); err != nil {
-		t.Error(err)
-	}
-
-	if err := router.HasDeletes("/logout"); err != nil {
-		t.Error(err)
-	}
-
 	events := reflect.ValueOf(e.AuthEvents).Elem()
 
 	a := events.FieldByName("after")
