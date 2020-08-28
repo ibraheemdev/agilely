@@ -3,9 +3,9 @@ root_url: "http://agilely.com:3000"
 session_state_whitelist_keys: ["email"]
 
 database:
-  host: "agilely.com"
+  host: "localhost"
   port: 27017
-  name: "agilely_production"
+  name: "agilely_testing"
 
 server:
   host: "agilely.com"

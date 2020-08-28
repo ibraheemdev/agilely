@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/ibraheemdev/agilely/config"
 	"github.com/ibraheemdev/agilely/internal/app/engine"
+	"github.com/ibraheemdev/agilely/pkg/mongo"
 )
 
 func main() {
@@ -35,8 +38,19 @@ func run() error {
 		return err
 	}
 
-	client := config.ConnectToDatabase(e)
-	defer config.DisconnectFromDatabase(client)
+	client, err := mongo.GetClient(fmt.Sprintf("mongodb://%s:%d", e.Config.Database.Host, e.Config.Database.Port))
+	if err != nil {
+		return err
+	}
+	e.Core.Database = client.Database(e.Config.Database.Name)
+
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err = client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
 
 	http.ListenAndServe(fmt.Sprintf("%s:%d", e.Config.Server.Host, e.Config.Server.Port), e.Core.Router)
 

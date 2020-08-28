@@ -63,6 +63,9 @@ type Engine struct {
 		// database for user operations.
 		Server ServerStorer
 
+		// Database
+		Database Database
+
 		// CookieState must be defined to provide an interface capapable of
 		// storing cookies for the given response, and reading them from the
 		// request.
@@ -85,15 +88,7 @@ func New() *Engine {
 	return e
 }
 
-// UpdatePassword updates the password field of a user using the same semantics
-// that register/auth do to create and verify passwords. It saves this using
-// the storer.
-//
-// In addition to that, it also invalidates any remember me tokens, if the
-// storer supports that kind of operation.
-//
-// If it's also desirable to log the user out, use:
-// engine.DelKnown(Session|Cookie)
+// UpdatePassword updates a user's password and invalidates any remember me tokens
 func (a *Engine) UpdatePassword(ctx context.Context, user AuthableUser, newPassword string) error {
 	pass, err := bcrypt.GenerateFromPassword([]byte(newPassword), a.Config.Authboss.BCryptCost)
 	if err != nil {
