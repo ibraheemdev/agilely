@@ -162,7 +162,7 @@ func (m mockClientStateReadWriter) ReadState(r *http.Request) (ClientState, erro
 	return m.state, nil
 }
 
-func (m mockClientStateReadWriter) WriteState(w http.ResponseWriter, cs ClientState, evs []ClientStateAuthEvent) error {
+func (m mockClientStateReadWriter) WriteState(w http.ResponseWriter, cs ClientState, evs []ClientStateEvent) error {
 	var state mockClientState
 
 	if cs != nil {
@@ -173,9 +173,9 @@ func (m mockClientStateReadWriter) WriteState(w http.ResponseWriter, cs ClientSt
 
 	for _, ev := range evs {
 		switch ev.Kind {
-		case ClientStateAuthEventPut:
+		case ClientStateEventPut:
 			state[ev.Key] = ev.Value
-		case ClientStateAuthEventDel:
+		case ClientStateEventDel:
 			delete(state, ev.Key)
 		}
 	}

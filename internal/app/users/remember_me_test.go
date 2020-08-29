@@ -66,7 +66,7 @@ func TestRememberAfterAuth(t *testing.T) {
 		t.Error("token was not persisted:", h.storer.RMTokens)
 	}
 
-	if cookie, ok := h.cookies.ClientValues[engine.CookieRemember]; !ok || len(cookie) == 0 {
+	if cookie, ok := h.cookies.ClientValues[CookieRemember]; !ok || len(cookie) == 0 {
 		t.Error("remember me cookie was not set")
 	}
 }
@@ -114,7 +114,7 @@ func TestMiddlewareAuth(t *testing.T) {
 
 	h.storer.Users[user.Email] = user
 	h.storer.RMTokens[user.Email] = []string{hash}
-	h.cookies.ClientValues[engine.CookieRemember] = token
+	h.cookies.ClientValues[CookieRemember] = token
 
 	r := test.Request("POST")
 	rec := httptest.NewRecorder()
@@ -155,7 +155,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 
 	h.storer.Users[user.Email] = user
 	h.storer.RMTokens[user.Email] = []string{hash}
-	h.cookies.ClientValues[engine.CookieRemember] = token
+	h.cookies.ClientValues[CookieRemember] = token
 
 	r := test.Request("POST")
 	rec := httptest.NewRecorder()
@@ -173,7 +173,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 
 	w.WriteHeader(http.StatusOK)
 
-	if cookie := h.cookies.ClientValues[engine.CookieRemember]; cookie == token {
+	if cookie := h.cookies.ClientValues[CookieRemember]; cookie == token {
 		t.Error("the cookie should have been replaced with a new token")
 	}
 
@@ -186,7 +186,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 	if h.session.ClientValues[engine.SessionKey] != user.Email {
 		t.Error("should have saved the pid in the session")
 	}
-	if h.session.ClientValues[engine.SessionHalfAuthKey] != "true" {
+	if h.session.ClientValues[SessionHalfAuthKey] != "true" {
 		t.Error("it should have become a half-authed session")
 	}
 
@@ -205,7 +205,7 @@ func TestAuthenticateTokenNotFound(t *testing.T) {
 	_, token, _ := GenerateToken(user.Email)
 
 	h.storer.Users[user.Email] = user
-	h.cookies.ClientValues[engine.CookieRemember] = token
+	h.cookies.ClientValues[CookieRemember] = token
 
 	r := test.Request("POST")
 	rec := httptest.NewRecorder()
@@ -223,7 +223,7 @@ func TestAuthenticateTokenNotFound(t *testing.T) {
 
 	w.WriteHeader(http.StatusOK)
 
-	if len(h.cookies.ClientValues[engine.CookieRemember]) != 0 {
+	if len(h.cookies.ClientValues[CookieRemember]) != 0 {
 		t.Error("there should be no remember cookie left")
 	}
 
@@ -262,7 +262,7 @@ func TestAuthenticateBadTokens(t *testing.T) {
 
 		w.WriteHeader(http.StatusOK)
 
-		if len(h.cookies.ClientValues[engine.CookieRemember]) != 0 {
+		if len(h.cookies.ClientValues[CookieRemember]) != 0 {
 			t.Error("there should be no remember cookie left")
 		}
 
@@ -276,11 +276,11 @@ func TestAuthenticateBadTokens(t *testing.T) {
 	}
 
 	t.Run("base64", func(t *testing.T) {
-		h.cookies.ClientValues[engine.CookieRemember] = "a"
+		h.cookies.ClientValues[CookieRemember] = "a"
 		doTest(t)
 	})
 	t.Run("cookieformat", func(t *testing.T) {
-		h.cookies.ClientValues[engine.CookieRemember] = `aGVsbG8=` // hello
+		h.cookies.ClientValues[CookieRemember] = `aGVsbG8=` // hello
 		doTest(t)
 	})
 }
@@ -296,7 +296,7 @@ func TestResetAllTokens(t *testing.T) {
 
 	h.storer.Users[user.Email] = user
 	h.storer.RMTokens[user.Email] = []string{hash1, hash2}
-	h.cookies.ClientValues[engine.CookieRemember] = token2
+	h.cookies.ClientValues[CookieRemember] = token2
 
 	r := test.Request("POST")
 	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
@@ -314,7 +314,7 @@ func TestResetAllTokens(t *testing.T) {
 	if len(h.storer.RMTokens[user.Email]) != 0 {
 		t.Error("all remember me tokens should have been removed")
 	}
-	if len(h.cookies.ClientValues[engine.CookieRemember]) != 0 {
+	if len(h.cookies.ClientValues[CookieRemember]) != 0 {
 		t.Error("there should be no remember cookie left")
 	}
 }

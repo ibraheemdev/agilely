@@ -376,14 +376,14 @@ func (c *ClientStateRW) ReadState(*http.Request) (engine.ClientState, error) {
 }
 
 // WriteState to memory
-func (c *ClientStateRW) WriteState(w http.ResponseWriter, cstate engine.ClientState, cse []engine.ClientStateAuthEvent) error {
+func (c *ClientStateRW) WriteState(w http.ResponseWriter, cstate engine.ClientState, cse []engine.ClientStateEvent) error {
 	for _, e := range cse {
 		switch e.Kind {
-		case engine.ClientStateAuthEventPut:
+		case engine.ClientStateEventPut:
 			c.ClientValues[e.Key] = e.Value
-		case engine.ClientStateAuthEventDel:
+		case engine.ClientStateEventDel:
 			delete(c.ClientValues, e.Key)
-		case engine.ClientStateAuthEventDelAll:
+		case engine.ClientStateEventDelAll:
 			c.ClientValues = make(map[string]string)
 		}
 	}

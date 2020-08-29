@@ -122,7 +122,7 @@ func (o *OAuth2) Start(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	state := base64.URLEncoding.EncodeToString(nonce)
-	engine.PutSession(w, engine.SessionOAuth2State, state)
+	engine.PutSession(w, users.SessionOAuth2State, state)
 
 	// This clearly ignores the fact that query parameters can have multiple
 	// values but I guess we're ignoring that
@@ -138,9 +138,9 @@ func (o *OAuth2) Start(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		engine.PutSession(w, engine.SessionOAuth2Params, string(byt))
+		engine.PutSession(w, users.SessionOAuth2Params, string(byt))
 	} else {
-		engine.DelSession(w, engine.SessionOAuth2Params)
+		engine.DelSession(w, users.SessionOAuth2Params)
 	}
 
 	authCodeURL := cfg.OAuth2Config.AuthCodeURL(state)
@@ -173,7 +173,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("oauth2 provider %q not found", provider)
 	}
 
-	wantState, ok := engine.GetSession(r, engine.SessionOAuth2State)
+	wantState, ok := engine.GetSession(r, users.SessionOAuth2State)
 	if !ok {
 		return errors.New("oauth2 endpoint hit without session state")
 	}
@@ -185,7 +185,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 		return errOAuthStateValidation
 	}
 
-	rawParams, ok := engine.GetSession(r, engine.SessionOAuth2Params)
+	rawParams, ok := engine.GetSession(r, users.SessionOAuth2Params)
 	var params map[string]string
 	if ok {
 		if err := json.Unmarshal([]byte(rawParams), &params); err != nil {
@@ -193,8 +193,8 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	engine.DelSession(w, engine.SessionOAuth2State)
-	engine.DelSession(w, engine.SessionOAuth2Params)
+	engine.DelSession(w, users.SessionOAuth2State)
+	engine.DelSession(w, users.SessionOAuth2Params)
 
 	hasErr := r.FormValue("error")
 	if len(hasErr) > 0 {
@@ -256,7 +256,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 
 	// Fully log user in
 	engine.PutSession(w, engine.SessionKey, engine.MakeOAuth2PID(provider, user.GetOAuth2UID()))
-	engine.DelSession(w, engine.SessionHalfAuthKey)
+	engine.DelSession(w, users.SessionHalfAuthKey)
 
 	// Create a query string from all the pieces we've received
 	// as passthru from the original request.
@@ -264,7 +264,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 	query := make(url.Values)
 	for k, v := range params {
 		switch k {
-		case engine.CookieRemember:
+		case users.CookieRemember:
 			if v == "true" {
 				r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyValues, RMTrue{}))
 			}

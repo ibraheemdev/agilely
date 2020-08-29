@@ -56,10 +56,29 @@ func (u *Users) Init() (err error) {
 
 type contextKey string
 
-// CTX Keys for engine
 const (
-	CTXKeyPID  contextKey = "pid"
+	// CTXKeyPID ...
+	CTXKeyPID contextKey = "pid"
+
+	// CTXKeyUser ...
 	CTXKeyUser contextKey = "user"
+	// SessionKey is the primarily used key by engine.
+	SessionKey = "uid"
+	// SessionHalfAuthKey is used for sessions that have been authenticated by
+	// the remember module. This serves as a way to force full authentication
+	// by denying half-authed users acccess to sensitive areas.
+	SessionHalfAuthKey = "halfauth"
+	// SessionLastAction is the session key to retrieve the
+	// last action of a user.
+	SessionLastAction = "last_action"
+	// SessionOAuth2State is the xsrf protection key for oauth.
+	SessionOAuth2State = "oauth2_state"
+	// SessionOAuth2Params is the additional settings for oauth
+	// like redirection/remember.
+	SessionOAuth2Params = "oauth2_params"
+
+	// CookieRemember is used for cookies and form input names.
+	CookieRemember = "rm"
 )
 
 func (c contextKey) String() string {
@@ -195,4 +214,11 @@ func (u *Users) LoadCurrentUserP(r **http.Request) engine.User {
 	}
 
 	return user
+}
+
+// IsFullyAuthed returns false if the user has a SessionHalfAuth
+// in his session.
+func IsFullyAuthed(r *http.Request) bool {
+	_, hasHalfAuth := engine.GetSession(r, SessionHalfAuthKey)
+	return !hasHalfAuth
 }

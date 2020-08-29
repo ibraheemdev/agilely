@@ -52,7 +52,7 @@ func (u UserValues) GetValues() map[string]string {
 
 // GetShouldRemember checks the form values for
 func (u UserValues) GetShouldRemember() bool {
-	rm, ok := u.Values[engine.CookieRemember]
+	rm, ok := u.Values[users.CookieRemember]
 	return ok && rm == "true"
 }
 

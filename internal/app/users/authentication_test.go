@@ -82,7 +82,7 @@ func TestAuthPostSuccess(t *testing.T) {
 			Email:    "test@test.com",
 			Password: "$2a$10$IlfnqVyDZ6c1L.kaA/q3bu1nkAC6KukNUsizvlzay1pZPXnX2C9Ji", // hello world
 		}
-		h.session.ClientValues[engine.SessionHalfAuthKey] = "true"
+		h.session.ClientValues[SessionHalfAuthKey] = "true"
 
 		return h
 	}
@@ -119,7 +119,7 @@ func TestAuthPostSuccess(t *testing.T) {
 			t.Error("redirect path was wrong:", h.redirector.Options.RedirectPath)
 		}
 
-		if _, ok := h.session.ClientValues[engine.SessionHalfAuthKey]; ok {
+		if _, ok := h.session.ClientValues[SessionHalfAuthKey]; ok {
 			t.Error("half auth should have been deleted")
 		}
 		if pid := h.session.ClientValues[engine.SessionKey]; pid != "test@test.com" {
@@ -412,7 +412,7 @@ func TestEngineMiddleware(t *testing.T) {
 	})
 	t.Run("AcceptHalfAuth", func(t *testing.T) {
 		e.Core.SessionState = &test.ClientStateRW{
-			ClientValues: map[string]string{engine.SessionKey: "test@test.com", engine.SessionHalfAuthKey: "true"},
+			ClientValues: map[string]string{engine.SessionKey: "test@test.com", SessionHalfAuthKey: "true"},
 		}
 
 		_, called, hadUser := setupMore(false, RequireNone, RespondNotFound)
@@ -517,7 +517,7 @@ func TestEngineMiddleware(t *testing.T) {
 	})
 	t.Run("RequireFullAuth", func(t *testing.T) {
 		e.Core.SessionState = &test.ClientStateRW{
-			ClientValues: map[string]string{engine.SessionKey: "test@test.com", engine.SessionHalfAuthKey: "true"},
+			ClientValues: map[string]string{engine.SessionKey: "test@test.com", SessionHalfAuthKey: "true"},
 		}
 
 		rec, called, hadUser := setupMore(false, RequireFullAuth, RespondNotFound)

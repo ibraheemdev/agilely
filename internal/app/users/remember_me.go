@@ -37,7 +37,7 @@ func (u *Users) CreateRememberToken(w http.ResponseWriter, req *http.Request, ha
 		return false, err
 	}
 
-	engine.PutCookie(w, engine.CookieRemember, token)
+	engine.PutCookie(w, CookieRemember, token)
 
 	return false, nil
 }
@@ -71,21 +71,21 @@ func (u *Users) RememberMiddleware() func(http.Handler) http.Handler {
 // cookie and session states.
 func (u *Users) Authenticate(w http.ResponseWriter, req **http.Request) error {
 	logger := u.RequestLogger(*req)
-	cookie, ok := engine.GetCookie(*req, engine.CookieRemember)
+	cookie, ok := engine.GetCookie(*req, CookieRemember)
 	if !ok {
 		return nil
 	}
 
 	rawToken, err := base64.URLEncoding.DecodeString(cookie)
 	if err != nil {
-		engine.DelCookie(w, engine.CookieRemember)
+		engine.DelCookie(w, CookieRemember)
 		logger.Infof("failed to decode remember me cookie, deleting cookie")
 		return nil
 	}
 
 	index := bytes.IndexByte(rawToken, ';')
 	if index < 0 {
-		engine.DelCookie(w, engine.CookieRemember)
+		engine.DelCookie(w, CookieRemember)
 		logger.Infof("failed to decode remember me token, deleting cookie")
 		return nil
 	}
@@ -99,7 +99,7 @@ func (u *Users) Authenticate(w http.ResponseWriter, req **http.Request) error {
 	switch {
 	case err == engine.ErrTokenNotFound:
 		logger.Infof("remember me cookie had a token that was not in storage, deleting cookie")
-		engine.DelCookie(w, engine.CookieRemember)
+		engine.DelCookie(w, CookieRemember)
 		return nil
 	case err != nil:
 		return err
@@ -116,9 +116,9 @@ func (u *Users) Authenticate(w http.ResponseWriter, req **http.Request) error {
 
 	*req = (*req).WithContext(context.WithValue((*req).Context(), CTXKeyPID, pid))
 	engine.PutSession(w, engine.SessionKey, pid)
-	engine.PutSession(w, engine.SessionHalfAuthKey, "true")
-	engine.DelCookie(w, engine.CookieRemember)
-	engine.PutCookie(w, engine.CookieRemember, token)
+	engine.PutSession(w, SessionHalfAuthKey, "true")
+	engine.DelCookie(w, CookieRemember)
+	engine.PutCookie(w, CookieRemember, token)
 
 	return nil
 }
@@ -135,7 +135,7 @@ func (u *Users) ResetAllTokens(w http.ResponseWriter, req *http.Request, handled
 	storer := engine.EnsureCanRemember(u.Engine.Core.Server)
 
 	pid := user.GetPID()
-	engine.DelCookie(w, engine.CookieRemember)
+	engine.DelCookie(w, CookieRemember)
 
 	logger.Infof("deleting tokens and rm cookies for user %s due to password reset", pid)
 

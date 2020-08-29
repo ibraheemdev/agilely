@@ -13,21 +13,9 @@ import (
 const (
 	// SessionKey is the primarily used key by engine.
 	SessionKey = "uid"
-	// SessionHalfAuthKey is used for sessions that have been authenticated by
-	// the remember module. This serves as a way to force full authentication
-	// by denying half-authed users acccess to sensitive areas.
-	SessionHalfAuthKey = "halfauth"
 	// SessionLastAction is the session key to retrieve the
 	// last action of a user.
 	SessionLastAction = "last_action"
-	// SessionOAuth2State is the xsrf protection key for oauth.
-	SessionOAuth2State = "oauth2_state"
-	// SessionOAuth2Params is the additional settings for oauth
-	// like redirection/remember.
-	SessionOAuth2Params = "oauth2_params"
-
-	// CookieRemember is used for cookies and form input names.
-	CookieRemember = "rm"
 
 	// FlashSuccessKey is used for storing success flash messages on the session
 	FlashSuccessKey = "flash_success"
@@ -35,28 +23,28 @@ const (
 	FlashErrorKey = "flash_error"
 )
 
-// ClientStateAuthEventKind is an enum.
-type ClientStateAuthEventKind int
+// ClientStateEventKind is an enum.
+type ClientStateEventKind int
 
-// ClientStateAuthEvent kinds
+// ClientStateEvent kinds
 const (
-	// ClientStateAuthEventPut means you should put the key-value pair into the
+	// ClientStateEventPut means you should put the key-value pair into the
 	// client state.
-	ClientStateAuthEventPut ClientStateAuthEventKind = iota
-	// ClientStateAuthEventPut means you should delete the key-value pair from the
+	ClientStateEventPut ClientStateEventKind = iota
+	// ClientStateEventPut means you should delete the key-value pair from the
 	// client state.
-	ClientStateAuthEventDel
-	// ClientStateAuthEventDelAll means you should delete EVERY key-value pair from
+	ClientStateEventDel
+	// ClientStateEventDelAll means you should delete EVERY key-value pair from
 	// the client state - though a whitelist of keys that should not be deleted
 	// may be passed through as a comma separated list of keys in
-	// the ClientStateAuthEvent.Key field.
-	ClientStateAuthEventDelAll
+	// the ClientStateEvent.Key field.
+	ClientStateEventDelAll
 )
 
-// ClientStateAuthEvent are the different events that can be recorded during
+// ClientStateEvent are the different events that can be recorded during
 // a request.
-type ClientStateAuthEvent struct {
-	Kind  ClientStateAuthEventKind
+type ClientStateEvent struct {
+	Kind  ClientStateEventKind
 	Key   string
 	Value string
 }
@@ -73,7 +61,7 @@ type ClientStateReadWriter interface {
 	ReadState(*http.Request) (ClientState, error)
 	// WriteState can sometimes be called with a nil ClientState in the event
 	// that no ClientState was read in from LoadClientState
-	WriteState(http.ResponseWriter, ClientState, []ClientStateAuthEvent) error
+	WriteState(http.ResponseWriter, ClientState, []ClientStateEvent) error
 }
 
 // UnderlyingResponseWriter retrieves the response
@@ -103,9 +91,9 @@ type ClientStateResponseWriter struct {
 	cookieState  ClientState
 	sessionState ClientState
 
-	hasWritten             bool
-	cookieStateAuthEvents  []ClientStateAuthEvent
-	sessionStateAuthEvents []ClientStateAuthEvent
+	hasWritten         bool
+	cookieStateEvents  []ClientStateEvent
+	sessionStateEvents []ClientStateEvent
 }
 
 // LoadClientStateMiddleware wraps all requests with the
@@ -228,31 +216,24 @@ func (c *ClientStateResponseWriter) putClientState() error {
 	}
 	c.hasWritten = true
 
-	if len(c.cookieStateAuthEvents) == 0 && len(c.sessionStateAuthEvents) == 0 {
+	if len(c.cookieStateEvents) == 0 && len(c.sessionStateEvents) == 0 {
 		return nil
 	}
 
-	if c.sessionStateRW != nil && len(c.sessionStateAuthEvents) > 0 {
-		err := c.sessionStateRW.WriteState(c, c.sessionState, c.sessionStateAuthEvents)
+	if c.sessionStateRW != nil && len(c.sessionStateEvents) > 0 {
+		err := c.sessionStateRW.WriteState(c, c.sessionState, c.sessionStateEvents)
 		if err != nil {
 			return err
 		}
 	}
-	if c.cookieStateRW != nil && len(c.cookieStateAuthEvents) > 0 {
-		err := c.cookieStateRW.WriteState(c, c.cookieState, c.cookieStateAuthEvents)
+	if c.cookieStateRW != nil && len(c.cookieStateEvents) > 0 {
+		err := c.cookieStateRW.WriteState(c, c.cookieState, c.cookieStateEvents)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-// IsFullyAuthed returns false if the user has a SessionHalfAuth
-// in his session.
-func IsFullyAuthed(r *http.Request) bool {
-	_, hasHalfAuth := GetSession(r, SessionHalfAuthKey)
-	return !hasHalfAuth
 }
 
 // DelAllSession deletes all variables in the session except for those on
@@ -265,12 +246,6 @@ func IsFullyAuthed(r *http.Request) bool {
 // is called.
 func DelAllSession(w http.ResponseWriter, whitelist []string) {
 	delAllState(w, CTXKeySessionState, whitelist)
-}
-
-// DelKnownCookie deletes all known cookie variables, which can be used
-// to delete remember me pieces.
-func DelKnownCookie(w http.ResponseWriter) {
-	DelCookie(w, CookieRemember)
 }
 
 // PutSession puts a value into the session
@@ -304,33 +279,33 @@ func GetCookie(r *http.Request, key string) (string, bool) {
 }
 
 func putState(w http.ResponseWriter, CTXKey contextKey, key, val string) {
-	setState(w, CTXKey, ClientStateAuthEventPut, key, val)
+	setState(w, CTXKey, ClientStateEventPut, key, val)
 }
 
 func delState(w http.ResponseWriter, CTXKey contextKey, key string) {
-	setState(w, CTXKey, ClientStateAuthEventDel, key, "")
+	setState(w, CTXKey, ClientStateEventDel, key, "")
 }
 
 func delAllState(w http.ResponseWriter, CTXKey contextKey, whitelist []string) {
-	setState(w, CTXKey, ClientStateAuthEventDelAll, strings.Join(whitelist, ","), "")
+	setState(w, CTXKey, ClientStateEventDelAll, strings.Join(whitelist, ","), "")
 }
 
-func setState(w http.ResponseWriter, ctxKey contextKey, op ClientStateAuthEventKind, key, val string) {
+func setState(w http.ResponseWriter, ctxKey contextKey, op ClientStateEventKind, key, val string) {
 	csrw := MustClientStateResponseWriter(w)
-	ev := ClientStateAuthEvent{
+	ev := ClientStateEvent{
 		Kind: op,
 		Key:  key,
 	}
 
-	if op == ClientStateAuthEventPut {
+	if op == ClientStateEventPut {
 		ev.Value = val
 	}
 
 	switch ctxKey {
 	case CTXKeySessionState:
-		csrw.sessionStateAuthEvents = append(csrw.sessionStateAuthEvents, ev)
+		csrw.sessionStateEvents = append(csrw.sessionStateEvents, ev)
 	case CTXKeyCookieState:
-		csrw.cookieStateAuthEvents = append(csrw.cookieStateAuthEvents, ev)
+		csrw.cookieStateEvents = append(csrw.cookieStateEvents, ev)
 	}
 }
 

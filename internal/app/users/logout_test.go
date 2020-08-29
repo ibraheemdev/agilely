@@ -47,9 +47,9 @@ func TestLogoutLogout(t *testing.T) {
 	h := testLogoutSetup()
 
 	h.session.ClientValues[engine.SessionKey] = "test@test.com"
-	h.session.ClientValues[engine.SessionHalfAuthKey] = "true"
+	h.session.ClientValues[SessionHalfAuthKey] = "true"
 	h.session.ClientValues[engine.SessionLastAction] = time.Now().UTC().Format(time.RFC3339)
-	h.cookies.ClientValues[engine.CookieRemember] = "token"
+	h.cookies.ClientValues[CookieRemember] = "token"
 
 	r := test.Request("POST")
 	resp := httptest.NewRecorder()
@@ -80,13 +80,13 @@ func TestLogoutLogout(t *testing.T) {
 	if _, ok := h.session.ClientValues[engine.SessionKey]; ok {
 		t.Error("want session key gone")
 	}
-	if _, ok := h.session.ClientValues[engine.SessionHalfAuthKey]; ok {
+	if _, ok := h.session.ClientValues[SessionHalfAuthKey]; ok {
 		t.Error("want session half auth key gone")
 	}
 	if _, ok := h.session.ClientValues[engine.SessionLastAction]; ok {
 		t.Error("want session last action")
 	}
-	if _, ok := h.cookies.ClientValues[engine.CookieRemember]; ok {
+	if _, ok := h.cookies.ClientValues[CookieRemember]; ok {
 		t.Error("want remember me cookies gone")
 	}
 }

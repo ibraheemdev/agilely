@@ -88,7 +88,7 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 
 	logger.Infof("user %s logged in", pid)
 	engine.PutSession(w, engine.SessionKey, pid)
-	engine.DelSession(w, engine.SessionHalfAuthKey)
+	engine.DelSession(w, SessionHalfAuthKey)
 
 	handled, err = u.Engine.AuthEvents.FireAfter(engine.EventAuth, w, r)
 	if err != nil {
@@ -193,7 +193,7 @@ func (u *Users) AuthenticatedMountedMiddleware(mountPathed bool, reqs MWRequirem
 				}
 			}
 
-			if hasBit(reqs, RequireFullAuth) && !engine.IsFullyAuthed(r) {
+			if hasBit(reqs, RequireFullAuth) && !IsFullyAuthed(r) {
 				fail(w, r)
 				return
 			}

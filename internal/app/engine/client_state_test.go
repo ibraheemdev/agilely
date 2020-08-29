@@ -98,23 +98,23 @@ func TestStateResponseWriterAuthEvents(t *testing.T) {
 	DelCookie(w, "one")
 	PutCookie(w, "two", "one")
 
-	want := ClientStateAuthEvent{Kind: ClientStateAuthEventPut, Key: "one", Value: "two"}
-	if got := w.sessionStateAuthEvents[0]; got != want {
+	want := ClientStateEvent{Kind: ClientStateEventPut, Key: "one", Value: "two"}
+	if got := w.sessionStateEvents[0]; got != want {
 		t.Error("event was wrong", got)
 	}
 
-	want = ClientStateAuthEvent{Kind: ClientStateAuthEventDel, Key: "one"}
-	if got := w.sessionStateAuthEvents[1]; got != want {
+	want = ClientStateEvent{Kind: ClientStateEventDel, Key: "one"}
+	if got := w.sessionStateEvents[1]; got != want {
 		t.Error("event was wrong", got)
 	}
 
-	want = ClientStateAuthEvent{Kind: ClientStateAuthEventDel, Key: "one"}
-	if got := w.cookieStateAuthEvents[0]; got != want {
+	want = ClientStateEvent{Kind: ClientStateEventDel, Key: "one"}
+	if got := w.cookieStateEvents[0]; got != want {
 		t.Error("event was wrong", got)
 	}
 
-	want = ClientStateAuthEvent{Kind: ClientStateAuthEventPut, Key: "two", Value: "one"}
-	if got := w.cookieStateAuthEvents[1]; got != want {
+	want = ClientStateEvent{Kind: ClientStateEventPut, Key: "two", Value: "one"}
+	if got := w.cookieStateEvents[1]; got != want {
 		t.Error("event was wrong", got)
 	}
 }
@@ -150,12 +150,12 @@ func TestFlashClearer(t *testing.T) {
 		t.Error("Unexpected flash error:", msg)
 	}
 
-	want := ClientStateAuthEvent{Kind: ClientStateAuthEventDel, Key: FlashSuccessKey}
-	if got := w.sessionStateAuthEvents[0]; got != want {
+	want := ClientStateEvent{Kind: ClientStateEventDel, Key: FlashSuccessKey}
+	if got := w.sessionStateEvents[0]; got != want {
 		t.Error("event was wrong", got)
 	}
-	want = ClientStateAuthEvent{Kind: ClientStateAuthEventDel, Key: FlashErrorKey}
-	if got := w.sessionStateAuthEvents[1]; got != want {
+	want = ClientStateEvent{Kind: ClientStateEventDel, Key: FlashErrorKey}
+	if got := w.sessionStateEvents[1]; got != want {
 		t.Error("event was wrong", got)
 	}
 }
@@ -167,10 +167,10 @@ func TestDelAllSession(t *testing.T) {
 
 	DelAllSession(csrw, []string{"notthisone", "orthis"})
 
-	if len(csrw.sessionStateAuthEvents) != 1 {
+	if len(csrw.sessionStateEvents) != 1 {
 		t.Error("should have one delete all")
 	}
-	if ev := csrw.sessionStateAuthEvents[0]; ev.Kind != ClientStateAuthEventDelAll {
+	if ev := csrw.sessionStateEvents[0]; ev.Kind != ClientStateEventDelAll {
 		t.Error("it should be a delete all event:", ev.Kind)
 	} else if ev.Key != "notthisone,orthis" {
 		t.Error("the whitelist should be passed through as CSV:", ev.Key)

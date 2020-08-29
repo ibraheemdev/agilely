@@ -31,7 +31,7 @@ func TestExpiry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	evs := []engine.ClientStateAuthEvent{{Kind: engine.ClientStateAuthEventPut, Key: "hello", Value: "World"}}
+	evs := []engine.ClientStateEvent{{Kind: engine.ClientStateEventPut, Key: "hello", Value: "World"}}
 	if err := storer.WriteState(w, oldState, evs); err != nil {
 		t.Fatal(err)
 	}

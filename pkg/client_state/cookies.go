@@ -21,10 +21,6 @@ func (c CookieState) Get(key string) (string, bool) {
 
 // CookieStorer writes and reads cookies to an underlying
 // gorilla secure cookie storage.
-//
-// Because it embeds the SecureCookie piece this can be used
-// as the cookie storage for your entire application (rather than
-// only as a stub for engine).
 type CookieStorer struct {
 	Cookies []string
 	*securecookie.SecureCookie
@@ -60,7 +56,7 @@ type CookieStorer struct {
 // cookies will not be able to be decoded.
 func NewCookieStorer(hashKey, blockKey []byte) CookieStorer {
 	return CookieStorer{
-		Cookies:      []string{engine.CookieRemember},
+		Cookies:      []string{},
 		SecureCookie: securecookie.New(hashKey, blockKey),
 		Path:         "/",
 		MaxAge:       int((time.Hour * 730) / time.Second), // 1 month
@@ -98,10 +94,10 @@ func (c CookieStorer) ReadState(r *http.Request) (engine.ClientState, error) {
 }
 
 // WriteState to the responsewriter
-func (c CookieStorer) WriteState(w http.ResponseWriter, state engine.ClientState, ev []engine.ClientStateAuthEvent) error {
+func (c CookieStorer) WriteState(w http.ResponseWriter, state engine.ClientState, ev []engine.ClientStateEvent) error {
 	for _, ev := range ev {
 		switch ev.Kind {
-		case engine.ClientStateAuthEventPut:
+		case engine.ClientStateEventPut:
 			encoded, err := c.SecureCookie.Encode(ev.Key, ev.Value)
 			if err != nil {
 				return fmt.Errorf("failed to encode cookie: %w", err)
@@ -120,7 +116,7 @@ func (c CookieStorer) WriteState(w http.ResponseWriter, state engine.ClientState
 				SameSite: c.SameSite,
 			}
 			http.SetCookie(w, cookie)
-		case engine.ClientStateAuthEventDel:
+		case engine.ClientStateEventDel:
 			cookie := &http.Cookie{
 				MaxAge: -1,
 				Name:   ev.Key,

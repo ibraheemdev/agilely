@@ -26,7 +26,7 @@ func (u *Users) Logout(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	engine.DelAllSession(w, u.Config.SessionStateWhitelistKeys)
-	engine.DelKnownCookie(w)
+	engine.DelCookie(w, CookieRemember)
 
 	handled, err = u.Engine.AuthEvents.FireAfter(engine.EventLogout, w, r)
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
+	"github.com/ibraheemdev/agilely/internal/app/users"
 	"github.com/ibraheemdev/agilely/test"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
@@ -146,10 +147,10 @@ func TestStart(t *testing.T) {
 		t.Error("host was wrong:", redirectPathURL.Host)
 	}
 
-	if h.session.ClientValues[engine.SessionOAuth2State] != query.Get("state") {
+	if h.session.ClientValues[users.SessionOAuth2State] != query.Get("state") {
 		t.Error("the state should have been saved in the session")
 	}
-	if v := h.session.ClientValues[engine.SessionOAuth2Params]; v != `{"cake":"yes","death":"no"}` {
+	if v := h.session.ClientValues[users.SessionOAuth2Params]; v != `{"cake":"yes","death":"no"}` {
 		t.Error("oauth2 session params are wrong:", v)
 	}
 }
@@ -177,7 +178,7 @@ func TestEnd(t *testing.T) {
 	rec := httptest.NewRecorder()
 	w := h.e.NewResponse(rec)
 
-	h.session.ClientValues[engine.SessionOAuth2State] = "state"
+	h.session.ClientValues[users.SessionOAuth2State] = "state"
 	r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
 	if err != nil {
 		t.Fatal(err)
@@ -230,7 +231,7 @@ func TestEndBadState(t *testing.T) {
 		t.Error("it should have errored:", e)
 	}
 
-	h.session.ClientValues[engine.SessionOAuth2State] = "state"
+	h.session.ClientValues[users.SessionOAuth2State] = "state"
 	r, err = h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=x", nil))
 	if err != nil {
 		t.Fatal(err)
@@ -248,7 +249,7 @@ func TestEndErrors(t *testing.T) {
 	rec := httptest.NewRecorder()
 	w := h.e.NewResponse(rec)
 
-	h.session.ClientValues[engine.SessionOAuth2State] = "state"
+	h.session.ClientValues[users.SessionOAuth2State] = "state"
 	r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state&error=badtimes&error_reason=reason", nil))
 	if err != nil {
 		t.Fatal(err)
@@ -276,7 +277,7 @@ func TestEndHandling(t *testing.T) {
 		rec := httptest.NewRecorder()
 		w := h.e.NewResponse(rec)
 
-		h.session.ClientValues[engine.SessionOAuth2State] = "state"
+		h.session.ClientValues[users.SessionOAuth2State] = "state"
 		r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state&error=badtimes&error_reason=reason", nil))
 		if err != nil {
 			t.Fatal(err)
@@ -305,7 +306,7 @@ func TestEndHandling(t *testing.T) {
 		rec := httptest.NewRecorder()
 		w := h.e.NewResponse(rec)
 
-		h.session.ClientValues[engine.SessionOAuth2State] = "state"
+		h.session.ClientValues[users.SessionOAuth2State] = "state"
 		r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
 		if err != nil {
 			t.Fatal(err)
@@ -340,7 +341,7 @@ func TestEndHandling(t *testing.T) {
 		rec := httptest.NewRecorder()
 		w := h.e.NewResponse(rec)
 
-		h.session.ClientValues[engine.SessionOAuth2State] = "state"
+		h.session.ClientValues[users.SessionOAuth2State] = "state"
 		r, err := h.e.LoadClientState(w, httptest.NewRequest("GET", "/oauth2/callback/google?state=state", nil))
 		if err != nil {
 			t.Fatal(err)
