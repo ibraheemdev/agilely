@@ -26,7 +26,7 @@ func (u *Users) CreateRememberToken(w http.ResponseWriter, req *http.Request, ha
 		return false, nil
 	}
 
-	user := u.Engine.CurrentUserP(req)
+	user := u.CurrentUserP(req)
 	hash, token, err := GenerateToken(user.GetPID())
 	if err != nil {
 		return false, err
@@ -44,13 +44,13 @@ func (u *Users) CreateRememberToken(w http.ResponseWriter, req *http.Request, ha
 
 // RememberMiddleware automatically authenticates users if they have remember me tokens
 // If the user has been loaded already, it returns early
-func RememberMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
+func (u *Users) RememberMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Safely can ignore error here
-			if id, _ := e.CurrentUserID(r); len(id) == 0 {
-				if err := Authenticate(e, w, &r); err != nil {
-					logger := e.RequestLogger(r)
+			if id, _ := u.CurrentUserID(r); len(id) == 0 {
+				if err := u.Authenticate(w, &r); err != nil {
+					logger := u.RequestLogger(r)
 					logger.Errorf("failed to authenticate user via remember me: %+v", err)
 				}
 			}
@@ -69,8 +69,8 @@ func RememberMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 //
 // In order to authenticate it adds to the request context as well as to the
 // cookie and session states.
-func Authenticate(e *engine.Engine, w http.ResponseWriter, req **http.Request) error {
-	logger := e.RequestLogger(*req)
+func (u *Users) Authenticate(w http.ResponseWriter, req **http.Request) error {
+	logger := u.RequestLogger(*req)
 	cookie, ok := engine.GetCookie(*req, engine.CookieRemember)
 	if !ok {
 		return nil
@@ -94,7 +94,7 @@ func Authenticate(e *engine.Engine, w http.ResponseWriter, req **http.Request) e
 	sum := sha512.Sum512(rawToken)
 	hash := base64.StdEncoding.EncodeToString(sum[:])
 
-	storer := engine.EnsureCanRemember(e.Core.Server)
+	storer := engine.EnsureCanRemember(u.Core.Server)
 	err = storer.UseRememberToken((*req).Context(), pid, hash)
 	switch {
 	case err == engine.ErrTokenNotFound:
@@ -114,7 +114,7 @@ func Authenticate(e *engine.Engine, w http.ResponseWriter, req **http.Request) e
 		return fmt.Errorf("failed to save remember me token %w", err)
 	}
 
-	*req = (*req).WithContext(context.WithValue((*req).Context(), engine.CTXKeyPID, pid))
+	*req = (*req).WithContext(context.WithValue((*req).Context(), CTXKeyPID, pid))
 	engine.PutSession(w, engine.SessionKey, pid)
 	engine.PutSession(w, engine.SessionHalfAuthKey, "true")
 	engine.DelCookie(w, engine.CookieRemember)
@@ -126,7 +126,7 @@ func Authenticate(e *engine.Engine, w http.ResponseWriter, req **http.Request) e
 // ResetAllTokens is called after the password has been reset, since
 // it should invalidate all tokens associated to that user.
 func (u *Users) ResetAllTokens(w http.ResponseWriter, req *http.Request, handled bool) (bool, error) {
-	user, err := u.Engine.CurrentUser(req)
+	user, err := u.CurrentUser(req)
 	if err != nil {
 		return false, err
 	}

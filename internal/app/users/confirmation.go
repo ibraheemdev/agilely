@@ -42,7 +42,7 @@ const (
 func (u *Users) PreventAuth(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
 	logger := u.Engine.RequestLogger(r)
 
-	user, err := u.Engine.CurrentUser(r)
+	user, err := u.CurrentUser(r)
 	if err != nil {
 		return false, err
 	}
@@ -65,7 +65,7 @@ func (u *Users) PreventAuth(w http.ResponseWriter, r *http.Request, handled bool
 // StartConfirmationWeb hijacks a request and forces a user to be confirmed
 // first it's assumed that the current user is loaded into the request context.
 func (u *Users) StartConfirmationWeb(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
-	user, err := u.Engine.CurrentUser(r)
+	user, err := u.CurrentUser(r)
 	if err != nil {
 		return false, err
 	}
@@ -228,10 +228,10 @@ func (u *Users) invalidConfirmToken(w http.ResponseWriter, r *http.Request) erro
 // Panics if the user was not able to be loaded in order to allow a panic
 // handler to show a nice error page, also panics if it failed to redirect
 // for whatever reason.
-func ConfirmMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
+func (u *Users) ConfirmMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := e.LoadCurrentUserP(&r)
+			user := u.LoadCurrentUserP(&r)
 
 			cu := engine.MustBeConfirmable(user)
 			if cu.GetConfirmed() {
@@ -239,14 +239,14 @@ func ConfirmMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 				return
 			}
 
-			logger := e.RequestLogger(r)
+			logger := u.RequestLogger(r)
 			logger.Infof("user %s prevented from accessing %s: not confirmed", user.GetPID(), r.URL.Path)
 			ro := engine.RedirectOptions{
 				Code:         http.StatusTemporaryRedirect,
 				Failure:      "Your account has not been confirmed, please check your e-mail.",
 				RedirectPath: "/login",
 			}
-			if err := e.Core.Redirector.Redirect(w, r, ro); err != nil {
+			if err := u.Core.Redirector.Redirect(w, r, ro); err != nil {
 				logger.Errorf("error redirecting in confirm.Middleware: #%v", err)
 			}
 		})

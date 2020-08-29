@@ -89,7 +89,7 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	req = req.WithContext(context.WithValue(req.Context(), engine.CTXKeyUser, user))
+	req = req.WithContext(context.WithValue(req.Context(), CTXKeyUser, user))
 	handled, err := u.AuthEvents.FireAfter(engine.EventRegister, w, req)
 	if err != nil {
 		return err

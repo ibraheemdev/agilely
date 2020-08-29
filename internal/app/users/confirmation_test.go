@@ -64,7 +64,7 @@ func TestPreventAuthAllow(t *testing.T) {
 	}
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	handled, err := harness.users.PreventAuth(w, r, false)
@@ -87,7 +87,7 @@ func TestPreventDisallow(t *testing.T) {
 	}
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	handled, err := harness.users.PreventAuth(w, r, false)
@@ -117,7 +117,7 @@ func TestStartConfirmationWeb(t *testing.T) {
 	harness.storer.Users["test@test.com"] = user
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	handled, err := harness.users.StartConfirmationWeb(w, r, false)
@@ -274,8 +274,10 @@ func TestMiddlewareAllow(t *testing.T) {
 	t.Parallel()
 
 	e := engine.New()
+	u := NewController(e)
+
 	called := false
-	server := ConfirmMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := u.ConfirmMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 
@@ -284,7 +286,7 @@ func TestMiddlewareAllow(t *testing.T) {
 	}
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	server.ServeHTTP(w, r)
@@ -301,9 +303,10 @@ func TestMiddlewareDisallow(t *testing.T) {
 	redirector := &test.Redirector{}
 	e.Core.Logger = test.Logger{}
 	e.Core.Redirector = redirector
+	u := NewController(e)
 
 	called := false
-	server := ConfirmMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := u.ConfirmMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 
@@ -312,7 +315,7 @@ func TestMiddlewareDisallow(t *testing.T) {
 	}
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	server.ServeHTTP(w, r)

@@ -1,6 +1,7 @@
 package users
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -51,4 +52,147 @@ func (u *Users) Init() (err error) {
 	u.AuthEvents.After(engine.EventPasswordReset, u.ResetAllTokens)
 
 	return nil
+}
+
+type contextKey string
+
+// CTX Keys for engine
+const (
+	CTXKeyPID  contextKey = "pid"
+	CTXKeyUser contextKey = "user"
+)
+
+func (c contextKey) String() string {
+	return "users ctx key " + string(c)
+}
+
+// CurrentUserID retrieves the current user from the session.
+// TODO(aarondl): This method never returns an error, one day we'll change
+// the function signature.
+func (u *Users) CurrentUserID(r *http.Request) (string, error) {
+	if pid := r.Context().Value(CTXKeyPID); pid != nil {
+		return pid.(string), nil
+	}
+
+	pid, _ := engine.GetSession(r, engine.SessionKey)
+	return pid, nil
+}
+
+// CurrentUserIDP retrieves the current user but panics if it's not available for
+// any reason.
+func (u *Users) CurrentUserIDP(r *http.Request) string {
+	i, err := u.CurrentUserID(r)
+	if err != nil {
+		panic(err)
+	} else if len(i) == 0 {
+		panic(engine.ErrUserNotFound)
+	}
+
+	return i
+}
+
+// CurrentUser retrieves the current user from the session and the database.
+// Before the user is loaded from the database the context key is checked.
+// If the session doesn't have the user ID ErrUserNotFound will be returned.
+func (u *Users) CurrentUser(r *http.Request) (engine.User, error) {
+	if user := r.Context().Value(CTXKeyUser); user != nil {
+		return user.(engine.User), nil
+	}
+
+	pid, err := u.CurrentUserID(r)
+	if err != nil {
+		return nil, err
+	} else if len(pid) == 0 {
+		return nil, engine.ErrUserNotFound
+	}
+
+	return u.currentUser(r.Context(), pid)
+}
+
+// CurrentUserP retrieves the current user but panics if it's not available for
+// any reason.
+func (u *Users) CurrentUserP(r *http.Request) engine.User {
+	i, err := u.CurrentUser(r)
+	if err != nil {
+		panic(err)
+	} else if i == nil {
+		panic(engine.ErrUserNotFound)
+	}
+	return i
+}
+
+func (u *Users) currentUser(ctx context.Context, pid string) (engine.User, error) {
+	user, err := u.Core.Server.Load(ctx, pid)
+	return user.(engine.User), err
+}
+
+// LoadCurrentUserID takes a pointer to a pointer to the request in order to
+// change the current method's request pointer itself to the new request that
+// contains the new context that has the pid in it.
+func (u *Users) LoadCurrentUserID(r **http.Request) (string, error) {
+	pid, err := u.CurrentUserID(*r)
+	if err != nil {
+		return "", err
+	}
+
+	if len(pid) == 0 {
+		return "", nil
+	}
+
+	ctx := context.WithValue((**r).Context(), CTXKeyPID, pid)
+	*r = (**r).WithContext(ctx)
+
+	return pid, nil
+}
+
+// LoadCurrentUserIDP loads the current user id and panics if it's not found
+func (u *Users) LoadCurrentUserIDP(r **http.Request) string {
+	pid, err := u.LoadCurrentUserID(r)
+	if err != nil {
+		panic(err)
+	} else if len(pid) == 0 {
+		panic(engine.ErrUserNotFound)
+	}
+
+	return pid
+}
+
+// LoadCurrentUser takes a pointer to a pointer to the request in order to
+// change the current method's request pointer itself to the new request that
+// contains the new context that has the user in it. Calls LoadCurrentUserID
+// so the primary id is also put in the context.
+func (u *Users) LoadCurrentUser(r **http.Request) (engine.User, error) {
+	if user := (*r).Context().Value(CTXKeyUser); user != nil {
+		return user.(engine.User), nil
+	}
+
+	pid, err := u.LoadCurrentUserID(r)
+	if err != nil {
+		return nil, err
+	} else if len(pid) == 0 {
+		return nil, engine.ErrUserNotFound
+	}
+
+	ctx := (**r).Context()
+	user, err := u.currentUser(ctx, pid)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx = context.WithValue(ctx, CTXKeyUser, user)
+	*r = (**r).WithContext(ctx)
+	return user, nil
+}
+
+// LoadCurrentUserP does the same as LoadCurrentUser but panics if
+// the current user is not found.
+func (u *Users) LoadCurrentUserP(r **http.Request) engine.User {
+	user, err := u.LoadCurrentUser(r)
+	if err != nil {
+		panic(err)
+	} else if user == nil {
+		panic(engine.ErrUserNotFound)
+	}
+
+	return user
 }

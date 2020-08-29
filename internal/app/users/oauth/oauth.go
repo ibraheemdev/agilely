@@ -53,6 +53,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
+	"github.com/ibraheemdev/agilely/internal/app/users"
 )
 
 // FormValue constants
@@ -244,7 +245,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), users.CTXKeyUser, user))
 
 	handled, err := o.Engine.AuthEvents.FireBefore(engine.EventOAuth2, w, r)
 	if err != nil {

@@ -365,6 +365,7 @@ func TestEngineMiddleware(t *testing.T) {
 			"test@test.com": {},
 		},
 	}
+	u := NewController(e)
 
 	setupMore := func(mountPathed bool, requirements MWRequirements, failResponse MWRespondOnFailure) (*httptest.ResponseRecorder, bool, bool) {
 		r := httptest.NewRequest("GET", "/super/secret", nil)
@@ -379,14 +380,14 @@ func TestEngineMiddleware(t *testing.T) {
 
 		var mid func(http.Handler) http.Handler
 		if !mountPathed {
-			mid = AuthenticatedMiddleware(e, requirements, failResponse)
+			mid = u.AuthenticatedMiddleware(requirements, failResponse)
 		} else {
-			mid = AuthenticatedMountedMiddleware(e, true, requirements, failResponse)
+			mid = u.AuthenticatedMountedMiddleware(true, requirements, failResponse)
 		}
 		var called, hadUser bool
 		server := mid(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			called = true
-			hadUser = r.Context().Value(engine.CTXKeyUser) != nil
+			hadUser = r.Context().Value(CTXKeyUser) != nil
 			w.WriteHeader(http.StatusOK)
 		}))
 
@@ -452,11 +453,11 @@ func TestEngineMiddleware(t *testing.T) {
 		}
 
 		var mid func(http.Handler) http.Handler
-		mid = AuthenticatedMiddleware(e, RequireNone, RespondUnauthorized)
+		mid = u.AuthenticatedMiddleware(RequireNone, RespondUnauthorized)
 		var called, hadUser bool
 		server := mid(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			called = true
-			hadUser = r.Context().Value(engine.CTXKeyUser) != nil
+			hadUser = r.Context().Value(CTXKeyUser) != nil
 			w.WriteHeader(http.StatusOK)
 		}))
 

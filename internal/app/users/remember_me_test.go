@@ -49,7 +49,7 @@ func TestRememberAfterAuth(t *testing.T) {
 
 	r := test.Request("POST")
 	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyValues, test.Values{Remember: true}))
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	rec := httptest.NewRecorder()
 	w := h.e.NewResponse(rec)
 
@@ -107,6 +107,7 @@ func TestMiddlewareAuth(t *testing.T) {
 	t.Parallel()
 
 	h := testRememberSetup()
+	u := NewController(h.e)
 
 	user := &test.User{Email: "test@test.com"}
 	hash, token, _ := GenerateToken(user.Email)
@@ -126,7 +127,7 @@ func TestMiddlewareAuth(t *testing.T) {
 	}
 
 	called := false
-	server := RememberMiddleware(h.e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := u.RememberMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -147,6 +148,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 	t.Parallel()
 
 	h := testRememberSetup()
+	u := NewController(h.e)
 
 	user := &test.User{Email: "test@test.com"}
 	hash, token, _ := GenerateToken(user.Email)
@@ -165,7 +167,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = Authenticate(h.e, w, &r); err != nil {
+	if err = u.Authenticate(w, &r); err != nil {
 		t.Fatal(err)
 	}
 
@@ -188,7 +190,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 		t.Error("it should have become a half-authed session")
 	}
 
-	if r.Context().Value(engine.CTXKeyPID).(string) != "test@test.com" {
+	if r.Context().Value(CTXKeyPID).(string) != "test@test.com" {
 		t.Error("should have set the context value to log the user in")
 	}
 }
@@ -197,6 +199,7 @@ func TestAuthenticateTokenNotFound(t *testing.T) {
 	t.Parallel()
 
 	h := testRememberSetup()
+	u := NewController(h.e)
 
 	user := &test.User{Email: "test@test.com"}
 	_, token, _ := GenerateToken(user.Email)
@@ -214,7 +217,7 @@ func TestAuthenticateTokenNotFound(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = Authenticate(h.e, w, &r); err != nil {
+	if err = u.Authenticate(w, &r); err != nil {
 		t.Fatal(err)
 	}
 
@@ -228,7 +231,7 @@ func TestAuthenticateTokenNotFound(t *testing.T) {
 		t.Error("it should have not logged the user in")
 	}
 
-	if r.Context().Value(engine.CTXKeyPID) != nil {
+	if r.Context().Value(CTXKeyPID) != nil {
 		t.Error("the context's pid should be empty")
 	}
 }
@@ -251,7 +254,9 @@ func TestAuthenticateBadTokens(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err = Authenticate(h.e, w, &r); err != nil {
+		u := NewController(h.e)
+
+		if err = u.Authenticate(w, &r); err != nil {
 			t.Fatal(err)
 		}
 
@@ -265,7 +270,7 @@ func TestAuthenticateBadTokens(t *testing.T) {
 			t.Error("it should have not logged the user in")
 		}
 
-		if r.Context().Value(engine.CTXKeyPID) != nil {
+		if r.Context().Value(CTXKeyPID) != nil {
 			t.Error("the context's pid should be empty")
 		}
 	}
@@ -294,7 +299,7 @@ func TestResetAllTokens(t *testing.T) {
 	h.cookies.ClientValues[engine.CookieRemember] = token2
 
 	r := test.Request("POST")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	rec := httptest.NewRecorder()
 	w := h.e.NewResponse(rec)
 

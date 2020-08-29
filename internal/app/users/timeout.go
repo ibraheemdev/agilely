@@ -56,12 +56,12 @@ type expireMiddleware struct {
 // expired (a.ExpireAfter duration since SessionLastAction).
 // This middleware conflicts with use of the Remember module, don't enable both
 // at the same time.
-func TimeoutMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
+func (u *Users) TimeoutMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return expireMiddleware{
-			expireAfter:      e.Config.Authboss.ExpireAfter,
+			expireAfter:      u.Config.Authboss.ExpireAfter,
 			next:             next,
-			sessionWhitelist: e.Config.SessionStateWhitelistKeys,
+			sessionWhitelist: u.Config.SessionStateWhitelistKeys,
 		}
 	}
 }
@@ -76,8 +76,8 @@ func (m expireMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			engine.DelAllSession(w, m.sessionWhitelist)
 			engine.DelSession(w, engine.SessionKey)
 			engine.DelSession(w, engine.SessionLastAction)
-			ctx := context.WithValue(r.Context(), engine.CTXKeyPID, nil)
-			ctx = context.WithValue(ctx, engine.CTXKeyUser, nil)
+			ctx := context.WithValue(r.Context(), CTXKeyPID, nil)
+			ctx = context.WithValue(ctx, CTXKeyUser, nil)
 
 			ctxState := r.Context().Value(engine.CTXKeySessionState)
 			if ctxState != nil {

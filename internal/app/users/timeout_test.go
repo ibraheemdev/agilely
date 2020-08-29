@@ -43,6 +43,7 @@ func TestTimeoutSetup(t *testing.T) {
 
 func TestExpireIsExpired(t *testing.T) {
 	e := engine.New()
+	u := NewController(e)
 
 	clientRW := test.NewClientRW()
 	clientRW.ClientValues[engine.SessionKey] = "username"
@@ -50,8 +51,8 @@ func TestExpireIsExpired(t *testing.T) {
 	e.Core.SessionState = clientRW
 
 	r := httptest.NewRequest("GET", "/", nil)
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyPID, "primaryid"))
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, struct{}{}))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyPID, "primaryid"))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, struct{}{}))
 	w := e.NewResponse(httptest.NewRecorder())
 	r, err := e.LoadClientState(w, r)
 	if err != nil {
@@ -68,13 +69,13 @@ func TestExpireIsExpired(t *testing.T) {
 
 	called := false
 	hadUser := false
-	m := TimeoutMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	m := u.TimeoutMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 
-		if r.Context().Value(engine.CTXKeyPID) != nil {
+		if r.Context().Value(CTXKeyPID) != nil {
 			hadUser = true
 		}
-		if r.Context().Value(engine.CTXKeyUser) != nil {
+		if r.Context().Value(CTXKeyUser) != nil {
 			hadUser = true
 		}
 	}))
@@ -99,6 +100,8 @@ func TestExpireIsExpired(t *testing.T) {
 
 func TestExpireNotExpired(t *testing.T) {
 	e := engine.New()
+	u := NewController(e)
+
 	e.Config.Authboss.ExpireAfter = time.Hour
 
 	clientRW := test.NewClientRW()
@@ -109,8 +112,8 @@ func TestExpireNotExpired(t *testing.T) {
 	var err error
 
 	r := httptest.NewRequest("GET", "/", nil)
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyPID, "primaryid"))
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, struct{}{}))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyPID, "primaryid"))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, struct{}{}))
 	w := e.NewResponse(httptest.NewRecorder())
 	r, err = e.LoadClientState(w, r)
 	if err != nil {
@@ -128,13 +131,13 @@ func TestExpireNotExpired(t *testing.T) {
 
 	called := false
 	hadUser := true
-	m := TimeoutMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	m := u.TimeoutMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 
-		if r.Context().Value(engine.CTXKeyPID) == nil {
+		if r.Context().Value(CTXKeyPID) == nil {
 			hadUser = false
 		}
-		if r.Context().Value(engine.CTXKeyUser) == nil {
+		if r.Context().Value(CTXKeyUser) == nil {
 			hadUser = false
 		}
 	}))

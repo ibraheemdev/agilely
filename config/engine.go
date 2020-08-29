@@ -21,7 +21,7 @@ import (
 // SetCore : Set's the core components of an engine instance
 func SetCore(e *engine.Engine) {
 	rt := router.NewRouter(httprouter.New())
-	rt.Use(alice.New(e.LoadClientStateMiddleware, users.RememberMiddleware(e)))
+	rt.Use(alice.New(e.LoadClientStateMiddleware))
 	e.Core.Router = rt
 
 	e.Core.MailRenderer = renderer.NewHTMLRenderer("/", "web/templates/users/mailer/*.tpl", "web/templates/layouts/mailer/*.tpl")

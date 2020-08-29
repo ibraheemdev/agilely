@@ -22,7 +22,7 @@ func (u *Users) EnsureNotLocked(w http.ResponseWriter, r *http.Request, handled 
 
 // ResetLoginAttempts resets the attempt number field.
 func (u *Users) ResetLoginAttempts(w http.ResponseWriter, r *http.Request, handled bool) (bool, error) {
-	user, err := u.Engine.CurrentUser(r)
+	user, err := u.CurrentUser(r)
 	if err != nil {
 		return false, err
 	}
@@ -43,7 +43,7 @@ func (u *Users) UpdateLockAttempts(w http.ResponseWriter, r *http.Request, handl
 // updateLockedState exists to minimize any differences between a success and
 // a failure path in the case where a correct/incorrect password is entered
 func (u *Users) updateLockedState(w http.ResponseWriter, r *http.Request, wasCorrectPassword bool) (bool, error) {
-	user, err := u.Engine.CurrentUser(r)
+	user, err := u.CurrentUser(r)
 	if err != nil {
 		return false, err
 	}
@@ -121,10 +121,10 @@ func (u *Users) Unlock(ctx context.Context, key string) error {
 // the request and send them to the configured LockNotOK page, this will load
 // the user if he's not been loaded yet from the session. And panics if it
 // cannot load the user.
-func LockMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
+func (u *Users) LockMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := e.LoadCurrentUserP(&r)
+			user := u.LoadCurrentUserP(&r)
 
 			lu := engine.MustBeLockable(user)
 			if !IsLocked(lu) {
@@ -132,14 +132,14 @@ func LockMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 				return
 			}
 
-			logger := e.RequestLogger(r)
+			logger := u.RequestLogger(r)
 			logger.Infof("user %s prevented from accessing %s: locked", user.GetPID(), r.URL.Path)
 			ro := engine.RedirectOptions{
 				Code:         http.StatusTemporaryRedirect,
 				Failure:      "Your account has been locked, please contact the administrator.",
 				RedirectPath: "/login",
 			}
-			if err := e.Core.Redirector.Redirect(w, r, ro); err != nil {
+			if err := u.Core.Redirector.Redirect(w, r, ro); err != nil {
 				logger.Errorf("error redirecting in lock.Middleware: #%v", err)
 			}
 		})

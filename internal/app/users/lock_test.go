@@ -66,7 +66,7 @@ func TestBeforeAuthAllow(t *testing.T) {
 	harness.storer.Users["test@test.com"] = user
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	handled, err := harness.users.ResetLoginAttempts(w, r, false)
@@ -90,7 +90,7 @@ func TestBeforeAuthDisallow(t *testing.T) {
 	harness.storer.Users["test@test.com"] = user
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	handled, err := harness.users.EnsureNotLocked(w, r, false)
@@ -130,7 +130,7 @@ func TestAfterAuthSuccess(t *testing.T) {
 	harness.storer.Users["test@test.com"] = user
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	handled, err := harness.users.ResetLoginAttempts(w, r, false)
@@ -175,7 +175,7 @@ func TestAfterAuthFailure(t *testing.T) {
 			t.Error("should not be locked")
 		}
 
-		r := r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+		r := r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 		handled, err = harness.users.UpdateLockAttempts(w, r, false)
 		if err != nil {
 			t.Fatal(err)
@@ -269,8 +269,10 @@ func TestLockMiddlewareAllow(t *testing.T) {
 	t.Parallel()
 
 	e := engine.New()
+	u := NewController(e)
+
 	called := false
-	server := LockMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := u.LockMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 
@@ -279,7 +281,7 @@ func TestLockMiddlewareAllow(t *testing.T) {
 	}
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	server.ServeHTTP(w, r)
@@ -296,9 +298,10 @@ func TestLockMiddlewareDisallow(t *testing.T) {
 	redirector := &test.Redirector{}
 	e.Core.Logger = test.Logger{}
 	e.Core.Redirector = redirector
+	u := NewController(e)
 
 	called := false
-	server := LockMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := u.LockMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 
@@ -307,7 +310,7 @@ func TestLockMiddlewareDisallow(t *testing.T) {
 	}
 
 	r := test.Request("GET")
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 	w := httptest.NewRecorder()
 
 	server.ServeHTTP(w, r)

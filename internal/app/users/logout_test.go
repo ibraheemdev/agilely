@@ -58,7 +58,7 @@ func TestLogoutLogout(t *testing.T) {
 	// This enables the logging portion
 	// which is debatable-y not useful in a log out method
 	user := &test.User{Email: "test@test.com"}
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, user))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 
 	var err error
 	r, err = h.e.LoadClientState(w, r)

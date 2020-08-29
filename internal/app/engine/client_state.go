@@ -103,7 +103,7 @@ type ClientStateResponseWriter struct {
 	cookieState  ClientState
 	sessionState ClientState
 
-	hasWritten         bool
+	hasWritten             bool
 	cookieStateAuthEvents  []ClientStateAuthEvent
 	sessionStateAuthEvents []ClientStateAuthEvent
 }

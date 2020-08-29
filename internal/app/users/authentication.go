@@ -53,7 +53,7 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 	authUser := engine.MustBeAuthable(pidUser)
 	password := authUser.GetPassword()
 
-	r = r.WithContext(context.WithValue(r.Context(), engine.CTXKeyUser, pidUser))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, pidUser))
 
 	var handled bool
 	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(creds.GetPassword()))
@@ -146,8 +146,8 @@ const (
 //
 // failureResponse is how the middleware rejects the users that don't meet
 // the criteria. This should be chosen from the MWRespondOnFailure constants.
-func AuthenticatedMiddleware(e *engine.Engine, requirements MWRequirements, failureResponse MWRespondOnFailure) func(http.Handler) http.Handler {
-	return AuthenticatedMountedMiddleware(e, false, requirements, failureResponse)
+func (u *Users) AuthenticatedMiddleware(requirements MWRequirements, failureResponse MWRespondOnFailure) func(http.Handler) http.Handler {
+	return u.AuthenticatedMountedMiddleware(false, requirements, failureResponse)
 }
 
 // AuthenticatedMountedMiddleware hides an option from typical users in "mountPathed".
@@ -157,10 +157,10 @@ func AuthenticatedMiddleware(e *engine.Engine, requirements MWRequirements, fail
 //
 // If mountPathed is true, then before redirecting to a URL it will add
 // the mountpath to the front of it.
-func AuthenticatedMountedMiddleware(e *engine.Engine, mountPathed bool, reqs MWRequirements, failResponse MWRespondOnFailure) func(http.Handler) http.Handler {
+func (u *Users) AuthenticatedMountedMiddleware(mountPathed bool, reqs MWRequirements, failResponse MWRespondOnFailure) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log := e.RequestLogger(r)
+			log := u.RequestLogger(r)
 
 			fail := func(w http.ResponseWriter, r *http.Request) {
 				switch failResponse {
@@ -175,18 +175,18 @@ func AuthenticatedMountedMiddleware(e *engine.Engine, mountPathed bool, reqs MWR
 					vals := make(url.Values)
 
 					redirURL := r.URL.Path
-					if mountPathed && len(e.Config.Mount) != 0 {
-						redirURL = path.Join(e.Config.Mount, redirURL)
+					if mountPathed && len(u.Config.Mount) != 0 {
+						redirURL = path.Join(u.Config.Mount, redirURL)
 					}
 					vals.Set(engine.FormValueRedirect, redirURL)
 
 					ro := engine.RedirectOptions{
 						Code:         http.StatusTemporaryRedirect,
 						Failure:      "please re-login",
-						RedirectPath: path.Join(e.Config.Mount, fmt.Sprintf("/login?%s", vals.Encode())),
+						RedirectPath: path.Join(u.Config.Mount, fmt.Sprintf("/login?%s", vals.Encode())),
 					}
 
-					if err := e.Core.Redirector.Redirect(w, r, ro); err != nil {
+					if err := u.Core.Redirector.Redirect(w, r, ro); err != nil {
 						log.Errorf("failed to redirect user during engine.Middleware redirect: %+v", err)
 					}
 					return
@@ -198,7 +198,7 @@ func AuthenticatedMountedMiddleware(e *engine.Engine, mountPathed bool, reqs MWR
 				return
 			}
 
-			if _, err := e.LoadCurrentUser(&r); err == engine.ErrUserNotFound {
+			if _, err := u.LoadCurrentUser(&r); err == engine.ErrUserNotFound {
 				fail(w, r)
 				return
 			} else if err != nil {
