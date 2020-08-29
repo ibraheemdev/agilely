@@ -298,7 +298,7 @@ func TestLockMiddlewareDisallow(t *testing.T) {
 	e.Core.Redirector = redirector
 
 	called := false
-	server := Middleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := LockMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 

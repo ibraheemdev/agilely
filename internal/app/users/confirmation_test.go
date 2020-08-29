@@ -275,7 +275,7 @@ func TestMiddlewareAllow(t *testing.T) {
 
 	e := engine.New()
 	called := false
-	server := Middleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := ConfirmMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 
@@ -303,7 +303,7 @@ func TestMiddlewareDisallow(t *testing.T) {
 	e.Core.Redirector = redirector
 
 	called := false
-	server := Middleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := ConfirmMiddleware(e)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true
 	}))
 

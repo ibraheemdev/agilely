@@ -2,7 +2,10 @@ package users
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -100,4 +103,115 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 		FollowRedirParam: true,
 	}
 	return u.Engine.Core.Redirector.Redirect(w, r, ro)
+}
+
+// MWRequirements are user requirements for engine.Middleware
+// in order to access the routes in protects. Requirements is a bit-set integer
+// to be able to easily combine requirements like so:
+//
+//   engine.RequireFullAuth
+type MWRequirements int
+
+// MWRespondOnFailure tells engine.Middleware how to respond to
+// a failure to meet the requirements.
+type MWRespondOnFailure int
+
+// Middleware requirements
+const (
+	RequireNone MWRequirements = 0x00
+	// RequireFullAuth means half-authed users will also be rejected
+	RequireFullAuth MWRequirements = 0x01
+)
+
+// Middleware response types
+const (
+	// RespondNotFound does not allow users who are not logged in to know a
+	// route exists by responding with a 404.
+	RespondNotFound MWRespondOnFailure = iota
+	// RespondRedirect redirects users to the login page
+	RespondRedirect
+	// RespondUnauthorized provides a 401, this allows users to know the page
+	// exists unlike the 404 option.
+	RespondUnauthorized
+)
+
+// AuthenticatedMiddleware prevents someone from accessing a route that should be
+// only allowed for users who are logged in.
+// It allows the user through if they are logged in (SessionKey is present in
+// the session).
+//
+// requirements are set by logical or'ing together requirements. eg:
+//
+//   engine.RequireFullAuth
+//
+// failureResponse is how the middleware rejects the users that don't meet
+// the criteria. This should be chosen from the MWRespondOnFailure constants.
+func AuthenticatedMiddleware(e *engine.Engine, requirements MWRequirements, failureResponse MWRespondOnFailure) func(http.Handler) http.Handler {
+	return AuthenticatedMountedMiddleware(e, false, requirements, failureResponse)
+}
+
+// AuthenticatedMountedMiddleware hides an option from typical users in "mountPathed".
+// Normal routes should never need this only engine routes (since they
+// are behind mountPath typically). This method is exported only for use
+// by Engine modules, normal users should use Middleware instead.
+//
+// If mountPathed is true, then before redirecting to a URL it will add
+// the mountpath to the front of it.
+func AuthenticatedMountedMiddleware(e *engine.Engine, mountPathed bool, reqs MWRequirements, failResponse MWRespondOnFailure) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log := e.RequestLogger(r)
+
+			fail := func(w http.ResponseWriter, r *http.Request) {
+				switch failResponse {
+				case RespondNotFound:
+					log.Infof("not found for unauthorized user at: %s", r.URL.Path)
+					w.WriteHeader(http.StatusNotFound)
+				case RespondUnauthorized:
+					log.Infof("unauthorized for unauthorized user at: %s", r.URL.Path)
+					w.WriteHeader(http.StatusUnauthorized)
+				case RespondRedirect:
+					log.Infof("redirecting unauthorized user to login from: %s", r.URL.Path)
+					vals := make(url.Values)
+
+					redirURL := r.URL.Path
+					if mountPathed && len(e.Config.Mount) != 0 {
+						redirURL = path.Join(e.Config.Mount, redirURL)
+					}
+					vals.Set(engine.FormValueRedirect, redirURL)
+
+					ro := engine.RedirectOptions{
+						Code:         http.StatusTemporaryRedirect,
+						Failure:      "please re-login",
+						RedirectPath: path.Join(e.Config.Mount, fmt.Sprintf("/login?%s", vals.Encode())),
+					}
+
+					if err := e.Core.Redirector.Redirect(w, r, ro); err != nil {
+						log.Errorf("failed to redirect user during engine.Middleware redirect: %+v", err)
+					}
+					return
+				}
+			}
+
+			if hasBit(reqs, RequireFullAuth) && !engine.IsFullyAuthed(r) {
+				fail(w, r)
+				return
+			}
+
+			if _, err := e.LoadCurrentUser(&r); err == engine.ErrUserNotFound {
+				fail(w, r)
+				return
+			} else if err != nil {
+				log.Errorf("error fetching current user: %+v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			} else {
+				next.ServeHTTP(w, r)
+			}
+		})
+	}
+}
+
+func hasBit(reqs, req MWRequirements) bool {
+	return reqs&req == req
 }

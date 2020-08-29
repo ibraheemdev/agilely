@@ -336,3 +336,199 @@ func TestAuthPostUserNotFound(t *testing.T) {
 		t.Error("after should not have been called")
 	}
 }
+
+type testRedirector struct {
+	Opts engine.RedirectOptions
+}
+
+func (r *testRedirector) Redirect(w http.ResponseWriter, req *http.Request, ro engine.RedirectOptions) error {
+	r.Opts = ro
+	if len(ro.RedirectPath) == 0 {
+		panic("no redirect path on redirect call")
+	}
+	http.Redirect(w, req, ro.RedirectPath, ro.Code)
+	return nil
+}
+
+type mockLogger struct{}
+
+func (m mockLogger) Info(s string)  {}
+func (m mockLogger) Error(s string) {}
+
+func TestEngineMiddleware(t *testing.T) {
+	t.Parallel()
+
+	e := engine.New()
+	e.Core.Logger = mockLogger{}
+	e.Core.Server = &test.ServerStorer{
+		Users: map[string]*test.User{
+			"test@test.com": {},
+		},
+	}
+
+	setupMore := func(mountPathed bool, requirements MWRequirements, failResponse MWRespondOnFailure) (*httptest.ResponseRecorder, bool, bool) {
+		r := httptest.NewRequest("GET", "/super/secret", nil)
+		rec := httptest.NewRecorder()
+		w := e.NewResponse(rec)
+
+		var err error
+		r, err = e.LoadClientState(w, r)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var mid func(http.Handler) http.Handler
+		if !mountPathed {
+			mid = AuthenticatedMiddleware(e, requirements, failResponse)
+		} else {
+			mid = AuthenticatedMountedMiddleware(e, true, requirements, failResponse)
+		}
+		var called, hadUser bool
+		server := mid(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			hadUser = r.Context().Value(engine.CTXKeyUser) != nil
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		server.ServeHTTP(w, r)
+
+		return rec, called, hadUser
+	}
+
+	t.Run("Accept", func(t *testing.T) {
+		e.Core.SessionState = &test.ClientStateRW{
+			ClientValues: map[string]string{engine.SessionKey: "test@test.com"},
+		}
+
+		_, called, hadUser := setupMore(false, RequireNone, RespondNotFound)
+
+		if !called {
+			t.Error("should have been called")
+		}
+		if !hadUser {
+			t.Error("should have had user")
+		}
+	})
+	t.Run("AcceptHalfAuth", func(t *testing.T) {
+		e.Core.SessionState = &test.ClientStateRW{
+			ClientValues: map[string]string{engine.SessionKey: "test@test.com", engine.SessionHalfAuthKey: "true"},
+		}
+
+		_, called, hadUser := setupMore(false, RequireNone, RespondNotFound)
+
+		if !called {
+			t.Error("should have been called")
+		}
+		if !hadUser {
+			t.Error("should have had user")
+		}
+	})
+	t.Run("RejectNotFound", func(t *testing.T) {
+		e.Core.SessionState = test.NewClientRW()
+
+		rec, called, hadUser := setupMore(false, RequireNone, RespondNotFound)
+
+		if rec.Code != http.StatusNotFound {
+			t.Error("wrong code:", rec.Code)
+		}
+		if called {
+			t.Error("should not have been called")
+		}
+		if hadUser {
+			t.Error("should not have had user")
+		}
+	})
+	t.Run("RejectUnauthorized", func(t *testing.T) {
+		e.Core.SessionState = test.NewClientRW()
+
+		r := httptest.NewRequest("GET", "/super/secret", nil)
+		rec := httptest.NewRecorder()
+		w := e.NewResponse(rec)
+
+		var err error
+		r, err = e.LoadClientState(w, r)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var mid func(http.Handler) http.Handler
+		mid = AuthenticatedMiddleware(e, RequireNone, RespondUnauthorized)
+		var called, hadUser bool
+		server := mid(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			called = true
+			hadUser = r.Context().Value(engine.CTXKeyUser) != nil
+			w.WriteHeader(http.StatusOK)
+		}))
+
+		server.ServeHTTP(w, r)
+
+		if rec.Code != http.StatusUnauthorized {
+			t.Error("wrong code:", rec.Code)
+		}
+		if called {
+			t.Error("should not have been called")
+		}
+		if hadUser {
+			t.Error("should not have had user")
+		}
+	})
+	t.Run("RejectRedirect", func(t *testing.T) {
+		redir := &testRedirector{}
+		e.Core.Redirector = redir
+
+		e.Core.SessionState = test.NewClientRW()
+
+		_, called, hadUser := setupMore(false, RequireNone, RespondRedirect)
+
+		if redir.Opts.Code != http.StatusTemporaryRedirect {
+			t.Error("code was wrong:", redir.Opts.Code)
+		}
+		if redir.Opts.RedirectPath != "/login?redir=%2Fsuper%2Fsecret" {
+			t.Error("redirect path was wrong:", redir.Opts.RedirectPath)
+		}
+		if called {
+			t.Error("should not have been called")
+		}
+		if hadUser {
+			t.Error("should not have had user")
+		}
+	})
+	t.Run("RejectMountpathedRedirect", func(t *testing.T) {
+		redir := &testRedirector{}
+		e.Core.Redirector = redir
+
+		e.Core.SessionState = test.NewClientRW()
+
+		_, called, hadUser := setupMore(true, RequireNone, RespondRedirect)
+
+		if redir.Opts.Code != http.StatusTemporaryRedirect {
+			t.Error("code was wrong:", redir.Opts.Code)
+		}
+		if redir.Opts.RedirectPath != "/login?redir=%2Fsuper%2Fsecret" {
+			t.Error("redirect path was wrong:", redir.Opts.RedirectPath)
+		}
+		if called {
+			t.Error("should not have been called")
+		}
+		if hadUser {
+			t.Error("should not have had user")
+		}
+	})
+	t.Run("RequireFullAuth", func(t *testing.T) {
+		e.Core.SessionState = &test.ClientStateRW{
+			ClientValues: map[string]string{engine.SessionKey: "test@test.com", engine.SessionHalfAuthKey: "true"},
+		}
+
+		rec, called, hadUser := setupMore(false, RequireFullAuth, RespondNotFound)
+
+		if rec.Code != http.StatusNotFound {
+			t.Error("wrong code:", rec.Code)
+		}
+		if called {
+			t.Error("should not have been called")
+		}
+		if hadUser {
+			t.Error("should not have had user")
+		}
+	})
+}

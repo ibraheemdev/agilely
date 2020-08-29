@@ -221,14 +221,14 @@ func (u *Users) invalidConfirmToken(w http.ResponseWriter, r *http.Request) erro
 	return u.Engine.Core.Redirector.Redirect(w, r, ro)
 }
 
-// Middleware ensures that a user is confirmed, or else it will intercept the
+// ConfirmMiddleware ensures that a user is confirmed, or else it will intercept the
 // request and send them to the confirm page, this will load the user if he's
 // not been loaded yet from the session.
 //
 // Panics if the user was not able to be loaded in order to allow a panic
 // handler to show a nice error page, also panics if it failed to redirect
 // for whatever reason.
-func Middleware(e *engine.Engine) func(http.Handler) http.Handler {
+func ConfirmMiddleware(e *engine.Engine) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := e.LoadCurrentUserP(&r)
