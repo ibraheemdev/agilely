@@ -54,6 +54,11 @@ func (c *Collection) Name() string {
 	return c.collection.Name()
 }
 
+// Drop ...
+func (c *Collection) Drop(ctx context.Context) error {
+	return c.collection.Drop(ctx)
+}
+
 // Aggregate ...
 func (c *Collection) Aggregate(ctx context.Context, pipeline interface{}, opts ...*options.AggregateOptions) (*mongo.Cursor, error) {
 	ctx, cancel := context.WithTimeout(ctx, queryTimeout)
