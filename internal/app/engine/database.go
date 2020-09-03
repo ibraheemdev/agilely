@@ -24,7 +24,6 @@ type Client interface {
 
 // Database ...
 type Database interface {
-	Aggregate(ctx context.Context, pipeline interface{}, opts ...*options.AggregateOptions) (*mongo.Cursor, error)
 	Collection(name string) Collection
 }
 
@@ -34,20 +33,56 @@ type Collection interface {
 	Database() Database
 	Drop(context.Context) error
 
-	Aggregate(ctx context.Context, pipeline interface{}, opts ...*options.AggregateOptions) (*mongo.Cursor, error)
+	Find(ctx context.Context, filter map[string]interface{}, opts ...*options.FindOptions) (Cursor, error)
+	FindOne(ctx context.Context, filter map[string]interface{}, opts ...*options.FindOneOptions) SingleResult
 
-	Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (*mongo.Cursor, error)
-	FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult
+	FindOneAndDelete(ctx context.Context, filter map[string]interface{}, opts ...*options.FindOneAndDeleteOptions) SingleResult
+	FindOneAndUpdate(ctx context.Context, filter map[string]interface{}, update map[string]interface{}, opts ...*options.FindOneAndUpdateOptions) SingleResult
 
-	FindOneAndDelete(ctx context.Context, filter interface{}, opts ...*options.FindOneAndDeleteOptions) *mongo.SingleResult
-	FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{}, opts ...*options.FindOneAndUpdateOptions) *mongo.SingleResult
+	InsertMany(ctx context.Context, documents []map[string]interface{}, opts ...*options.InsertManyOptions) (InsertManyResult, error)
+	InsertOne(ctx context.Context, document map[string]interface{}, opts ...*options.InsertOneOptions) (InsertOneResult, error)
 
-	InsertMany(ctx context.Context, documents []interface{}, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error)
-	InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	UpdateMany(ctx context.Context, filter, update map[string]interface{}, opts ...*options.UpdateOptions) (UpdateResult, error)
+	UpdateOne(ctx context.Context, filter, update map[string]interface{}, opts ...*options.UpdateOptions) (UpdateResult, error)
 
-	UpdateMany(ctx context.Context, filter, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
-	UpdateOne(ctx context.Context, filter, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	DeleteMany(ctx context.Context, filter map[string]interface{}, opts ...*options.DeleteOptions) (DeleteResult, error)
+	DeleteOne(ctx context.Context, filter map[string]interface{}, opts ...*options.DeleteOptions) (DeleteResult, error)
+}
 
-	DeleteMany(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error)
-	DeleteOne(ctx context.Context, filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error)
+// SingleResult ...
+type SingleResult interface {
+	Err() error
+	Decode(interface{}) error
+}
+
+// Cursor ...
+type Cursor interface {
+	Err() error
+	Next(context.Context) bool
+	Decode(interface{}) error
+	Close(context.Context) error
+	All(context.Context, interface{}) error
+}
+
+// InsertManyResult ...
+type InsertManyResult interface {
+	InsertedIDs() []string
+}
+
+// InsertOneResult ...
+type InsertOneResult interface {
+	InsertedID() string
+}
+
+// UpdateResult ...
+type UpdateResult interface {
+	MatchedCount() int64
+	ModifiedCount() int64
+	UpsertedCount() int64
+	UpsertedID() string
+}
+
+// DeleteResult ...
+type DeleteResult interface {
+	DeletedCount() int64
 }
