@@ -14,6 +14,8 @@ import (
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
 	"github.com/ibraheemdev/agilely/pkg/mailer"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 const (
@@ -47,13 +49,12 @@ func (u *Users) PreventAuth(w http.ResponseWriter, r *http.Request, handled bool
 		return false, err
 	}
 
-	cuser := engine.MustBeConfirmable(user)
-	if cuser.GetConfirmed() {
-		logger.Infof("user %s is confirmed, allowing auth", user.GetPID())
+	if user.Confirmed {
+		logger.Infof("user %s is confirmed, allowing auth", user.Email)
 		return false, nil
 	}
 
-	logger.Infof("user %s was not confirmed, preventing auth", user.GetPID())
+	logger.Infof("user %s was not confirmed, preventing auth", user.Email)
 	ro := engine.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		RedirectPath: "/login",
@@ -70,8 +71,7 @@ func (u *Users) StartConfirmationWeb(w http.ResponseWriter, r *http.Request, han
 		return false, err
 	}
 
-	cuser := engine.MustBeConfirmable(user)
-	if err = u.StartConfirmation(r.Context(), cuser, true); err != nil {
+	if err = u.StartConfirmation(r.Context(), user, true); err != nil {
 		return false, err
 	}
 
@@ -85,7 +85,7 @@ func (u *Users) StartConfirmationWeb(w http.ResponseWriter, r *http.Request, han
 
 // StartConfirmation begins confirmation on a user by setting them to require
 // confirmation via a created token, and optionally sending them an e-mail.
-func (u *Users) StartConfirmation(ctx context.Context, user engine.ConfirmableUser, sendEmail bool) error {
+func (u *Users) StartConfirmation(ctx context.Context, user *User, sendEmail bool) error {
 	logger := u.Engine.Logger(ctx)
 
 	selector, verifier, token, err := GenerateConfirmCreds()
@@ -93,16 +93,17 @@ func (u *Users) StartConfirmation(ctx context.Context, user engine.ConfirmableUs
 		return err
 	}
 
-	user.PutConfirmed(false)
-	user.PutConfirmSelector(selector)
-	user.PutConfirmVerifier(verifier)
+	user.Confirmed = false
+	user.ConfirmSelector = selector
+	user.ConfirmVerifier = verifier
 
-	logger.Infof("generated new confirm token for user: %s", user.GetPID())
-	if err := u.Engine.Core.Server.Save(ctx, user); err != nil {
-		return fmt.Errorf("%w failed to save user during StartConfirmation, user data may be in weird state", err)
+	logger.Infof("generated new confirm token for user: %s", user.Email)
+	_, err = u.Engine.Core.Database.Collection(Collection).InsertOne(ctx, user)
+	if err != nil {
+		return fmt.Errorf("Failed to save user during StartConfirmation, user data may be in weird state: %w", err)
 	}
 
-	go u.SendConfirmEmail(ctx, user.GetEmail(), token)
+	go u.SendConfirmEmail(ctx, user.Email, token)
 
 	return nil
 }
@@ -163,18 +164,18 @@ func (u *Users) GetConfirm(w http.ResponseWriter, r *http.Request) error {
 	verifierBytes := sha512.Sum512(rawToken[confirmTokenSplit:])
 	selector := base64.StdEncoding.EncodeToString(selectorBytes[:])
 
-	storer := engine.EnsureCanConfirm(u.Engine.Core.Server)
-	user, err := storer.LoadByConfirmSelector(r.Context(), selector)
-	if err == engine.ErrUserNotFound {
+	var user User
+	err = u.Core.Database.Collection(Collection).FindOne(r.Context(), bson.M{"confirm_selector": selector}).Decode(&user)
+	if err == engine.ErrNoDocuments {
 		logger.Infof("confirm selector was not found in database: %s", selector)
 		return u.invalidConfirmToken(w, r)
 	} else if err != nil {
 		return err
 	}
 
-	dbVerifierBytes, err := base64.StdEncoding.DecodeString(user.GetConfirmVerifier())
+	dbVerifierBytes, err := base64.StdEncoding.DecodeString(user.ConfirmVerifier)
 	if err != nil {
-		logger.Infof("invalid confirm verifier stored in database: %s", user.GetConfirmVerifier())
+		logger.Infof("invalid confirm verifier stored in database: %s", user.ConfirmVerifier)
 		return u.invalidConfirmToken(w, r)
 	}
 
@@ -184,12 +185,13 @@ func (u *Users) GetConfirm(w http.ResponseWriter, r *http.Request) error {
 		return u.invalidConfirmToken(w, r)
 	}
 
-	user.PutConfirmSelector("")
-	user.PutConfirmVerifier("")
-	user.PutConfirmed(true)
+	user.ConfirmSelector = ""
+	user.ConfirmVerifier = ""
+	user.Confirmed = true
 
-	logger.Infof("user %s confirmed their account", user.GetPID())
-	if err = u.Engine.Core.Server.Save(r.Context(), user); err != nil {
+	logger.Infof("user %s confirmed their account", user.Email)
+	_, err = u.Engine.Core.Database.Collection(Collection).InsertOne(r.Context(), user)
+	if err != nil {
 		return err
 	}
 
@@ -233,14 +235,13 @@ func (u *Users) ConfirmMiddleware() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := u.LoadCurrentUserP(&r)
 
-			cu := engine.MustBeConfirmable(user)
-			if cu.GetConfirmed() {
+			if user.Confirmed {
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			logger := u.RequestLogger(r)
-			logger.Infof("user %s prevented from accessing %s: not confirmed", user.GetPID(), r.URL.Path)
+			logger.Infof("user %s prevented from accessing %s: not confirmed", user.Email, r.URL.Path)
 			ro := engine.RedirectOptions{
 				Code:         http.StatusTemporaryRedirect,
 				Failure:      "Your account has not been confirmed, please check your e-mail.",

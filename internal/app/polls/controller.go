@@ -12,7 +12,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -54,16 +53,15 @@ func (p *Polls) Create(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	create := bson.M{"title": poll.Title, "password": pwd}
+	create := map[string]interface{}{"title": poll.Title, "password": pwd}
 	res, err := p.Core.Database.Collection("polls").InsertOne(ctx, create)
 	if err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return err
 	}
 
-	id := res.InsertedID.(primitive.ObjectID).Hex()
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(fmt.Sprintf(`{"_id": %s}`, id)))
+	w.Write([]byte(fmt.Sprintf(`{"_id": %s}`, res.InsertedID())))
 	return nil
 }
 
@@ -78,7 +76,7 @@ func (p *Polls) Show(w http.ResponseWriter, r *http.Request) error {
 	poll := new(Poll)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	err = p.Core.Database.Collection(Collection).FindOne(ctx, bson.D{{"_id", id}}).Decode(&poll)
+	err = p.Core.Database.Collection(Collection).FindOne(ctx, map[string]interface{}{"_id": id}).Decode(&poll)
 	if err != nil {
 		w.WriteHeader(404)
 		return nil
@@ -111,10 +109,9 @@ func (p *Polls) Update(w http.ResponseWriter, r *http.Request) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	filter := bson.D{{"_id", id}}
 
-	update := bson.D{{"$set", bson.D{{"title", poll.Title}}}}
-	_, err = p.Core.Database.Collection(Collection).UpdateOne(ctx, filter, update)
+	filter := map[string]interface{}{"_id": id}
+	_, err = p.Core.Database.Collection(Collection).UpdateOne(ctx, filter, map[string]interface{}{"title": poll.Title})
 	if err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		log.Println(err.Error())

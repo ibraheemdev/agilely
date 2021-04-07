@@ -2,7 +2,9 @@ package engine
 
 import (
 	"context"
+	"fmt"
 	"net/url"
+	"strings"
 
 	"golang.org/x/oauth2"
 )
@@ -28,4 +30,37 @@ type OAuth2Provider struct {
 	OAuth2Config     *oauth2.Config
 	AdditionalParams url.Values
 	FindUserDetails  func(context.Context, oauth2.Config, *oauth2.Token) (map[string]string, error)
+}
+
+// MakeOAuth2PID is used to create a pid for users that don't have
+// an e-mail address or username in the normal system. This allows
+// all the modules to continue to working as intended without having
+// a true primary id. As well as not having to divide the regular and oauth
+// stuff all down the middle.
+func MakeOAuth2PID(provider, uid string) string {
+	return fmt.Sprintf("oauth2;;%s;;%s", provider, uid)
+}
+
+// ParseOAuth2PID returns the uid and provider for a given OAuth2 pid
+func ParseOAuth2PID(pid string) (provider, uid string, err error) {
+	splits := strings.Split(pid, ";;")
+	if len(splits) != 3 {
+		return "", "", fmt.Errorf("failed to parse oauth2 pid, too many segments: %s", pid)
+	}
+	if splits[0] != "oauth2" {
+		return "", "", fmt.Errorf("invalid oauth2 pid, did not start with oauth2: %s", pid)
+	}
+
+	return splits[1], splits[2], nil
+}
+
+// ParseOAuth2PIDP returns the uid and provider for a given OAuth2 pid
+func ParseOAuth2PIDP(pid string) (provider, uid string) {
+	var err error
+	provider, uid, err = ParseOAuth2PID(pid)
+	if err != nil {
+		panic(err)
+	}
+
+	return provider, uid
 }

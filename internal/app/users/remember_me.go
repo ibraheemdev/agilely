@@ -11,6 +11,8 @@ import (
 	"net/http"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 const (
@@ -27,13 +29,13 @@ func (u *Users) CreateRememberToken(w http.ResponseWriter, req *http.Request, ha
 	}
 
 	user := u.CurrentUserP(req)
-	hash, token, err := GenerateToken(user.GetPID())
+	hash, token, err := GenerateToken(user.Email)
 	if err != nil {
 		return false, err
 	}
 
-	storer := engine.EnsureCanRemember(u.Engine.Core.Server)
-	if err = storer.AddRememberToken(req.Context(), user.GetPID(), hash); err != nil {
+	_, err = u.Core.Database.Collection(Collection).UpdateOne(req.Context(), bson.M{"email": user.Email}, bson.M{"remember_tokens": append(user.RememberTokens, hash)})
+	if err != nil {
 		return false, err
 	}
 
@@ -90,14 +92,17 @@ func (u *Users) Authenticate(w http.ResponseWriter, req **http.Request) error {
 		return nil
 	}
 
-	pid := string(rawToken[:index])
+	email := string(rawToken[:index])
 	sum := sha512.Sum512(rawToken)
 	hash := base64.StdEncoding.EncodeToString(sum[:])
 
-	storer := engine.EnsureCanRemember(u.Core.Server)
-	err = storer.UseRememberToken((*req).Context(), pid, hash)
+	user, err := GetUser((*req).Context(), u.Core.Database, email)
+	if err != nil {
+		return err
+	}
+	tokens, err := user.UseRememberToken(hash)
 	switch {
-	case err == engine.ErrTokenNotFound:
+	case err == engine.ErrNoDocuments:
 		logger.Infof("remember me cookie had a token that was not in storage, deleting cookie")
 		engine.DelCookie(w, CookieRemember)
 		return nil
@@ -105,17 +110,18 @@ func (u *Users) Authenticate(w http.ResponseWriter, req **http.Request) error {
 		return err
 	}
 
-	hash, token, err := GenerateToken(pid)
+	hash, token, err := GenerateToken(email)
 	if err != nil {
 		return err
 	}
 
-	if err = storer.AddRememberToken((*req).Context(), pid, hash); err != nil {
+	_, err = u.Core.Database.Collection(Collection).UpdateOne((*req).Context(), bson.M{"_id": user.ID}, bson.M{"remember_tokens": append(tokens, hash)})
+	if err != nil {
 		return fmt.Errorf("failed to save remember me token %w", err)
 	}
 
-	*req = (*req).WithContext(context.WithValue((*req).Context(), CTXKeyPID, pid))
-	engine.PutSession(w, engine.SessionKey, pid)
+	*req = (*req).WithContext(context.WithValue((*req).Context(), CTXKeyPID, email))
+	engine.PutSession(w, engine.SessionKey, email)
 	engine.PutSession(w, SessionHalfAuthKey, "true")
 	engine.DelCookie(w, CookieRemember)
 	engine.PutCookie(w, CookieRemember, token)
@@ -132,14 +138,14 @@ func (u *Users) ResetAllTokens(w http.ResponseWriter, req *http.Request, handled
 	}
 
 	logger := u.Engine.RequestLogger(req)
-	storer := engine.EnsureCanRemember(u.Engine.Core.Server)
 
-	pid := user.GetPID()
 	engine.DelCookie(w, CookieRemember)
 
-	logger.Infof("deleting tokens and rm cookies for user %s due to password reset", pid)
+	logger.Infof("deleting tokens and rm cookies for user %s due to password reset", user.Email)
 
-	return false, storer.DelRememberTokens(req.Context(), pid)
+	_, err = u.Core.Database.Collection(Collection).UpdateOne((*req).Context(), bson.M{"_id": user.ID}, bson.M{"remember_tokens": nil})
+
+	return false, err
 }
 
 // GenerateToken creates a remember me token

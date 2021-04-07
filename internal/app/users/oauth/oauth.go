@@ -255,6 +255,7 @@ func (o *OAuth2) End(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// Fully log user in
+	// TODO : Use email instead of oauth2id
 	engine.PutSession(w, engine.SessionKey, engine.MakeOAuth2PID(provider, user.GetOAuth2UID()))
 	engine.DelSession(w, users.SessionHalfAuthKey)
 

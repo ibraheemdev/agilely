@@ -43,10 +43,6 @@ type Engine struct {
 		// request specific logger.
 		Logger Logger
 
-		// Storer is the interface through which Engine accesses the web apps
-		// database for user operations.
-		Server ServerStorer
-
 		// Database
 		Database Database
 

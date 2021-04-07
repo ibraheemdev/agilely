@@ -105,7 +105,7 @@ func testSetup() *testHarness {
 	harness.e.Core.Logger = test.Logger{}
 	harness.e.Core.Redirector = harness.redirector
 	harness.e.Core.SessionState = harness.session
-	harness.e.Core.Server = harness.storer
+	harness.e.Core.Database = harness.storer
 
 	harness.oauth = &OAuth2{harness.e}
 

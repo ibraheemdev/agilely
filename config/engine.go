@@ -6,7 +6,6 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
-	"github.com/ibraheemdev/agilely/internal/app/users"
 	"github.com/ibraheemdev/agilely/pkg/body_reader"
 	"github.com/ibraheemdev/agilely/pkg/client_state"
 	"github.com/ibraheemdev/agilely/pkg/error_handler"
@@ -34,7 +33,6 @@ func SetCore(e *engine.Engine) {
 	e.Core.BodyReader = bodyreader.NewHTTP(false, false)
 	e.Core.Mailer = mailer.NewLogMailer(os.Stdout)
 	e.Core.Logger = logger.New(os.Stdout)
-	e.Core.Server = users.DB
 }
 
 // SetConfig : Set's the engine's configuration variables by reading config files

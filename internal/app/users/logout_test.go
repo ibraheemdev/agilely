@@ -34,7 +34,7 @@ func testLogoutSetup() *testLogoutHarness {
 	harness.e.Core.Redirector = harness.redirector
 	harness.e.Core.SessionState = harness.session
 	harness.e.Core.CookieState = harness.cookies
-	harness.e.Core.Server = harness.storer
+	harness.e.Core.Database = harness.storer
 
 	harness.users = NewController(harness.e)
 

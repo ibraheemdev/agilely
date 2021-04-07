@@ -3,320 +3,245 @@ package test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
-	"time"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
 	"github.com/ibraheemdev/agilely/pkg/mailer"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// User represents all possible fields a engine User may have
-type User struct {
-	Username           string
-	Email              string
-	Password           string
-	RecoverSelector    string
-	RecoverVerifier    string
-	RecoverTokenExpiry time.Time
-	ConfirmSelector    string
-	ConfirmVerifier    string
-	Confirmed          bool
-	AttemptCount       int
-	LastAttempt        time.Time
-	Locked             time.Time
+var _ engine.Database = &Database{}
 
-	OAuth2UID      string
-	OAuth2Provider string
-	OAuth2Token    string
-	OAuth2Refresh  string
-	OAuth2Expiry   time.Time
-
-	Arbitrary map[string]string
+// Database ...
+type Database struct {
+	Collections map[string]*Collection
 }
 
-// GetPID from user
-func (u User) GetPID() string { return u.Email }
-
-// GetEmail from user
-func (u User) GetEmail() string { return u.Email }
-
-// GetUsername from user
-func (u User) GetUsername() string { return u.Username }
-
-// GetPassword from user
-func (u User) GetPassword() string { return u.Password }
-
-// GetRecoverSelector from user
-func (u User) GetRecoverSelector() string { return u.RecoverSelector }
-
-// GetRecoverVerifier from user
-func (u User) GetRecoverVerifier() string { return u.RecoverVerifier }
-
-// GetRecoverExpiry from user
-func (u User) GetRecoverExpiry() time.Time { return u.RecoverTokenExpiry }
-
-// GetConfirmSelector from user
-func (u User) GetConfirmSelector() string { return u.ConfirmSelector }
-
-// GetConfirmVerifier from user
-func (u User) GetConfirmVerifier() string { return u.ConfirmVerifier }
-
-// GetConfirmed from user
-func (u User) GetConfirmed() bool { return u.Confirmed }
-
-// GetAttemptCount from user
-func (u User) GetAttemptCount() int { return u.AttemptCount }
-
-// GetLastAttempt from user
-func (u User) GetLastAttempt() time.Time { return u.LastAttempt }
-
-// GetLocked from user
-func (u User) GetLocked() time.Time { return u.Locked }
-
-// IsOAuth2User returns true if the user is an oauth2 user
-func (u User) IsOAuth2User() bool { return len(u.OAuth2Provider) != 0 }
-
-// GetOAuth2UID from user
-func (u User) GetOAuth2UID() string { return u.OAuth2UID }
-
-// GetOAuth2Provider from user
-func (u User) GetOAuth2Provider() string { return u.OAuth2Provider }
-
-// GetOAuth2AccessToken from user
-func (u User) GetOAuth2AccessToken() string { return u.OAuth2Token }
-
-// GetOAuth2RefreshToken from user
-func (u User) GetOAuth2RefreshToken() string { return u.OAuth2Refresh }
-
-// GetOAuth2Expiry from user
-func (u User) GetOAuth2Expiry() time.Time { return u.OAuth2Expiry }
-
-// GetArbitrary from user
-func (u User) GetArbitrary() map[string]string { return u.Arbitrary }
-
-// PutPID into user
-func (u *User) PutPID(email string) { u.Email = email }
-
-// PutUsername into user
-func (u *User) PutUsername(username string) { u.Username = username }
-
-// PutEmail into user
-func (u *User) PutEmail(email string) { u.Email = email }
-
-// PutPassword into user
-func (u *User) PutPassword(password string) { u.Password = password }
-
-// PutRecoverSelector into user
-func (u *User) PutRecoverSelector(recoverSelector string) { u.RecoverSelector = recoverSelector }
-
-// PutRecoverVerifier into user
-func (u *User) PutRecoverVerifier(recoverVerifier string) { u.RecoverVerifier = recoverVerifier }
-
-// PutRecoverExpiry into user
-func (u *User) PutRecoverExpiry(recoverTokenExpiry time.Time) {
-	u.RecoverTokenExpiry = recoverTokenExpiry
+// Aggregate ...
+func (d *Database) Aggregate(ctx context.Context, pipeline map[string]interface{}, opts ...*options.AggregateOptions) (*mongo.Cursor, error) {
+	panic("not implemented")
 }
 
-// PutConfirmSelector into user
-func (u *User) PutConfirmSelector(confirmSelector string) { u.ConfirmSelector = confirmSelector }
-
-// PutConfirmVerifier into user
-func (u *User) PutConfirmVerifier(confirmVerifier string) { u.ConfirmVerifier = confirmVerifier }
-
-// PutConfirmed into user
-func (u *User) PutConfirmed(confirmed bool) { u.Confirmed = confirmed }
-
-// PutAttemptCount into user
-func (u *User) PutAttemptCount(attemptCount int) { u.AttemptCount = attemptCount }
-
-// PutLastAttempt into user
-func (u *User) PutLastAttempt(attemptTime time.Time) { u.LastAttempt = attemptTime }
-
-// PutLocked into user
-func (u *User) PutLocked(locked time.Time) { u.Locked = locked }
-
-// PutOAuth2UID into user
-func (u *User) PutOAuth2UID(uid string) { u.OAuth2UID = uid }
-
-// PutOAuth2Provider into user
-func (u *User) PutOAuth2Provider(provider string) { u.OAuth2Provider = provider }
-
-// PutOAuth2AccessToken into user
-func (u *User) PutOAuth2AccessToken(token string) { u.OAuth2Token = token }
-
-// PutOAuth2RefreshToken into user
-func (u *User) PutOAuth2RefreshToken(refresh string) { u.OAuth2Refresh = refresh }
-
-// PutOAuth2Expiry into user
-func (u *User) PutOAuth2Expiry(expiry time.Time) { u.OAuth2Expiry = expiry }
-
-// PutArbitrary into user
-func (u *User) PutArbitrary(arb map[string]string) { u.Arbitrary = arb }
-
-// ServerStorer should be valid for any module storer defined in engine.
-type ServerStorer struct {
-	Users    map[string]*User
-	RMTokens map[string][]string
-}
-
-// NewServerStorer constructor
-func NewServerStorer() *ServerStorer {
-	return &ServerStorer{
-		Users:    make(map[string]*User),
-		RMTokens: make(map[string][]string),
+// Collection ...
+func (d *Database) Collection(name string) engine.Collection {
+	if val, ok := d.Collections[name]; ok {
+		return val
 	}
-}
-
-// New constructs a blank user to later be created
-func (s *ServerStorer) New(context.Context) engine.User {
-	return &User{}
-}
-
-// Create a user
-func (s *ServerStorer) Create(ctx context.Context, user engine.User) error {
-	u := user.(*User)
-	if _, ok := s.Users[u.Email]; ok {
-		return engine.ErrUserFound
+	c := &Collection{
+		Documents: make([]map[string]interface{}, 1),
+		name:      name,
+		db:        d,
 	}
-	s.Users[u.Email] = u
+
+	d.Collections[name] = c
+	return c
+}
+
+// Collection ...
+type Collection struct {
+	db        *Database
+	name      string
+	Documents []map[string]interface{}
+}
+
+// Name ...
+func (c *Collection) Name() string {
+	return c.name
+}
+
+// Database ...
+func (c *Collection) Database() engine.Database {
+	return c.db
+}
+
+// Drop ...
+func (c *Collection) Drop(_ context.Context) error {
+	c = nil
 	return nil
 }
 
-// Load a user
-func (s *ServerStorer) Load(ctx context.Context, key string) (engine.User, error) {
-	user, ok := s.Users[key]
-	if ok {
-		return user, nil
-	}
-
-	return nil, engine.ErrUserNotFound
+// Aggregate ...
+func (c *Collection) Aggregate(ctx context.Context, pipeline map[string]interface{}, opts ...*options.AggregateOptions) (*mongo.Cursor, error) {
+	panic("not implemented") // TODO: Implement
 }
 
-// Save a user
-func (s *ServerStorer) Save(ctx context.Context, user engine.User) error {
-	u := user.(*User)
-	if _, ok := s.Users[u.Email]; !ok {
-		return engine.ErrUserNotFound
+// Find ...
+func (c *Collection) Find(ctx context.Context, filter map[string]interface{}, opts ...*options.FindOptions) (engine.Cursor, error) {
+	var results []map[string]interface{}
+	for _, d := range c.Documents {
+		if contains(d, filter) {
+			results = append(results, d)
+			break
+		}
 	}
-	s.Users[u.Email] = u
+	return newCursor(results), nil
+}
+
+type cursor struct {
+	pos  int
+	docs []map[string]interface{}
+}
+
+func newCursor(docs []map[string]interface{}) *cursor {
+	return &cursor{
+		pos:  0,
+		docs: docs,
+	}
+}
+
+func (c *cursor) Next(_ context.Context) bool {
+	if c.docs[c.pos] == nil {
+		return false
+	}
+	c.pos++
+	return true
+}
+
+func (c *cursor) Err() error {
 	return nil
 }
 
-// NewFromOAuth2 finds a user with the given details, or returns a new one
-func (s *ServerStorer) NewFromOAuth2(ctx context.Context, provider string, details map[string]string) (engine.OAuth2User, error) {
-	uid := details["uid"]
-	email := details["email"]
-	name := details["name"]
-	pid := engine.MakeOAuth2PID(provider, uid)
-
-	u, ok := s.Users[pid]
-	if ok {
-		u.Username = name
-		u.Email = email
-		return u, nil
+func (c *cursor) Decode(v interface{}) error {
+	bytes, err := json.Marshal(c.docs[c.pos])
+	if err != nil {
+		return err
 	}
 
-	return &User{
-		OAuth2UID:      uid,
-		OAuth2Provider: provider,
-		Email:          email,
-		Username:       name,
-	}, nil
-}
+	err = json.Unmarshal(bytes, v)
+	if err != nil {
+		return err
+	}
 
-// SaveOAuth2 creates a user if not found, or updates one that exists.
-func (s *ServerStorer) SaveOAuth2(ctx context.Context, user engine.OAuth2User) error {
-	u := user.(*User)
-
-	pid := engine.MakeOAuth2PID(u.OAuth2Provider, u.OAuth2UID)
-	// Since we don't have to differentiate between
-	// insert/update in a map, we just overwrite
-	s.Users[pid] = u
 	return nil
 }
 
-// LoadByConfirmSelector finds a user by his confirm selector
-func (s *ServerStorer) LoadByConfirmSelector(ctx context.Context, selector string) (engine.ConfirmableUser, error) {
-	for _, v := range s.Users {
-		if v.ConfirmSelector == selector {
-			return v, nil
+func (c *cursor) Close(_ context.Context) error {
+	return nil
+}
+
+func (c *cursor) All(_ context.Context, results interface{}) error {
+	slice := reflect.ValueOf(results).Elem()
+
+	slice.Set(reflect.MakeSlice(slice.Type(), len(c.docs), len(c.docs)))
+
+	for i, doc := range c.docs {
+		bytes, err := json.Marshal(doc)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(bytes, slice.Index(i).Addr().Interface())
+		if err != nil {
+			return err
 		}
 	}
 
-	return nil, engine.ErrUserNotFound
-}
-
-// LoadByRecoverSelector finds a user by his recover token
-func (s *ServerStorer) LoadByRecoverSelector(ctx context.Context, selector string) (engine.RecoverableUser, error) {
-	for _, v := range s.Users {
-		if v.RecoverSelector == selector {
-			return v, nil
-		}
-	}
-
-	return nil, engine.ErrUserNotFound
-}
-
-// AddRememberToken for remember me
-func (s *ServerStorer) AddRememberToken(ctx context.Context, key, token string) error {
-	arr := s.RMTokens[key]
-	s.RMTokens[key] = append(arr, token)
 	return nil
 }
 
-// DelRememberTokens for a user
-func (s *ServerStorer) DelRememberTokens(ctx context.Context, key string) error {
-	delete(s.RMTokens, key)
+// FindOne ...
+func (c *Collection) FindOne(ctx context.Context, filter map[string]interface{}, opts ...*options.FindOneOptions) engine.SingleResult {
+	var result map[string]interface{}
+	for _, d := range c.Documents {
+		if contains(d, filter) {
+			result = d
+			break
+		}
+	}
+	if result == nil {
+		return &singleResult{result, mongo.ErrNoDocuments}
+	}
+	return &singleResult{result, nil}
+}
+
+type singleResult struct {
+	doc map[string]interface{}
+	err error
+}
+
+func (s *singleResult) Decode(v interface{}) error {
+	bytes, err := json.Marshal(s.doc)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(bytes, v); err != nil {
+		return err
+	}
 	return nil
 }
 
-// UseRememberToken if it exists, deleting it in the process
-func (s *ServerStorer) UseRememberToken(ctx context.Context, givenKey, token string) (err error) {
-	arr, ok := s.RMTokens[givenKey]
-	if !ok {
-		return engine.ErrTokenNotFound
-	}
+func (s *singleResult) Err() error {
+	return s.err
+}
 
-	for i, tok := range arr {
-		if tok == token {
-			if len(arr) == 1 {
-				delete(s.RMTokens, givenKey)
-				return nil
-			}
-
-			arr[i] = arr[len(arr)-1]
-			s.RMTokens[givenKey] = arr[:len(arr)-2]
-			return nil
+func contains(doc, filter map[string]interface{}) bool {
+	for k, v := range filter {
+		if doc[k] != v {
+			return false
 		}
 	}
-
-	return engine.ErrTokenNotFound
+	return true
 }
 
-// FailStorer is used for testing module initialize functions that
-// recover more than the base storer
-type FailStorer struct {
-	User
+// FindOneAndDelete ...
+func (c *Collection) FindOneAndDelete(ctx context.Context, filter map[string]interface{}, opts ...*options.FindOneAndDeleteOptions) engine.SingleResult {
+	var result map[string]interface{}
+	for _, d := range c.Documents {
+		if contains(d, filter) {
+			result = d
+			d = nil
+			break
+		}
+	}
+	return &singleResult{result, nil}
 }
 
-// Create fails
-func (FailStorer) Create(context.Context) error {
-	return errors.New("fail storer: create")
+// FindOneAndUpdate ...
+func (c *Collection) FindOneAndUpdate(ctx context.Context, filter map[string]interface{}, update map[string]interface{}, opts ...*options.FindOneAndUpdateOptions) engine.SingleResult {
+	panic("not implemented") // TODO: Implement
 }
 
-// Save fails
-func (FailStorer) Save(context.Context) error {
-	return errors.New("fail storer: put")
+// InsertMany ...
+func (c *Collection) InsertMany(ctx context.Context, documents []map[string]interface{}, opts ...*options.InsertManyOptions) (*mongo.InsertManyResult, error) {
+	panic("not implemented") // TODO: Implement
 }
 
-// Load fails
-func (FailStorer) Load(context.Context) error {
-	return errors.New("fail storer: get")
+// InsertOne ...
+func (c *Collection) InsertOne(ctx context.Context, document map[string]interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// UpdateMany ...
+func (c *Collection) UpdateMany(ctx context.Context, filter map[string]interface{}, update map[string]interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// UpdateOne ...
+func (c *Collection) UpdateOne(ctx context.Context, filter map[string]interface{}, update map[string]interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// DeleteMany ...
+func (c *Collection) DeleteMany(ctx context.Context, filter map[string]interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// DeleteOne ...
+func (c *Collection) DeleteOne(ctx context.Context, filter map[string]interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+	panic("not implemented") // TODO: Implement
+}
+
+// NewDatabase ...
+func NewDatabase() *Database {
+	return &Database{}
 }
 
 // ClientState is used for testing the client stores on context

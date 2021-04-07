@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Storage key constants
@@ -27,11 +29,12 @@ func (u *Users) ResetLoginAttempts(w http.ResponseWriter, r *http.Request, handl
 		return false, err
 	}
 
-	lu := engine.MustBeLockable(user)
-	lu.PutAttemptCount(0)
-	lu.PutLastAttempt(time.Now().UTC())
+	user.AttemptCount = 0
+	user.LastAttempt = time.Now().UTC()
 
-	return false, u.Engine.Core.Server.Save(r.Context(), lu)
+	_, err = u.Engine.Core.Database.Collection(Collection).InsertOne(r.Context(), user)
+
+	return false, err
 }
 
 // UpdateLockAttempts adjusts the attempt number and time negatively
@@ -49,29 +52,29 @@ func (u *Users) updateLockedState(w http.ResponseWriter, r *http.Request, wasCor
 	}
 
 	// Fetch things
-	lu := engine.MustBeLockable(user)
-	last := lu.GetLastAttempt()
-	attempts := lu.GetAttemptCount()
+	last := user.LastAttempt
+	attempts := user.AttemptCount
 	attempts++
 
 	if !wasCorrectPassword {
 		if time.Now().UTC().Sub(last) <= u.Config.Authboss.LockWindow {
 			if attempts >= u.Config.Authboss.LockAfter {
-				lu.PutLocked(time.Now().UTC().Add(u.Config.Authboss.LockDuration))
+				user.Locked = time.Now().UTC().Add(u.Config.Authboss.LockDuration)
 			}
 
-			lu.PutAttemptCount(attempts)
+			user.AttemptCount = attempts
 		} else {
-			lu.PutAttemptCount(1)
+			user.AttemptCount = 1
 		}
 	}
-	lu.PutLastAttempt(time.Now().UTC())
+	user.LastAttempt = time.Now().UTC()
 
-	if err := u.Engine.Core.Server.Save(r.Context(), lu); err != nil {
+	_, err = u.Engine.Core.Database.Collection(Collection).InsertOne(r.Context(), user)
+	if err != nil {
 		return false, err
 	}
 
-	if !IsLocked(lu) {
+	if !IsLocked(user) {
 		return false, nil
 	}
 
@@ -85,36 +88,34 @@ func (u *Users) updateLockedState(w http.ResponseWriter, r *http.Request, wasCor
 
 // Lock a user manually.
 func (u *Users) Lock(ctx context.Context, key string) error {
-	user, err := u.Engine.Core.Server.Load(ctx, key)
+	user, err := GetUser(ctx, u.Core.Database, key)
 	if err != nil {
 		return err
 	}
 
-	lu := engine.MustBeLockable(user)
-	lu.PutLocked(time.Now().UTC().Add(u.Engine.Config.Authboss.LockDuration))
+	_, err = u.Engine.Core.Database.Collection(Collection).UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{"locked": locked})
 
-	return u.Engine.Core.Server.Save(ctx, lu)
+	return err
 }
 
 // Unlock a user that was locked by this module.
 func (u *Users) Unlock(ctx context.Context, key string) error {
-	user, err := u.Engine.Core.Server.Load(ctx, key)
+	user, err := GetUser(ctx, u.Core.Database, key)
 	if err != nil {
 		return err
 	}
-
-	lu := engine.MustBeLockable(user)
 
 	// Set the last attempt to be -window*2 to avoid immediately
 	// giving another login failure. Don't reset Locked to Zero time
 	// because some databases may have trouble storing values before
 	// unix_time(0): Jan 1st, 1970
 	now := time.Now().UTC()
-	lu.PutAttemptCount(0)
-	lu.PutLastAttempt(now.Add(-u.Engine.Config.Authboss.LockWindow * 2))
-	lu.PutLocked(now.Add(-u.Engine.Config.Authboss.LockDuration))
+	user.AttemptCount = 0
+	user.LastAttempt = now.Add(-u.Engine.Config.Authboss.LockWindow * 2)
+	user.Locked = now.Add(-u.Engine.Config.Authboss.LockDuration)
 
-	return u.Engine.Core.Server.Save(ctx, lu)
+	_, err = u.Engine.Core.Database.Collection(Collection).InsertOne(ctx, user)
+	return err
 }
 
 // LockMiddleware ensures that a user is not locked, or else it will intercept
@@ -126,14 +127,13 @@ func (u *Users) LockMiddleware() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := u.LoadCurrentUserP(&r)
 
-			lu := engine.MustBeLockable(user)
-			if !IsLocked(lu) {
+			if !IsLocked(user) {
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			logger := u.RequestLogger(r)
-			logger.Infof("user %s prevented from accessing %s: locked", user.GetPID(), r.URL.Path)
+			logger.Infof("user %s prevented from accessing %s: locked", user.Email, r.URL.Path)
 			ro := engine.RedirectOptions{
 				Code:         http.StatusTemporaryRedirect,
 				Failure:      "Your account has been locked, please contact the administrator.",
@@ -147,6 +147,6 @@ func (u *Users) LockMiddleware() func(http.Handler) http.Handler {
 }
 
 // IsLocked checks if a user is locked
-func IsLocked(lu engine.LockableUser) bool {
-	return lu.GetLocked().After(time.Now().UTC())
+func IsLocked(u *User) bool {
+	return u.Locked.After(time.Now().UTC())
 }

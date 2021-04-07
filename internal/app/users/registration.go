@@ -7,6 +7,8 @@ import (
 	"sort"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
+
+	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -55,29 +57,27 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 
 	// Get values from request
 	userVals := engine.MustHaveUserValues(validatable)
-	pid, password := userVals.GetPID(), userVals.GetPassword()
+	email, password := userVals.GetPID(), userVals.GetPassword()
 
-	// Put values into newly created user for storage
-	storer := engine.EnsureCanCreate(u.Core.Server)
-	user := engine.MustBeAuthable(storer.New(req.Context()))
+	var user User
 
 	pass, err := bcrypt.GenerateFromPassword([]byte(password), u.Config.Authboss.BCryptCost)
 	if err != nil {
 		return err
 	}
 
-	user.PutPID(pid)
-	user.PutPassword(string(pass))
+	user.Email = email
+	user.Password = string(pass)
 
-	if arbUser, ok := user.(engine.ArbitraryUser); ok && arbitrary != nil {
-		arbUser.PutArbitrary(arbitrary)
+	if n, ok := arbitrary["name"]; ok {
+		user.Name = n
 	}
 
-	err = storer.Create(req.Context(), user)
-	switch {
-	case err == engine.ErrUserFound:
-		logger.Infof("user %s attempted to re-register", pid)
-		errs = []error{errors.New("user already exists")}
+	res := u.Core.Database.Collection(Collection).FindOne(req.Context(), bson.M{"email": email})
+	// if the email is taken
+	if res.Err() != engine.ErrNoDocuments {
+		logger.Infof("user %s attempted to re-register", email)
+		errs = []error{errors.New("email is taken")}
 		data := engine.HTMLData{
 			engine.DataValidation: engine.ErrorMap(errs),
 		}
@@ -85,7 +85,10 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 			data[engine.DataPreserve] = preserve
 		}
 		return u.Core.Responder.Respond(w, req, http.StatusOK, PageRegister, data)
-	case err != nil:
+	}
+
+	_, err = u.Core.Database.Collection(Collection).InsertOne(req.Context(), user)
+	if err != nil {
 		return err
 	}
 
@@ -99,9 +102,9 @@ func (u *Users) PostRegister(w http.ResponseWriter, req *http.Request) error {
 
 	// Log the user in, but only if the response wasn't handled previously
 	// by a module like confirm.
-	engine.PutSession(w, engine.SessionKey, pid)
+	engine.PutSession(w, engine.SessionKey, email)
 
-	logger.Infof("registered and logged in user %s", pid)
+	logger.Infof("registered and logged in user %s", email)
 	ro := engine.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		Success:      "Account successfully created, you are now logged in",

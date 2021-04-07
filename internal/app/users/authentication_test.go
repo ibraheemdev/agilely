@@ -45,7 +45,7 @@ type testHarness struct {
 	responder  *test.Responder
 	redirector *test.Redirector
 	session    *test.ClientStateRW
-	storer     *test.ServerStorer
+	database   *test.Database
 }
 
 func testSetup() *testHarness {
@@ -56,14 +56,14 @@ func testSetup() *testHarness {
 	harness.redirector = &test.Redirector{}
 	harness.responder = &test.Responder{}
 	harness.session = test.NewClientRW()
-	harness.storer = test.NewServerStorer()
+	harness.database = test.NewDatabase()
 
 	harness.e.Core.BodyReader = harness.bodyReader
 	harness.e.Core.Logger = test.Logger{}
 	harness.e.Core.Responder = harness.responder
 	harness.e.Core.Redirector = harness.redirector
 	harness.e.Core.SessionState = harness.session
-	harness.e.Core.Server = harness.storer
+	harness.e.Core.Database = harness.storer
 
 	harness.users = NewController(harness.e)
 

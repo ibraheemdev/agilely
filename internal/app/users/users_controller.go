@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
@@ -26,10 +25,6 @@ func (u *Users) Init() (err error) {
 
 	if err = u.Engine.Core.MailRenderer.Load(EmailConfirmHTML, EmailConfirmTxt, EmailRecoverHTML, EmailRecoverTxt); err != nil {
 		return err
-	}
-
-	if _, ok := u.Core.Server.(engine.CreatingServerStorer); !ok {
-		return errors.New("register module activated but storer could not be upgraded to CreatingServerStorer")
 	}
 
 	// authentication events
@@ -104,7 +99,7 @@ func (u *Users) CurrentUserIDP(r *http.Request) string {
 	if err != nil {
 		panic(err)
 	} else if len(i) == 0 {
-		panic(engine.ErrUserNotFound)
+		panic(engine.ErrNoDocuments)
 	}
 
 	return i
@@ -113,16 +108,16 @@ func (u *Users) CurrentUserIDP(r *http.Request) string {
 // CurrentUser retrieves the current user from the session and the database.
 // Before the user is loaded from the database the context key is checked.
 // If the session doesn't have the user ID ErrUserNotFound will be returned.
-func (u *Users) CurrentUser(r *http.Request) (engine.User, error) {
+func (u *Users) CurrentUser(r *http.Request) (*User, error) {
 	if user := r.Context().Value(CTXKeyUser); user != nil {
-		return user.(engine.User), nil
+		return user.(*User), nil
 	}
 
 	pid, err := u.CurrentUserID(r)
 	if err != nil {
 		return nil, err
 	} else if len(pid) == 0 {
-		return nil, engine.ErrUserNotFound
+		return nil, engine.ErrNoDocuments
 	}
 
 	return u.currentUser(r.Context(), pid)
@@ -130,19 +125,19 @@ func (u *Users) CurrentUser(r *http.Request) (engine.User, error) {
 
 // CurrentUserP retrieves the current user but panics if it's not available for
 // any reason.
-func (u *Users) CurrentUserP(r *http.Request) engine.User {
+func (u *Users) CurrentUserP(r *http.Request) *User {
 	i, err := u.CurrentUser(r)
 	if err != nil {
 		panic(err)
 	} else if i == nil {
-		panic(engine.ErrUserNotFound)
+		panic(engine.ErrNoDocuments)
 	}
 	return i
 }
 
-func (u *Users) currentUser(ctx context.Context, pid string) (engine.User, error) {
-	user, err := u.Core.Server.Load(ctx, pid)
-	return user.(engine.User), err
+func (u *Users) currentUser(ctx context.Context, key string) (*User, error) {
+	user, err := GetUser(ctx, u.Core.Database, key)
+	return user, err
 }
 
 // LoadCurrentUserID takes a pointer to a pointer to the request in order to
@@ -170,7 +165,7 @@ func (u *Users) LoadCurrentUserIDP(r **http.Request) string {
 	if err != nil {
 		panic(err)
 	} else if len(pid) == 0 {
-		panic(engine.ErrUserNotFound)
+		panic(engine.ErrNoDocuments)
 	}
 
 	return pid
@@ -180,16 +175,16 @@ func (u *Users) LoadCurrentUserIDP(r **http.Request) string {
 // change the current method's request pointer itself to the new request that
 // contains the new context that has the user in it. Calls LoadCurrentUserID
 // so the primary id is also put in the context.
-func (u *Users) LoadCurrentUser(r **http.Request) (engine.User, error) {
+func (u *Users) LoadCurrentUser(r **http.Request) (*User, error) {
 	if user := (*r).Context().Value(CTXKeyUser); user != nil {
-		return user.(engine.User), nil
+		return user.(*User), nil
 	}
 
 	pid, err := u.LoadCurrentUserID(r)
 	if err != nil {
 		return nil, err
 	} else if len(pid) == 0 {
-		return nil, engine.ErrUserNotFound
+		return nil, engine.ErrNoDocuments
 	}
 
 	ctx := (**r).Context()
@@ -205,12 +200,12 @@ func (u *Users) LoadCurrentUser(r **http.Request) (engine.User, error) {
 
 // LoadCurrentUserP does the same as LoadCurrentUser but panics if
 // the current user is not found.
-func (u *Users) LoadCurrentUserP(r **http.Request) engine.User {
+func (u *Users) LoadCurrentUserP(r **http.Request) *User {
 	user, err := u.LoadCurrentUser(r)
 	if err != nil {
 		panic(err)
 	} else if user == nil {
-		panic(engine.ErrUserNotFound)
+		panic(engine.ErrNoDocuments)
 	}
 
 	return user

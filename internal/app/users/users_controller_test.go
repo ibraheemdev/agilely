@@ -164,7 +164,7 @@ func TestCurrentUserIDP(t *testing.T) {
 	e.Core.SessionState = test.NewClientRW()
 
 	defer func() {
-		if recover().(error) != engine.ErrUserNotFound {
+		if recover().(error) != engine.ErrNoDocuments {
 			t.Failed()
 		}
 	}()
@@ -208,7 +208,7 @@ func TestCurrentUserP(t *testing.T) {
 	e := testSetupContextPanic()
 
 	defer func() {
-		if recover().(error) != engine.ErrUserNotFound {
+		if recover().(error) != engine.ErrNoDocuments {
 			t.Failed()
 		}
 	}()
@@ -256,7 +256,7 @@ func TestLoadCurrentUserIDP(t *testing.T) {
 	e := testSetupContextPanic()
 
 	defer func() {
-		if recover().(error) != engine.ErrUserNotFound {
+		if recover().(error) != engine.ErrNoDocuments {
 			t.Failed()
 		}
 	}()
@@ -308,7 +308,7 @@ func TestLoadCurrentUserP(t *testing.T) {
 	e := testSetupContextPanic()
 
 	defer func() {
-		if recover().(error) != engine.ErrUserNotFound {
+		if recover().(error) != engine.ErrNoDocuments {
 			t.Failed()
 		}
 	}()

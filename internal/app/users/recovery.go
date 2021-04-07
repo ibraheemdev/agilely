@@ -16,6 +16,8 @@ import (
 
 	"github.com/ibraheemdev/agilely/internal/app/engine"
 	"github.com/ibraheemdev/agilely/pkg/mailer"
+
+	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -62,8 +64,8 @@ func (u *Users) StartPostRecover(w http.ResponseWriter, req *http.Request) error
 
 	recoverVals := engine.MustHaveRecoverStartValues(validatable)
 
-	user, err := u.Engine.Core.Server.Load(req.Context(), recoverVals.GetPID())
-	if err == engine.ErrUserNotFound {
+	user, err := GetUser(req.Context(), u.Core.Database, recoverVals.GetPID())
+	if err == engine.ErrNoDocuments {
 		logger.Infof("user %s was attempted to be recovered, user does not exist, faking successful response", recoverVals.GetPID())
 		ro := engine.RedirectOptions{
 			Code:         http.StatusTemporaryRedirect,
@@ -73,24 +75,23 @@ func (u *Users) StartPostRecover(w http.ResponseWriter, req *http.Request) error
 		return u.Engine.Core.Redirector.Redirect(w, req, ro)
 	}
 
-	ru := engine.MustBeRecoverable(user)
-
 	selector, verifier, token, err := GenerateRecoverCreds()
 	if err != nil {
 		return err
 	}
 
-	ru.PutRecoverSelector(selector)
-	ru.PutRecoverVerifier(verifier)
-	ru.PutRecoverExpiry(time.Now().UTC().Add(u.Config.Authboss.RecoverTokenDuration))
+	user.RecoverSelector = selector
+	user.RecoverVerifier = verifier
+	user.RecoverTokenExpiry = time.Now().UTC().Add(u.Config.Authboss.RecoverTokenDuration)
 
-	if err := u.Engine.Core.Server.Save(req.Context(), ru); err != nil {
+	_, err = u.Engine.Core.Database.Collection(Collection).InsertOne(req.Context(), user)
+	if err != nil {
 		return err
 	}
 
-	go u.SendRecoverEmail(req.Context(), ru.GetEmail(), token)
+	go u.SendRecoverEmail(req.Context(), user.Email, token)
 
-	logger.Infof("user %s password recovery initiated", ru.GetPID())
+	logger.Infof("user %s password recovery initiated", user.Email)
 	ro := engine.RedirectOptions{
 		Code:         http.StatusTemporaryRedirect,
 		RedirectPath: "/",
@@ -182,23 +183,23 @@ func (u *Users) EndPostRecover(w http.ResponseWriter, req *http.Request) error {
 	verifierBytes := sha512.Sum512(rawToken[recoverTokenSplit:])
 	selector := base64.StdEncoding.EncodeToString(selectorBytes[:])
 
-	storer := engine.EnsureCanRecover(u.Engine.Core.Server)
-	user, err := storer.LoadByRecoverSelector(req.Context(), selector)
-	if err == engine.ErrUserNotFound {
+	var user User
+	err = u.Core.Database.Collection(Collection).FindOne(req.Context(), bson.M{"recover_selector": selector}).Decode(&user)
+	if err == engine.ErrNoDocuments {
 		logger.Info("invalid recover token submitted, user not found")
 		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	} else if err != nil {
 		return err
 	}
 
-	if time.Now().UTC().After(user.GetRecoverExpiry()) {
+	if time.Now().UTC().After(user.RecoverTokenExpiry) {
 		logger.Infof("invalid recover token submitted, already expired: %+v", err)
 		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	}
 
-	dbVerifierBytes, err := base64.StdEncoding.DecodeString(user.GetRecoverVerifier())
+	dbVerifierBytes, err := base64.StdEncoding.DecodeString(user.RecoverVerifier)
 	if err != nil {
-		logger.Infof("invalid recover verifier stored in database: %s", user.GetRecoverVerifier())
+		logger.Infof("invalid recover verifier stored in database: %s", user.RecoverVerifier)
 		return u.invalidRecoverToken(PageRecoverEnd, w, req)
 	}
 
@@ -213,12 +214,13 @@ func (u *Users) EndPostRecover(w http.ResponseWriter, req *http.Request) error {
 		return err
 	}
 
-	user.PutPassword(string(pass))
-	user.PutRecoverSelector("")             // Don't allow another recovery
-	user.PutRecoverVerifier("")             // Don't allow another recovery
-	user.PutRecoverExpiry(time.Now().UTC()) // Put current time for those DBs that can't handle 0 time
+	user.Password = string(pass)
+	user.RecoverSelector = ""                  // Don't allow another recovery
+	user.RecoverVerifier = ""                  // Don't allow another recovery
+	user.RecoverTokenExpiry = time.Now().UTC() // Put current time for those DBs that can't handle 0 time
 
-	if err := storer.Save(req.Context(), user); err != nil {
+	_, err = u.Engine.Core.Database.Collection(Collection).InsertOne(req.Context(), user)
+	if err != nil {
 		return err
 	}
 

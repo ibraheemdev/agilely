@@ -40,23 +40,21 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 	// password check.
 	creds := engine.MustHaveUserValues(validatable)
 
-	pid := creds.GetPID()
-	pidUser, err := u.Engine.Core.Server.Load(r.Context(), pid)
-	if err == engine.ErrUserNotFound {
-		logger.Infof("failed to load user requested by pid: %s", pid)
+	email := creds.GetPID()
+	user, err := GetUser(r.Context(), u.Core.Database, email)
+
+	if err == engine.ErrNoDocuments {
+		logger.Infof("failed to load user requested by email: %s", email)
 		data := engine.HTMLData{engine.DataErr: "Invalid Credentials"}
 		return u.Engine.Core.Responder.Respond(w, r, http.StatusOK, PageLogin, data)
 	} else if err != nil {
 		return err
 	}
 
-	authUser := engine.MustBeAuthable(pidUser)
-	password := authUser.GetPassword()
-
-	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, pidUser))
+	r = r.WithContext(context.WithValue(r.Context(), CTXKeyUser, user))
 
 	var handled bool
-	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(creds.GetPassword()))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.GetPassword()))
 	if err != nil {
 		handled, err = u.Engine.AuthEvents.FireAfter(engine.EventAuthFail, w, r)
 		if err != nil {
@@ -65,7 +63,7 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 			return nil
 		}
 
-		logger.Infof("user %s failed to log in", pid)
+		logger.Infof("user %s failed to log in", email)
 		data := engine.HTMLData{engine.DataErr: "Invalid Credentials"}
 		return u.Engine.Core.Responder.Respond(w, r, http.StatusOK, PageLogin, data)
 	}
@@ -86,8 +84,8 @@ func (u *Users) LoginPost(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 
-	logger.Infof("user %s logged in", pid)
-	engine.PutSession(w, engine.SessionKey, pid)
+	logger.Infof("user %s logged in", email)
+	engine.PutSession(w, engine.SessionKey, email)
 	engine.DelSession(w, SessionHalfAuthKey)
 
 	handled, err = u.Engine.AuthEvents.FireAfter(engine.EventAuth, w, r)
@@ -198,7 +196,7 @@ func (u *Users) AuthenticatedMountedMiddleware(mountPathed bool, reqs MWRequirem
 				return
 			}
 
-			if _, err := u.LoadCurrentUser(&r); err == engine.ErrUserNotFound {
+			if _, err := u.LoadCurrentUser(&r); err == engine.ErrNoDocuments {
 				fail(w, r)
 				return
 			} else if err != nil {

@@ -12,7 +12,7 @@ func (u *Users) Logout(w http.ResponseWriter, r *http.Request) error {
 
 	user, err := u.CurrentUser(r)
 	if err == nil && user != nil {
-		logger.Infof("user %s logged out", user.GetPID())
+		logger.Infof("user %s logged out", user.Email)
 	} else {
 		logger.Info("user (unknown) logged out")
 	}
