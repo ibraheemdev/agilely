@@ -5,7 +5,7 @@ ruby '2.7.1'
 
 gem 'rails', '~> 6.0', '>= 6.0.3.2'
 gem 'mongoid', '~> 7.0.5'
-gem 'puma', '~> 4.1'
+gem 'puma', '~> 4.3'
 gem 'webpacker', '~> 4.0'
 gem 'turbolinks', '~> 5'
 gem 'devise'
